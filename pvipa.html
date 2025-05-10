@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predict Vip (Tabs + 1min Predict + Updates)</title> <link rel="icon" type="image/png" href="favicon.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        /* Styles remain the same as previous version */
+        body { font-family: 'Montserrat', sans-serif; background-color: #111827; }
+        .overflow-hidden { overflow: hidden !important; }
+        .animate-gradient-x { animation: gradient-x 5s ease infinite; background-size: 200% 200%; }
+        @keyframes gradient-x { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .hidden { display: none !important; }
+        .loader { border: 4px solid #f3f3f3; border-radius: 50%; border-top: 4px solid #3498db; width: 20px; height: 20px; -webkit-animation: spin 2s linear infinite; animation: spin 2s linear infinite; margin: 0 auto; }
+        @-webkit-keyframes spin { 0% { -webkit-transform: rotate(0deg); } 100% { -webkit-transform: rotate(360deg); } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .popup-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .popup-container.hidden { display: none; }
+        .popup-content { padding: 1.5rem; border-radius: 1rem; max-width: 90%; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5); color: white; text-align: center; position: relative; }
+        .close-popup { position: absolute; top: 0.5rem; right: 0.5rem; font-size: 1.5rem; cursor: pointer; color: white; background: none; border: none; line-height: 1; padding: 0.2rem; }
+        #win-menu-container .popup-content { width: 90%; max-width: 420px; background: linear-gradient(135deg, #1e3a8a, #3b82f6, #60a5fa, #1e3a8a); background-size: 300% 300%; animation: gradient-x 8s ease infinite; }
+        #win-menu-container h2 { font-size: 1.3rem; margin-bottom: 0.8rem; }
+        #win-menu-container p { font-size: 0.9rem; margin-bottom: 0.5rem; line-height: 1.4; }
+        .prediction-history { margin-top: 1rem; max-height: 250px; overflow-y: auto; background: rgba(255, 255, 255, 0.1); padding: 0.75rem; border-radius: 0.5rem; }
+        .history-table { width: 100%; border-collapse: collapse; }
+        .history-table th { background: rgba(30, 58, 138, 0.8); color: white; padding: 0.5rem; font-weight: bold; text-align: center; position: sticky; top: 0; z-index: 1; font-size: 0.8rem; }
+        .history-table td { padding: 0.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.2); font-size: 0.85rem; text-align: center; }
+        .history-item.pending td { background: rgba(250, 204, 21, 0.1); }
+        .history-item.win td { background: rgba(34, 197, 94, 0.1); }
+        .history-item.loss td { background: rgba(239, 68, 68, 0.1); }
+        .color-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin: 0 3px; vertical-align: middle; }
+        .status-box { width: 60px; height: 24px; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin: auto; }
+        .history-item.pending .status-box { background: #facc15; color: #1e3a8a; }
+        .history-item.win .status-box { background: #22c55e; color: white; }
+        .history-item.loss .status-box { background: #ef4444; color: white; }
+        #prediction-display { margin-top: 0.5rem; padding: 0.75rem; background: rgba(0,0,0,0.2); border-radius: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .prediction-text { font-size: 1.5rem; font-weight: bold; }
+        .prediction-text .big { color: #fde047; }
+        .prediction-text .small { color: #60a5fa; }
+        .prediction-text .red { color: #f87171; }
+        .prediction-text .green { color: #4ade80; }
+        .main-tabs { background-color: rgba(30, 58, 138, 0.8); backdrop-filter: blur(5px); border-bottom: 1px solid #3b82f6; }
+        .tab-button { background-color: transparent; color: #93c5fd; padding: 0.75rem 1rem; border: none; cursor: pointer; transition: all 0.3s ease; font-weight: 500; border-bottom: 3px solid transparent; white-space: nowrap; }
+        .tab-button:hover { background-color: rgba(59, 130, 246, 0.3); color: white; }
+        .tab-button.active { color: white; border-bottom-color: #facc15; font-weight: 700; }
+        .tab-content { min-height: 300px; padding-top: 1.5rem; }
+        #aviator-content .aviator-container { font-family: 'Poppins', sans-serif; background-color: rgba(15, 23, 42, 0.7); backdrop-filter: blur(3px); color: #cbd5e1; border-radius: 0.5rem; padding: 1rem; border: 1px solid #374151; }
+        #aviator-content textarea::-webkit-scrollbar, #aviator-content ul::-webkit-scrollbar { width: 5px; }
+        #aviator-content textarea::-webkit-scrollbar-track, #aviator-content ul::-webkit-scrollbar-track { background: #374151; border-radius: 10px; }
+        #aviator-content textarea::-webkit-scrollbar-thumb, #aviator-content ul::-webkit-scrollbar-thumb { background: #6b7280; border-radius: 10px; }
+        #aviator-content #aviatorResultsArea.fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        #aviator-content .stat-value, #aviator-content #aviatorHistoryList li { font-family: 'Roboto Mono', monospace; }
+        #aviator-content #aviatorHistoryList li { border-bottom: 1px solid #374151; padding: 3px 0; text-align: center; }
+        #aviator-content #aviatorHistoryList li:last-child { border-bottom: none; }
+        #aviator-content #aviatorHistoryList li:hover { background-color: rgba(51, 65, 85, 0.5); }
+        #aviator-content .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        @media (min-width: 768px) { #aviator-content .stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        #aviator-content .simulation-results { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #374151; }
+        #aviator-content .sim-item-box { flex-basis: 120px; min-width: 100px; }
+        #aviator-content #aviatorHistoryInput { border-color: #475569; background-color: #0f172a; color: #e2e8f0; font-family: 'Roboto Mono', monospace; width: 100%; padding: 0.5rem; border-radius: 0.375rem; border-width: 1px; }
+        #aviator-content #aviatorHistoryInput:focus { --tw-ring-color: #06b6d4; border-color: #06b6d4; box-shadow: var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color); outline: 2px solid transparent; outline-offset: 2px; }
+        #aviator-content #aviatorHistoryList { background-color: rgba(15, 23, 42, 0.5); color: #cbd5e1; border-color: #374155; border-width: 1px; border-radius: 0.375rem; }
+        #aviator-content #aviatorResultsArea .stats-grid > div, #aviator-content .simulation-results .sim-item-box { background-color: rgba(51, 65, 85, 0.3); border: 1px solid #374151; color: #cbd5e1; }
+        #aviator-content #aviatorResultsArea .stats-grid > div p:first-child, #aviator-content .simulation-results .sim-item-box p:first-child { color: #94a3b8; }
+        #aviator-content #aviatorTotalRounds, #aviator-content #aviatorAverageMultiplier { color: #67e8f9; }
+        #aviator-content #aviatorBelow1_5x { color: #f87171; } #aviator-content #aviatorBelow2_0x { color: #fb923c; } #aviator-content #aviatorAbove5_0x { color: #4ade80; } #aviator-content #aviatorAbove10_0x { color: #a3e635; } #aviator-content #aviatorLowStreak { color: #5eead4; } #aviator-content #aviatorHighStreak { color: #c084fc; } #aviator-content #aviatorSimWins { color: #4ade80; } #aviator-content #aviatorSimLosses { color: #f87171; } #aviator-content #aviatorSimWinRate { color: #93c5fd; }
+        #aviator-content #aviatorErrorMsg { color: #f87171; }
+        #aviator-content #aviatorAnalyzeBtn { display: inline-flex; background-color: #0891b2; color: white; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 500; transition: background-color 0.2s; cursor: pointer; }
+        #aviator-content #aviatorAnalyzeBtn:hover { background-color: #0e7490; }
+        #aviator-content #aviatorClearHistoryBtn { display: inline-flex; background-color: #dc2626; color: white; padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 500; transition: background-color 0.2s; cursor: pointer; }
+        #aviator-content #aviatorClearHistoryBtn:hover { background-color: #b91c1c; }
+         .button { transition: background-color 0.3s ease, transform 0.2s ease; }
+         .button:hover { transform: scale(1.05); }
+    </style>
+</head>
+<body class="text-white relative bg-gray-900">
+    <div id="particles-js" class="fixed inset-0 z-[-1]"></div>
+
+    <header class="predict-wingo-section py-4 text-center relative z-10">
+        <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 animate-gradient-x">
+            PREDICT VIP
+        </h1>
+        <div class="mt-1 text-sm md:text-base text-blue-200 font-semibold">
+            Predictions Interface (Wingo Auto / Aviator Manual)
+        </div>
+    </header>
+
+    <nav class="main-tabs flex flex-wrap justify-between items-center sticky top-0 z-20 px-2 md:px-4">
+        <div class="flex justify-center flex-wrap">
+            <button class="tab-button active" data-tab="homepage">Homepage</button>
+            <button class="tab-button" data-tab="prediction">Prediction</button>
+            <button class="tab-button" data-tab="aviator">Aviator</button>
+            <button class="tab-button" data-tab="about">About tool</button>
+        </div>
+        <div class="flex items-center space-x-3 md:space-x-4">
+             <a href="https://wa.me/916290530153" target="_blank" rel="noopener noreferrer" title="WhatsApp" class="text-blue-300 hover:text-white transition duration-200"> <i class="fa-brands fa-whatsapp text-xl md:text-2xl"></i> </a>
+             <a href="mailto:vippredictking@zohomail.in" title="Email" class="text-blue-300 hover:text-white transition duration-200"> <i class="fa-solid fa-envelope text-xl md:text-2xl"></i> </a>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-6 relative z-10">
+        <div id="tab-content-container">
+            <div id="homepage-content" class="tab-content">
+                <h2 class="text-2xl font-semibold text-yellow-400 mb-4 text-center">Welcome to Predict VIP</h2>
+                <p class="text-center text-lg text-blue-200 mb-8">Select a tab to navigate and explore our tools.</p>
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                    <div class="bg-blue-900/30 p-4 rounded-lg border border-blue-700/50 transform hover:scale-105 transition duration-300"> <i class="fas fa-chart-line text-4xl text-yellow-400 mb-3"></i> <h3 class="text-xl font-semibold text-white mb-2">Wingo Auto-Predictions</h3> <p class="text-blue-200 text-sm">Start the auto predictor for Wingo 1min games.</p> </div>
+                    <div class="bg-blue-900/30 p-4 rounded-lg border border-blue-700/50 transform hover:scale-105 transition duration-300"> <i class="fas fa-plane-departure text-4xl text-cyan-400 mb-3"></i> <h3 class="text-xl font-semibold text-white mb-2">Aviator Analysis</h3> <p class="text-blue-200 text-sm">Input crash history to analyze trends and simulate strategies.</p> </div>
+                    <div class="bg-blue-900/30 p-4 rounded-lg border border-blue-700/50 transform hover:scale-105 transition duration-300"> <i class="fas fa-shield-alt text-4xl text-green-400 mb-3"></i> <h3 class="text-xl font-semibold text-white mb-2">Trend Based</h3> <p class="text-blue-200 text-sm">Analysis and predictions based on recent trends.</p> </div>
+                </div>
+            </div>
+
+            <div id="prediction-content" class="tab-content hidden">
+                <section class="container mx-auto px-4 py-10 relative text-center">
+                     <h2 class="text-2xl font-semibold text-yellow-400 mb-6 text-center">Wingo Auto Predictor (1min)</h2>
+                    <div class="flex flex-wrap justify-center items-center gap-3 mb-10"> <button id="start-prediction-button" class="bg-yellow-400 hover:bg-yellow-500 text-blue-900 rounded-full px-8 py-3 font-bold text-xl button shadow-lg"> Start Prediction </button> </div>
+                    <p class="text-center text-blue-200 mt-4">Click the button above to start automatic Wingo 1 minute predictions.</p>
+                    <p id="api-status-message" class="text-sm text-red-400 mt-4 hidden"></p>
+                    <p class="text-center text-xs text-slate-400 mt-6">Note: Uses the default configured API for 1 minute predictions.</p>
+                </section>
+            </div>
+
+            <div id="aviator-content" class="tab-content hidden">
+                 <div class="aviator-container">
+                    <div class="text-center mb-6"> <h1 class="text-xl md:text-2xl font-semibold text-cyan-400 mb-2"> <i class="fa-solid fa-plane-departure mr-2"></i>Aviator Analyzer Lite </h1> <p class="text-sm text-slate-400">Input past multipliers to analyze trends & simulate strategies.</p> </div>
+                    <div class="mb-5"> <label for="aviatorHistoryInput" class="block text-sm font-medium text-slate-300 mb-2">Crash Multiplier History (Newest first, max 200 lines):</label> <textarea id="aviatorHistoryInput" rows="8" class="w-full p-2 border rounded-md focus:ring-1 focus:ring-cyan-500 text-sm" placeholder="Enter multipliers here, one per line (e.g., 2.15)"></textarea> <p class="text-xs text-slate-400 mt-1">One multiplier per line.</p> </div>
+                    <div class="flex justify-center gap-3 mb-6"> <button id="aviatorAnalyzeBtn" class="flex items-center gap-2 text-white font-medium py-2 px-5 rounded-md transition duration-200 text-sm shadow hover:shadow-md"> <i class="fa-solid fa-calculator fa-fw"></i> <span>Analyze & Simulate</span> </button> <button id="aviatorClearHistoryBtn" class="flex items-center gap-2 text-white font-medium py-2 px-4 rounded-md transition duration-200 text-sm shadow hover:shadow-md"> <i class="fa-solid fa-trash-can fa-fw"></i> <span>Clear</span> </button> </div>
+                    <div id="aviatorResultsArea" class="stats-result mt-5 border-t border-slate-700 pt-5 hidden">
+                         <h2 class="text-lg md:text-xl font-semibold text-slate-200 mb-4 text-center">Analysis & Simulation</h2> <h3 class="text-base font-semibold text-cyan-400 mb-2">Statistics</h3>
+                         <div class="stats-grid grid gap-3 mb-4"> <div class="p-3 rounded-md text-center"> <p class="text-xs font-medium">Total Rounds</p><p id="aviatorTotalRounds" class="text-lg font-semibold stat-value">-</p> </div> <div class="p-3 rounded-md text-center"> <p class="text-xs font-medium">Average</p><p id="aviatorAverageMultiplier" class="text-lg font-semibold stat-value">-</p> </div> <div class="p-3 rounded-md text-center"> <p class="text-xs font-medium">Below 1.5x</p><p id="aviatorBelow1_5x" class="text-lg font-semibold stat-value">-</p> </div> <div class="p-3 rounded-md text-center"> <p class="text-xs font-medium">Below 2.0x</p><p id="aviatorBelow2_0x" class="text-lg font-semibold stat-value">-</p> </div> <div class="p-3 rounded-md text-center"> <p class="text-xs font-medium">Above 5.0x</p><p id="aviatorAbove5_0x" class="text-lg font-semibold stat-value">-</p> </div> <div class="p-3 rounded-md text-center"> <p class="text-xs font-medium">Above 10.0x</p><p id="aviatorAbove10_0x" class="text-lg font-semibold stat-value">-</p> </div> <div class="p-3 rounded-md text-center"> <p class="text-xs font-medium">Low Streak (&lt;2x)</p><p id="aviatorLowStreak" class="text-lg font-semibold stat-value">-</p> </div> <div class="p-3 rounded-md text-center"> <p class="text-xs font-medium">High Streak (&gt;10x)</p><p id="aviatorHighStreak" class="text-lg font-semibold stat-value">-</p> </div> </div>
+                         <div class="simulation-results"> <h3 class="text-base font-semibold text-pink-400 mb-2">Strategy Simulation</h3> <p class="text-xs text-slate-400 mb-3"><strong class="text-slate-200">"Bet every round and try to cash out at 1.5x."</strong> Rule Applied</p> <div class="flex flex-wrap justify-around items-center gap-3"> <div class="sim-item-box p-3 rounded-md text-center flex-grow"> <p class="text-xs font-medium">Simulated Wins</p><p id="aviatorSimWins" class="text-lg font-semibold stat-value">-</p> </div> <div class="sim-item-box p-3 rounded-lg text-center flex-grow"> <p class="text-xs font-medium">Simulated Losses</p><p id="aviatorSimLosses" class="text-lg font-semibold stat-value">-</p> </div> <div class="sim-item-box p-3 rounded-lg text-center flex-grow"> <p class="text-xs font-medium">Simulated Win Rate</p><p id="aviatorSimWinRate" class="text-lg font-semibold stat-value">-</p> </div> </div> </div>
+                         <div class="mt-5"> <h3 class="text-base font-semibold text-slate-300 mb-2">Input History (Newest first)</h3> <ul id="aviatorHistoryList" class="list-none max-h-40 overflow-y-auto p-3 rounded text-sm border"> <li>Input history above...</li> </ul> </div>
+                    </div> <p id="aviatorErrorMsg" class="text-center mt-4 text-sm"></p>
+                 </div>
+            </div>
+
+            <div id="about-content" class="tab-content hidden">
+                <h2 class="text-2xl font-semibold text-yellow-400 mb-4 text-center">About Predict VIP</h2>
+                 <div class="max-w-3xl mx-auto text-center text-blue-200 space-y-4"> <p>Predict VIP is a tool designed to assist with analyzing trends and providing automated predictions for popular online games.</p> <p>Use the <strong class="text-white">Prediction</strong> tab to access the Wingo 1min auto-prediction feature.</p> <p>The <strong class="text-white">Aviator</strong> tab provides an analyzer where you can input past crash multipliers to see statistics and simulate a basic cashout strategy.</p> <p class="text-sm text-slate-400 mt-6">Please note: This tool provides analysis and predictions based on historical data and algorithms. It does not guarantee future outcomes. Use responsibly.</p> </div>
+            </div>
+
+        </div> </main>
+
+    <div id="win-menu-container" class="popup-container hidden">
+        <div class="popup-content"> <button id="close-win-menu" class="close-popup">×</button>
+              <h2 class="text-2xl font-bold mb-4 text-yellow-400">AUTO PREDICTION (1 Min)</h2>
+             <div class="grid grid-cols-2 gap-4 mb-4 text-center"> <div> <p class="text-sm text-blue-200">Next Period</p> <p id="next-period-display" class="text-xl font-bold text-white">-</p> </div> <div> <p class="text-sm text-blue-200">Countdown</p> <p id="win-timer-value" class="text-xl font-bold text-yellow-400">--:--</p> </div> </div>
+             <div id="prediction-display" class="mb-4"> <p class="text-sm text-blue-200">Prediction</p> <div id="prediction-output" class="text-lg text-white mt-1">-</div> </div>
+             <div class="grid grid-cols-2 gap-2 text-sm mb-4"> <div class="bg-blue-900 p-2 rounded">Wins: <span id="stat-wins" class="font-bold text-green-400">0</span></div> <div class="bg-blue-900 p-2 rounded">Losses: <span id="stat-losses" class="font-bold text-red-400">0</span></div> <div class="bg-blue-900 p-2 rounded">Accuracy: <span id="stat-accuracy" class="font-bold text-white">0%</span></div> <div class="bg-blue-900 p-2 rounded">Reverse: <span id="stat-reverse" class="font-bold">Inactive</span></div> </div>
+             <div class="prediction-history"> <h3 class="text-lg font-bold mb-2 text-yellow-400">Period History (Last 10)</h3> <table class="history-table" id="history-list"> <thead> <tr> <th>Period</th> <th>Predict (B/S)</th> <th>Predict (Color)</th> <th>Status</th> </tr> </thead> <tbody> <tr><td colspan="4" class="text-center p-4">Loading...</td></tr> </tbody> </table> </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script>
+        // Encapsulate script in an IIFE
+        (function() {
+            document.addEventListener('DOMContentLoaded', (event) => {
+
+                console.log("Initializing Tabs + Simplified Prediction Script + Updates...");
+
+                // --- Particle.js Init ---
+                 if (typeof particlesJS === 'function') {
+                    // *** MODIFIED PARTICLES CONFIG ***
+                    particlesJS('particles-js', {
+                        "particles": {
+                            "number": {
+                                "value": 50, // Moderate number
+                                "density": { "enable": true, "value_area": 800 }
+                            },
+                            "color": { "value": "#ffffff" },
+                            "shape": { "type": "circle" },
+                            "opacity": {
+                                "value": 0.2, // Lower particle opacity
+                                "random": true,
+                                "anim": { "enable": true, "speed": 0.5, "opacity_min": 0.05, "sync": false }
+                            },
+                            "size": {
+                                "value": 1.5, // Small particle size
+                                "random": true,
+                                "anim": { "enable": false }
+                            },
+                            "line_linked": {
+                                "enable": true,
+                                "distance": 150,
+                                "color": "#ffffff",
+                                "opacity": 0.3, // Medium line opacity
+                                "width": 1
+                            },
+                            "move": {
+                                "enable": true, "speed": 3, // Moderate speed
+                                "direction": "none", "random": false, "straight": false, "out_mode": "out", "bounce": false
+                            }
+                        },
+                        "interactivity": {
+                            "detect_on": "canvas",
+                            "events": {
+                                "onhover": { "enable": true, "mode": "repulse" }, // Interaction on hover
+                                "onclick": { "enable": false },
+                                "resize": true
+                            },
+                             "modes": {
+                                "repulse": { "distance": 80, "duration": 0.4 }, // Adjusted repulse distance
+                                "grab": { "distance": 140, "line_linked": { "opacity": 1 } }
+                            }
+                        },
+                        "retina_detect": true
+                    });
+                    // *** END MODIFICATION ***
+                 } else { console.error("particlesJS not found."); }
+
+                // --- DOM References ---
+                const body = document.body;
+                const tabButtons = document.querySelectorAll('.tab-button');
+                const tabContents = document.querySelectorAll('.tab-content');
+                let aviatorInitialized = false;
+                const startPredictionButton = document.getElementById('start-prediction-button');
+                const winMenuContainer = document.getElementById('win-menu-container');
+                const closeWinMenuButton = document.getElementById('close-win-menu');
+                const nextPeriodDisplayElement = document.getElementById('next-period-display');
+                const timerElement = document.getElementById('win-timer-value');
+                const predictionOutputElement = document.getElementById('prediction-output');
+                const historyListBody = document.getElementById('history-list')?.querySelector('tbody');
+                const statWinsEl = document.getElementById('stat-wins');
+                const statLossesEl = document.getElementById('stat-losses');
+                const statAccuracyEl = document.getElementById('stat-accuracy');
+                const statReverseEl = document.getElementById('stat-reverse');
+                const apiStatusMessageEl = document.getElementById('api-status-message');
+
+                // --- Prediction State Variables ---
+                let predictionHistory = []; let totalWins = 0; let totalLosses = 0;
+                let lastFetchedPeriod = null; let consecutiveLosses = 0; let isReversed = false;
+                let countdown = 60; let timerInterval = null;
+                const currentApiUrl = "https://api.bdg88zf.com/api/webapi/GetNoaverageEmerdList";
+                const gameTypeId = 1;
+
+                // --- Tab Switching Logic ---
+                if (tabButtons.length > 0 && tabContents.length > 0) {
+                    tabButtons.forEach(button => {
+                        button.addEventListener('click', () => {
+                            const targetTab = button.getAttribute('data-tab'); if (!targetTab) return;
+                            tabButtons.forEach(btn => btn.classList.remove('active')); button.classList.add('active');
+                            tabContents.forEach(content => { if (content) content.classList.toggle('hidden', content.id !== `${targetTab}-content`); });
+                            if (targetTab === 'aviator' && !aviatorInitialized) { initAviatorAnalyzer(); aviatorInitialized = true; }
+                            if (targetTab !== 'prediction' && timerInterval) {
+                                stopAutoPredictionLoop();
+                                if(winMenuContainer && !winMenuContainer.classList.contains('hidden')) { winMenuContainer.classList.add('hidden'); body.classList.remove('overflow-hidden'); if(startPredictionButton) startPredictionButton.classList.remove('hidden'); }
+                            }
+                        });
+                    });
+                } else { console.error("Tab elements not found!"); }
+
+                // --- Wingo Prediction Logic ---
+                function getResultType(number) { const num = parseInt(number, 10); if (isNaN(num)) return ""; return num >= 5 ? "BIG" : "SMALL"; }
+                function getResultColor(number) { const num = parseInt(number, 10); if (isNaN(num)) return ""; return num % 2 === 0 ? "RED" : "GREEN"; }
+                function updateStats() { totalWins = predictionHistory.filter(i=>i.status==="WIN").length; totalLosses = predictionHistory.filter(i=>i.status==="LOSS").length; let tP=totalWins+totalLosses; let acc=tP>0?(totalWins/tP)*100:0; if(statWinsEl) statWinsEl.innerText=totalWins; if(statLossesEl) statLossesEl.innerText=totalLosses; if(statAccuracyEl) statAccuracyEl.innerText=acc.toFixed(1)+'%'; if(statReverseEl){ statReverseEl.innerText=isReversed?"Active":"Inactive"; statReverseEl.style.color=isReversed?'#fde047':'#cbd5e1'; } }
+                function updateHistory() { if(!historyListBody) return; const limitedHistory=predictionHistory.slice(0,10); if(limitedHistory.length===0){ historyListBody.innerHTML=`<tr><td colspan="4" class="text-center p-4">No history yet...</td></tr>`; } else { historyListBody.innerHTML=limitedHistory.map(item=>{ let bsStatus=item.status||'Pending'; let colorPredictionText=item.colorPrediction||'-'; let colorMatchIcon=''; if(item.result!==null&&item.result!==undefined&&item.colorPrediction){ let actualColor=getResultColor(item.result); if(item.colorPrediction===actualColor){ colorMatchIcon=' <i class="fas fa-check text-green-400 ml-1"></i>'; } } let rowBgClass=`history-item ${bsStatus.toLowerCase()}`; let dotColorStyle=(item.colorPrediction?.toLowerCase()==='red')?'background: #ef4444;':((item.colorPrediction?.toLowerCase()==='green')?'background: #22c55e;':'background: grey;'); return `<tr class="${rowBgClass}"><td>${item.period}</td><td>${item.prediction||'-'}</td><td><span class="color-dot" style="${dotColorStyle}"></span>${colorPredictionText}${colorMatchIcon}</td><td><div class="status-box">${bsStatus}</div></td></tr>`; }).join(''); } }
+                function showApiError(message) { if(predictionOutputElement) predictionOutputElement.innerHTML=`<span class="text-red-400 text-sm">${message}</span>`; if(apiStatusMessageEl&&winMenuContainer?.classList.contains('hidden')){ apiStatusMessageEl.textContent=message; apiStatusMessageEl.classList.remove('hidden'); } }
+                function hideApiError() { if(apiStatusMessageEl){ apiStatusMessageEl.classList.add('hidden'); apiStatusMessageEl.textContent=''; } }
+                async function fetchGameResult(){ const apiUrl=currentApiUrl; const payload={ pageSize:10, pageNo:1, typeId:gameTypeId, language:0, random:"4a0522c6ecd8410496260e686be2a57c", signature:"334B5E70A0C9B8918B0B15E517E2069C", timestamp:Math.floor(Date.now()/1000) }; try{ hideApiError(); const response=await fetch(apiUrl,{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) }); if(!response.ok){ console.error(`HTTP error! status: ${response.status}`,await response.text()); throw new Error(`HTTP error ${response.status}`); } const data=await response.json(); const latestResult=data?.data?.list?.[0]; if(latestResult?.issueNumber&&latestResult.number!==undefined){ return { period:String(latestResult.issueNumber), result:String(latestResult.number) }; } else { console.warn("API response format unexpected:",data); return null; } } catch(e){ console.error("Fetch Error:",e); showApiError("API Fetch Error! Check Console."); return null; } }
+                function trendAnalysis(resolvedHistory) { const validHistory=resolvedHistory.filter(item=>item.result!==null&&item.result!==undefined); const historyLength=validHistory.length; if(historyLength>=2){ const lastResultType=getResultType(validHistory[0].result); const secondLastResultType=getResultType(validHistory[1].result); if(lastResultType!==""&&lastResultType===secondLastResultType){ return lastResultType==="BIG"?"SMALL":"BIG"; } } if(historyLength>=2){ const lastResultType=getResultType(validHistory[0].result); const secondLastResultType=getResultType(validHistory[1].result); if(lastResultType!==""&&secondLastResultType!==""&&lastResultType!==secondLastResultType){ return lastResultType; } } if(historyLength===0){ return Math.random()<0.5?"BIG":"SMALL"; } let bigCount=validHistory.filter(item=>getResultType(item.result)==='BIG').length; let smallCount=validHistory.filter(item=>getResultType(item.result)==='SMALL').length; if(bigCount>smallCount){ return "BIG"; } else if(smallCount>bigCount){ return "SMALL"; } else { const lastResultNumber=validHistory[0]?.result; if(lastResultNumber!==null&&lastResultNumber!==undefined){ return getResultType(lastResultNumber)==='BIG'?"SMALL":"BIG"; } return "SMALL"; } }
+                function predictColor(resolvedHistory) { const validHistory=resolvedHistory.filter(item=>item.result!==null&&item.result!==undefined); if(validHistory.length===0){ return Math.random()<0.5?"RED":"GREEN"; } const lastResultNumber=validHistory[0].result; const lastResultColor=getResultColor(lastResultNumber); if(lastResultColor==="RED"){ return "GREEN"; } else if(lastResultColor==="GREEN"){ return "RED"; } else { return Math.random()<0.5?"RED":"GREEN"; } }
+                function checkWinLoss(apiResult){ if(!apiResult?.result) return false; let statusChanged=false; const historyEntry=predictionHistory.find(i=>i.period===apiResult.period&&i.status==="Pending"); if(historyEntry){ historyEntry.result=apiResult.result; const actualResultType=getResultType(apiResult.result); const previousStatus=historyEntry.status; historyEntry.status=(historyEntry.prediction===actualResultType)?"WIN":"LOSS"; statusChanged=(previousStatus!==historyEntry.status); if(historyEntry.status==='LOSS'){ consecutiveLosses++; if(consecutiveLosses>=2&&!isReversed){ isReversed=true; console.log("Reverse Activated!"); } } else { if(isReversed){ isReversed=false; console.log("Reverse Deactivated."); } consecutiveLosses=0; } } if(statusChanged){ updateStats(); updateHistory(); } return statusChanged; }
+                async function fetchAndProcessData(){ const apiResult=await fetchGameResult(); if(!apiResult) return; checkWinLoss(apiResult); if(apiResult.period!==lastFetchedPeriod){ lastFetchedPeriod=apiResult.period; countdown=60; if(timerElement){ const m=Math.floor(countdown/60),s=countdown%60; timerElement.textContent=`${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`; } const nextPeriod=(BigInt(apiResult.period)+1n).toString(); const basePredictionBigSmall=trendAnalysis(predictionHistory); const finalPredictionBigSmall=isReversed?(basePredictionBigSmall==="BIG"?"SMALL":"BIG"):basePredictionBigSmall; const predictedColor=predictColor(predictionHistory); if(nextPeriodDisplayElement) nextPeriodDisplayElement.textContent=nextPeriod; if(predictionOutputElement){ predictionOutputElement.innerHTML=`<span class="prediction-text ${finalPredictionBigSmall.toLowerCase()}">${finalPredictionBigSmall}</span> / <span class="prediction-text ${predictedColor.toLowerCase()}">${predictedColor}</span>`; } if(!predictionHistory.some(i=>i.period===nextPeriod)){ predictionHistory.unshift({ period:nextPeriod, prediction:finalPredictionBigSmall, colorPrediction:predictedColor, result:null, status:"Pending" }); if(predictionHistory.length>15) predictionHistory=predictionHistory.slice(0,15); updateHistory(); } updateStats(); } }
+                function tick(){ countdown--; if(countdown<0) countdown=0; if(timerElement){ const m=Math.floor(countdown/60),s=countdown%60; timerElement.textContent=`${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`; } if(timerInterval&&(countdown%3===0||countdown<5||countdown===0)){ fetchAndProcessData(); } }
+                function startAutoPredictionLoop(){ stopAutoPredictionLoop(); console.log("Starting 1min prediction loop..."); predictionHistory=[]; totalWins=0; totalLosses=0; lastFetchedPeriod=null; consecutiveLosses=0; isReversed=false; countdown=60; updateStats(); updateHistory(); if(predictionOutputElement) predictionOutputElement.innerHTML='Fetching data...'; if(nextPeriodDisplayElement) nextPeriodDisplayElement.textContent='-'; if(timerElement) timerElement.textContent='01:00'; fetchAndProcessData().then(()=>{ if(!timerInterval){ timerInterval=setInterval(tick,1000); } }); }
+                function stopAutoPredictionLoop(){ if(timerInterval){ clearInterval(timerInterval); timerInterval=null; console.log("Stopped prediction loop."); } }
+                if(startPredictionButton){ startPredictionButton.addEventListener('click',()=>{ if(winMenuContainer) winMenuContainer.classList.remove('hidden'); startPredictionButton.classList.add('hidden'); body.classList.add('overflow-hidden'); hideApiError(); startAutoPredictionLoop(); }); }
+                if(closeWinMenuButton){ closeWinMenuButton.addEventListener('click',()=>{ stopAutoPredictionLoop(); if(winMenuContainer) winMenuContainer.classList.add('hidden'); if(startPredictionButton) startPredictionButton.classList.remove('hidden'); body.classList.remove('overflow-hidden'); }); }
+                console.log("Tabs + Simplified Prediction Initialized."); if(winMenuContainer) winMenuContainer.classList.add('hidden'); if(startPredictionButton) startPredictionButton.classList.remove('hidden');
+
+                // --- Aviator Analyzer Logic ---
+                function initAviatorAnalyzer() { /* ... Full Aviator logic with blank input modification ... */
+                     console.log("Running initAviatorAnalyzer()...");
+                     const historyInputEl=document.getElementById('aviatorHistoryInput'),analyzeBtn=document.getElementById('aviatorAnalyzeBtn'),clearHistoryBtn=document.getElementById('aviatorClearHistoryBtn'),resultsAreaEl=document.getElementById('aviatorResultsArea'),totalRoundsEl=document.getElementById('aviatorTotalRounds'),averageMultiplierEl=document.getElementById('aviatorAverageMultiplier'),below1_5xEl=document.getElementById('aviatorBelow1_5x'),below2_0xEl=document.getElementById('aviatorBelow2_0x'),above5_0xEl=document.getElementById('aviatorAbove5_0x'),above10_0xEl=document.getElementById('aviatorAbove10_0x'),lowStreakEl=document.getElementById('aviatorLowStreak'),highStreakEl=document.getElementById('aviatorHighStreak'),simWinsEl=document.getElementById('aviatorSimWins'),simLossesEl=document.getElementById('aviatorSimLosses'),simWinRateEl=document.getElementById('aviatorSimWinRate'),historyListEl=document.getElementById('aviatorHistoryList'),errorMsgEl=document.getElementById('aviatorErrorMsg');if(!historyInputEl||!analyzeBtn||!clearHistoryBtn||!resultsAreaEl||!historyListEl||!errorMsgEl||!totalRoundsEl||!averageMultiplierEl||!below1_5xEl||!below2_0xEl||!above5_0xEl||!above10_0xEl||!lowStreakEl||!highStreakEl||!simWinsEl||!simLossesEl||!simWinRateEl){console.error("Core Aviator elements not found.");if(errorMsgEl)errorMsgEl.textContent='Tool loading error.';return}const LOCAL_STORAGE_KEY_HISTORY='aviatorHistory',MAX_HISTORY_LINES=200;
+                     function loadAviatorHistory(){ const t=localStorage.getItem(LOCAL_STORAGE_KEY_HISTORY); if(t){ historyInputEl.value=t;console.log("Aviator history loaded from localStorage."); if(historyInputEl.value.trim()){ analyzeAviatorData(!1); } else { if(historyListEl) historyListEl.innerHTML = '<li>Input history above...</li>'; if(resultsAreaEl) resultsAreaEl.classList.add('hidden'); } } else { historyInputEl.value = ''; console.log("Aviator history input is blank by default."); if(historyListEl) historyListEl.innerHTML = '<li>Input history above...</li>'; if(resultsAreaEl) resultsAreaEl.classList.add('hidden'); } }
+                     function saveAviatorHistory(t){ try{localStorage.setItem(LOCAL_STORAGE_KEY_HISTORY,t)}catch(e){console.error("Error saving Aviator history:",e),errorMsgEl&&(errorMsgEl.textContent="Error saving history.")} }
+                     function analyzeAviatorData(t=!0){ if(errorMsgEl&&(errorMsgEl.textContent=""),!resultsAreaEl||!historyListEl)return;resultsAreaEl.classList.add("hidden"),resultsAreaEl.classList.remove("fade-in"),historyListEl.innerHTML="<li>Processing...</li>";let e=historyInputEl.value.trim();if(!e)return errorMsgEl&&(errorMsgEl.textContent="Please input history."),void(historyListEl.innerHTML="<li>Please input history.</li>");let a=e.split("\n").map(t=>t.trim()).filter(t=>""!==t),o=a,s=!1;if(a.length>MAX_HISTORY_LINES&&(o=a.slice(0,MAX_HISTORY_LINES),e=o.join("\n"),s=!0,console.log(`Aviator history limited to ${MAX_HISTORY_LINES} lines.`)),(a=o.map(t=>parseFloat(t.replace("x",""))).filter(t=>!isNaN(t)&&t>=1)).length===0)return s&&(historyInputEl.value=""),historyListEl.innerHTML="<li>No valid multipliers found.</li>",void(errorMsgEl&&(errorMsgEl.textContent="No valid multipliers found."));s&&(historyInputEl.value=e);const r=a.length;let i=0,l=0,n=0,d=0,c=0,u=0,m=0;const y=1.5;a.forEach(t=>{i+=t,t<1.5&&l++,t<2&&n++,t>=5&&d++,t>=10&&c++,t>=y?u++:m++});const p=r>0?(i/r).toFixed(2):0,f=r>0?(l/r*100).toFixed(1):0,_=r>0?(n/r*100).toFixed(1):0,g=r>0?(d/r*100).toFixed(1):0,h=r>0?(c/r*100).toFixed(1):0;let v=u+m,w=v>0?(u/v*100).toFixed(1):0,L=0;for(let t=0;t<r;t++)if(a[t]<2)L++;else break;let S=0;for(let t=0;t<r;t++)if(a[t]>=10)S++;else break;if(!totalRoundsEl||!averageMultiplierEl||!below1_5xEl||!below2_0xEl||!above5_0xEl||!above10_0xEl||!lowStreakEl||!highStreakEl||!simWinsEl||!simLossesEl||!simWinRateEl) return;totalRoundsEl.textContent=r,averageMultiplierEl.textContent=`${p}x`,below1_5xEl.textContent=`${l} (${f}%)`,below2_0xEl.textContent=`${n} (${_}%)`,above5_0xEl.textContent=`${d} (${g}%)`,above10_0xEl.textContent=`${c} (${h}%)`,lowStreakEl.textContent=L,highStreakEl.textContent=S,simWinsEl.textContent=u,simLossesEl.textContent=m,simWinRateEl.textContent=`${w}%`,historyListEl.innerHTML=a.map(t=>`<li>${t.toFixed(2)}x</li>`).join(""),resultsAreaEl.classList.remove("hidden"),setTimeout(()=>{resultsAreaEl.classList.add("fade-in")},10),t&&saveAviatorHistory(e)}
+                     if(analyzeBtn) analyzeBtn.addEventListener("click",()=>analyzeAviatorData(!0)); if(clearHistoryBtn) clearHistoryBtn.addEventListener("click",()=>{confirm("Are you sure you want to clear the history?")&&(historyInputEl.value="",localStorage.removeItem(LOCAL_STORAGE_KEY_HISTORY),resultsAreaEl&&resultsAreaEl.classList.add("hidden"),errorMsgEl&&(errorMsgEl.textContent="History cleared."),historyListEl&&(historyListEl.innerHTML="<li>History cleared."),console.log("Aviator history cleared."))}); loadAviatorHistory();console.log("Aviator Analyzer Tool Initialized.")
+                 }
+                // --- End Aviator Logic ---
+
+            }); // End DOMContentLoaded listener
+        })(); // End IIFE
+    </script>
+
+</body>
+</html>

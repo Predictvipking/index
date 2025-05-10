@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predict VIP v1.8 - Simplified Bet Suggestion</title> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- CSS --- */
+        :root {
+            --bg-primary: #1c2128; --bg-secondary: #2d333b; --accent-primary: #f78166; --accent-secondary: #ea6045;
+            --text-primary: #e6edf3; --text-secondary: #b0c4de; --card-bg: linear-gradient(145deg, rgba(45, 51, 59, 0.85), rgba(60, 70, 80, 0.75));
+            --border-color: rgba(255, 255, 255, 0.15); --shadow-color: rgba(0, 0, 0, 0.4); --success-color: #56d364;
+            --danger-color: #f85149; --violet-color: #a371f7; --warning-color: #fcc62e; --info-color: #6cb6f1;
+            --border-radius-main: 0.5rem; --transition-speed: 0.3s;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Montserrat', sans-serif; background-color: var(--bg-primary); color: var(--text-primary); line-height: 1.6; min-height: 100vh; padding: 5rem 0.75rem 1.5rem; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
+        #particles-js { position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: -1; background-image: linear-gradient(145deg, var(--bg-primary), var(--bg-secondary)); }
+        .main-container { width: 100%; max-width: 750px; padding: 0.75rem; z-index: 1; }
+        h1 { color: var(--accent-primary); font-size: 1.6rem; text-align: center; margin: 1rem 0 2rem; font-weight: 700; text-shadow: 0 2px 5px var(--shadow-color); }
+        .main-nav { position: fixed; top: 0; left: 0; width: 100%; background: rgba(45, 51, 59, 0.7); backdrop-filter: blur(8px); display: flex; flex-wrap: wrap; justify-content: center; padding: 0.75rem; box-shadow: 0 4px 10px var(--shadow-color); z-index: 1000; gap: 0.6rem; }
+        .nav-button, .nav-link { background: rgba(255, 255, 255, 0.05); color: var(--text-secondary); border: 1px solid var(--border-color); padding: 0.6rem 1rem; border-radius: var(--border-radius-main); cursor: pointer; font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; text-decoration: none; transition: all var(--transition-speed) ease; }
+        .nav-button:hover, .nav-link:hover { background: var(--accent-primary); color: var(--bg-primary); border-color: var(--accent-primary); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0, 0.2); }
+        .nav-button.active { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: var(--bg-primary); border-color: var(--accent-secondary); box-shadow: 0 0 10px rgba(247, 129, 102, 0.5); }
+        .content-view { display: none; width: 100%; }
+        .content-view.active { display: block; animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .section { background: var(--card-bg); padding: 1.2rem; border-radius: var(--border-radius-main); border: 1px solid var(--border-color); margin-bottom: 1.5rem; backdrop-filter: blur(5px); box-shadow: 0 5px 15px var(--shadow-color); transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease; }
+        .section:hover { transform: translateY(-4px); box-shadow: 0 8px 20px var(--shadow-color); }
+        .section h2 { color: var(--accent-primary); font-size: 1.3rem; text-align: center; margin-bottom: 1.2rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.6rem; }
+        .tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; margin-bottom: 1.2rem; }
+        .tab { padding: 0.6rem 1.2rem; background: rgba(255, 255, 255, 0.08); color: var(--text-secondary); border-radius: var(--border-radius-main); border: 1px solid var(--border-color); font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all var(--transition-speed) ease; user-select: none; }
+        .tab:hover { background: rgba(255, 255, 255, 0.15); color: var(--text-primary); border-color: rgba(255, 255, 255, 0.3); transform: translateY(-2px); }
+        .tab.active { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: var(--bg-primary); border-color: var(--accent-secondary); box-shadow: 0 0 10px rgba(247, 129, 102, 0.5); }
+        .container { display: none; text-align: center; animation: fadeIn 0.4s ease-out; }
+        .container.active { display: block; }
+        .period-input-group { display: flex; align-items: stretch; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--border-radius-main); margin: 1rem auto; max-width: 320px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.3); overflow: hidden; }
+        .period-date-prefix { padding: 0.7rem; background: rgba(255, 255, 255, 0.05); color: var(--text-primary); font-size: 0.9rem; border-right: 1px solid var(--border-color); font-weight: 500; white-space: nowrap; }
+        .period-input { background: none; border: none; color: var(--text-primary); padding: 0.7rem; font-size: 0.9rem; flex-grow: 1; min-width: 60px; text-align: center; font-family: inherit; }
+        .period-input::placeholder { color: var(--text-secondary); opacity: 0.7; }
+        .period-input:focus { outline: none; background: rgba(255, 255, 255, 0.05); }
+        .period-input.error { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; border: 1px solid var(--danger-color); border-left: none; border-right: none; }
+        @keyframes shake { 10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(2px); } 30%, 50%, 70% { transform: translateX(-3px); } 40%, 60% { transform: translateX(3px); } }
+        .predict-button { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: var(--bg-primary); border: none; padding: 0.7rem 1.2rem; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; font-weight: 600; transition: all var(--transition-speed) ease; white-space: nowrap; }
+        .predict-button:hover { filter: brightness(1.15); box-shadow: 0 0 12px rgba(247, 129, 102, 0.6); transform: scale(1.02); }
+        .predict-button:active { transform: scale(0.98); filter: brightness(1.0); }
+        .result { margin: 1.5rem 0; padding: 1rem; background: rgba(0, 0, 0, 0.2); border-radius: var(--border-radius-main); border: 1px solid var(--border-color); min-height: 60px; display: flex; flex-direction: column; align-items: center; }
+        .result h3 { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 0.8rem; font-weight: 600; }
+        .result-display-list { font-size: 1rem; display: flex; justify-content: center; align-items: center; gap: 0.8rem; flex-wrap: wrap; margin-top: 0.5rem; font-weight: 600; min-height: 24px; }
+        .result-display-list p { font-weight: 400; }
+        /* Style for Next Bet Suggestion */
+        .next-bet-suggestion {
+            margin-top: 0.8rem;
+            padding: 0.5rem 1rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: var(--border-radius-main);
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            min-height: 30px; /* Ensure space */
+            width: fit-content; /* Adjust width to content */
+            max-width: 90%; /* Prevent overflow */
+        }
+        .next-bet-suggestion strong {
+             color: var(--warning-color); /* Highlight bet amount */
+             font-size: 1.1em;
+        }
+        .history { margin-top: 1.5rem; padding: 1rem; background: rgba(0, 0, 0, 0.2); border-radius: var(--border-radius-main); border: 1px solid var(--border-color); }
+        .history h3 { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 0.8rem; font-weight: 600; text-align: center; }
+        .stats-display { display: flex; flex-wrap: wrap; justify-content: space-around; gap: 1rem; background: var(--bg-secondary); padding: 0.8rem; border-radius: var(--border-radius-main); font-size: 0.85rem; margin-bottom: 1rem; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2); text-align: center; }
+        .stats-display div { color: var(--text-secondary); position: relative; cursor: help; flex-basis: auto; }
+        .stats-display div::after { content: attr(data-tooltip); position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background: var(--bg-primary); color: var(--text-primary); padding: 0.4rem 0.8rem; border-radius: 0.3rem; font-size: 0.75rem; white-space: nowrap; z-index: 10; opacity: 0; visibility: hidden; transition: opacity var(--transition-speed) ease, visibility var(--transition-speed) ease; pointer-events: none; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        .stats-display div:hover::after { opacity: 1; visibility: visible; }
+        .stats-display strong { color: var(--text-primary); font-weight: 600; display: block; margin-top: 0.2rem;}
+        .stat-win { color: var(--success-color); } .stat-loss { color: var(--danger-color); } .stat-acc { color: var(--accent-primary); } .stat-rev { color: var(--warning-color); }
+        .history-controls { display: flex; justify-content: center; margin-top: 1rem; }
+        .clear-history-button { background: var(--danger-color); color: white; border: none; padding: 0.6rem 1.2rem; border-radius: var(--border-radius-main); cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all var(--transition-speed) ease; display: flex; align-items: center; gap: 0.5rem; }
+        .clear-history-button:hover { background: #d73c34; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0, 0.2); }
+        .history-list { max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--border-radius-main); padding: 0.5rem; font-size: 0.85rem; background: rgba(0, 0, 0, 0.1); margin-bottom: 1rem; }
+        .history-list::-webkit-scrollbar { width: 8px; } .history-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 4px; } .history-list::-webkit-scrollbar-thumb { background: var(--text-secondary); border-radius: 4px; } .history-list::-webkit-scrollbar-thumb:hover { background: var(--accent-primary); }
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.5rem; border-bottom: 1px solid var(--border-color); transition: background var(--transition-speed) ease; gap: 0.5rem; }
+        .history-item:hover { background: rgba(255, 255, 255, 0.05); }
+        .history-item:last-child { border-bottom: none; }
+        .history-item.loss-streak { background: rgba(248, 81, 73, 0.1); }
+        .history-item .period { color: var(--text-secondary); font-weight: 500; min-width: 55px; text-align: left; }
+        .history-item .value { flex-grow: 1; text-align: center; display: flex; gap: 0.6rem; flex-wrap: wrap; justify-content: center; font-weight: 500; }
+        .predicted-number { color: var(--text-secondary); font-size: 0.8em; }
+        .history-item .status { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: white; flex-shrink: 0; margin-left: auto; }
+        .status.pending { background: var(--warning-color); color: var(--bg-primary); } .status.win { background: var(--success-color); } .status.loss { background: var(--danger-color); }
+        .history-item .actions { display: flex; gap: 0.4rem; flex-shrink: 0; margin-left: 0.5rem; }
+        .history-action-btn { background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.3rem 0.6rem; border-radius: 0.3rem; font-size: 0.75rem; cursor: pointer; transition: all var(--transition-speed) ease; font-weight: bold; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; }
+        .win-btn:hover { background: var(--success-color); color: white; border-color: var(--success-color); transform: scale(1.1);}
+        .loss-btn:hover { background: var(--danger-color); color: white; border-color: var(--danger-color); transform: scale(1.1);}
+        .color-indicator, .size-indicator { padding: 0.3rem 0.7rem; border-radius: 0.3rem; color: white; font-size: 0.8rem; font-weight: 500; text-align: center; min-width: 50px; display: inline-block; }
+        .color-green { background: var(--success-color); } .color-red { background: var(--danger-color); } .color-violet { background: var(--violet-color); }
+        .size-big { background: var(--warning-color); color: var(--bg-primary); } .size-small { background: var(--info-color); }
+        .fund-chart, .instructions-table { /* Styles inherited from .section */ }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; color: var(--text-primary); margin-top: 1rem; }
+        table th, table td { padding: 0.6rem; border: 1px solid var(--border-color); text-align: center; vertical-align: middle; }
+        table th { background: var(--accent-primary); color: var(--bg-primary); font-weight: 600; }
+        table td { background: rgba(45, 51, 59, 0.5); }
+        tbody tr:nth-child(even) td { background: rgba(45, 51, 59, 0.7); }
+        .total-row td { background: rgba(252, 198, 46, 0.2); color: var(--warning-color); font-weight: bold; }
+        .level-row td:first-child { color: var(--warning-color); font-weight: bold; }
+        .instructions-table td { text-align: left; }
+        .instructions-table td:first-child { text-align: center; font-weight: bold; width: 50px; color: var(--accent-primary); }
+        /* Responsive Adjustments */
+        @media (max-width: 480px) {
+             h1 { font-size: 1.4rem; } .nav-button, .nav-link { font-size: 0.75rem; padding: 0.5rem 0.8rem; gap: 0.3rem;}
+             .tab { font-size: 0.75rem; padding: 0.5rem 0.8rem; gap: 0.3rem;} .section { padding: 1rem;} .section h2 { font-size: 1.1rem; }
+             .period-input-group { max-width: 280px; } .period-date-prefix, .period-input, .predict-button { font-size: 0.85rem; padding: 0.6rem;}
+             .predict-button { padding: 0.6rem 1rem;} table { font-size: 0.75rem; } table th, table td { padding: 0.4rem; }
+             .stats-display { gap: 0.5rem; } .stats-display strong { font-size: 0.9em; }
+             .next-bet-suggestion { font-size: 0.8rem; padding: 0.4rem 0.8rem; }
+             .history-item { flex-wrap: wrap; } .history-item .value { order: 1; width: 100%; margin-bottom: 0.3rem; }
+             .history-item .period { order: 0; } .history-item .status { order: 2; } .history-item .actions { order: 3; margin-left: 0;}
+        }
+        @media (min-width: 768px) {
+            body { padding: 6rem 1rem 2rem; } .main-container { padding: 1rem; } .section { padding: 1.5rem; }
+            h1 { font-size: 2rem; } .nav-button, .nav-link { font-size: 0.9rem; padding: 0.7rem 1.2rem; }
+            .tab { font-size: 0.9rem; padding: 0.7rem 1.4rem; } .period-input-group { max-width: 380px; }
+            .period-date-prefix, .period-input, .predict-button { font-size: 1rem; } .result h3, .history h3 { font-size: 1.2rem; }
+            .stats-display, .history-list, table { font-size: 0.9rem; }
+            .history-action-btn { font-size: 0.8rem; padding: 0.4rem 0.8rem; width: 32px; height: 32px;}
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+
+    <h1><i class="fas fa-shield-alt"></i> Predict VIP <span style="font-size: 0.6em; color: var(--accent-secondary);">v1.8</span></h1>
+
+    <nav class="main-nav">
+        <button class="nav-button active" data-view="predictionView"><i class="fas fa-chart-line"></i> Prediction</button>
+        <button class="nav-button" data-view="levelChartView"><i class="fas fa-table-list"></i> Level Chart</button>
+        <button class="nav-button" data-view="howToUseView"><i class="fas fa-circle-info"></i> How to Use</button>
+        <a href="https://chat.google.com/room/AAQA95Euqo8?cls=7" target="_blank" rel="noopener" class="nav-link"><i class="fas fa-comments"></i> Chat</a>
+    </nav>
+
+    <div class="main-container">
+        <div class="content-view active" id="predictionView">
+            <div class="section">
+                <h2><i class="fas fa-gamepad"></i> Game Prediction</h2>
+                <div class="tabs">
+                    <div class="tab active" data-boxid="30" role="tab" aria-selected="true"><i class="fas fa-stopwatch"></i> 30sec</div>
+                    <div class="tab" data-boxid="60" role="tab" aria-selected="false"><i class="fas fa-clock"></i> 1min</div>
+                    <div class="tab" data-boxid="180" role="tab" aria-selected="false"><i class="fas fa-hourglass-half"></i> 3min</div>
+                    <div class="tab" data-boxid="300" role="tab" aria-selected="false"><i class="fas fa-hourglass-end"></i> 5min</div>
+                </div>
+
+                <div class="container active" id="container30">
+                    <div class="period-input-group">
+                        <span class="period-date-prefix" id="datePrefix30"></span>
+                        <input type="text" id="periodNumber30" class="period-input" placeholder="Last 4 Digits" maxlength="4" pattern="\d{4}" inputmode="numeric">
+                        <button id="predictButton30" class="predict-button" data-boxid="30"><i class="fas fa-play"></i> Predict</button>
+                    </div>
+                     <div class="result">
+                        <h3><i class="fas fa-bullseye"></i> Prediction Result</h3>
+                        <div class="result-display-list" id="resultList30">
+                            <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">Enter period & Predict.</p>
+                        </div>
+                        <div class="next-bet-suggestion" id="nextBetSuggestion30">
+                            </div>
+                    </div>
+                    <div class="history">
+                        <h3><i class="fas fa-history"></i> Prediction History (30s)</h3>
+                        <div class="stats-display" id="statsDisplay30">
+                            <div data-tooltip="Total wins">Wins<strong class="stat-win">0</strong></div>
+                            <div data-tooltip="Total losses">Losses<strong class="stat-loss">0</strong></div>
+                            <div data-tooltip="Win percentage = Wins / (Wins + Losses)">Accuracy<strong class="stat-acc">0%</strong></div>
+                            <div data-tooltip="How often a Loss was followed by a Win">Reversed<strong class="stat-rev">0% (0)</strong></div>
+                        </div>
+                        <div class="history-list" id="historyList30"></div>
+                        <div class="history-controls">
+                           <button id="clearHistoryButton30" class="clear-history-button" data-boxid="30"><i class="fas fa-trash-alt"></i> Clear History</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="container" id="container60">
+                     <div class="period-input-group">
+                        <span class="period-date-prefix" id="datePrefix60"></span>
+                        <input type="text" id="periodNumber60" class="period-input" placeholder="Last 4 Digits" maxlength="4" pattern="\d{4}" inputmode="numeric">
+                        <button id="predictButton60" class="predict-button" data-boxid="60"><i class="fas fa-play"></i> Predict</button>
+                    </div>
+                     <div class="result">
+                        <h3><i class="fas fa-bullseye"></i> Prediction Result</h3>
+                        <div class="result-display-list" id="resultList60">
+                            <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">Enter period & Predict.</p>
+                        </div>
+                         <div class="next-bet-suggestion" id="nextBetSuggestion60"></div>
+                    </div>
+                    <div class="history">
+                        <h3><i class="fas fa-history"></i> Prediction History (1m)</h3>
+                        <div class="stats-display" id="statsDisplay60">
+                            <div data-tooltip="Total wins">Wins<strong class="stat-win">0</strong></div>
+                            <div data-tooltip="Total losses">Losses<strong class="stat-loss">0</strong></div>
+                            <div data-tooltip="Win percentage = Wins / (Wins + Losses)">Accuracy<strong class="stat-acc">0%</strong></div>
+                            <div data-tooltip="How often a Loss was followed by a Win">Reversed<strong class="stat-rev">0% (0)</strong></div>
+                        </div>
+                        <div class="history-list" id="historyList60"></div>
+                        <div class="history-controls">
+                           <button id="clearHistoryButton60" class="clear-history-button" data-boxid="60"><i class="fas fa-trash-alt"></i> Clear History</button>
+                        </div>
+                    </div>
+                </div>
+
+                 <div class="container" id="container180">
+                     <div class="period-input-group">
+                        <span class="period-date-prefix" id="datePrefix180"></span>
+                        <input type="text" id="periodNumber180" class="period-input" placeholder="Last 4 Digits" maxlength="4" pattern="\d{4}" inputmode="numeric">
+                        <button id="predictButton180" class="predict-button" data-boxid="180"><i class="fas fa-play"></i> Predict</button>
+                    </div>
+                     <div class="result">
+                        <h3><i class="fas fa-bullseye"></i> Prediction Result</h3>
+                        <div class="result-display-list" id="resultList180">
+                             <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">Enter period & Predict.</p>
+                        </div>
+                         <div class="next-bet-suggestion" id="nextBetSuggestion180"></div>
+                    </div>
+                    <div class="history">
+                        <h3><i class="fas fa-history"></i> Prediction History (3m)</h3>
+                        <div class="stats-display" id="statsDisplay180">
+                            <div data-tooltip="Total wins">Wins<strong class="stat-win">0</strong></div>
+                            <div data-tooltip="Total losses">Losses<strong class="stat-loss">0</strong></div>
+                            <div data-tooltip="Win percentage = Wins / (Wins + Losses)">Accuracy<strong class="stat-acc">0%</strong></div>
+                            <div data-tooltip="How often a Loss was followed by a Win">Reversed<strong class="stat-rev">0% (0)</strong></div>
+                        </div>
+                        <div class="history-list" id="historyList180"></div>
+                        <div class="history-controls">
+                           <button id="clearHistoryButton180" class="clear-history-button" data-boxid="180"><i class="fas fa-trash-alt"></i> Clear History</button>
+                        </div>
+                    </div>
+                </div>
+
+                 <div class="container" id="container300">
+                    <div class="period-input-group">
+                        <span class="period-date-prefix" id="datePrefix300"></span>
+                        <input type="text" id="periodNumber300" class="period-input" placeholder="Last 4 Digits" maxlength="4" pattern="\d{4}" inputmode="numeric">
+                        <button id="predictButton300" class="predict-button" data-boxid="300"><i class="fas fa-play"></i> Predict</button>
+                    </div>
+                     <div class="result">
+                        <h3><i class="fas fa-bullseye"></i> Prediction Result</h3>
+                        <div class="result-display-list" id="resultList300">
+                            <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">Enter period & Predict.</p>
+                        </div>
+                         <div class="next-bet-suggestion" id="nextBetSuggestion300"></div>
+                    </div>
+                     <div class="history">
+                        <h3><i class="fas fa-history"></i> Prediction History (5m)</h3>
+                        <div class="stats-display" id="statsDisplay300">
+                            <div data-tooltip="Total wins">Wins<strong class="stat-win">0</strong></div>
+                            <div data-tooltip="Total losses">Losses<strong class="stat-loss">0</strong></div>
+                            <div data-tooltip="Win percentage = Wins / (Wins + Losses)">Accuracy<strong class="stat-acc">0%</strong></div>
+                            <div data-tooltip="How often a Loss was followed by a Win">Reversed<strong class="stat-rev">0% (0)</strong></div>
+                        </div>
+                        <div class="history-list" id="historyList300"></div>
+                        <div class="history-controls">
+                           <button id="clearHistoryButton300" class="clear-history-button" data-boxid="300"><i class="fas fa-trash-alt"></i> Clear History</button>
+                        </div>
+                    </div>
+                </div>
+                </div> </div> <div class="content-view" id="levelChartView">
+             <div class="section fund-chart">
+                <h2><i class="fas fa-layer-group"></i> Fund Management Chart</h2>
+                 <table>
+                     <thead> <tr> <th>LEVEL</th> <th>₹1 FUND</th> <th>₹5 FUND</th> <th>₹10 FUND</th> <th>₹50 FUND</th> </tr> </thead>
+                    <tbody>
+                        <tr class="level-row"><td>Lv 1</td><td>₹1</td><td>₹5</td><td>₹10</td><td>₹50</td></tr>
+                        <tr class="level-row"><td>Lv 2</td><td>₹2</td><td>₹10</td><td>₹20</td><td>₹100</td></tr>
+                        <tr class="level-row"><td>Lv 3</td><td>₹4</td><td>₹20</td><td>₹40</td><td>₹200</td></tr>
+                        <tr class="level-row"><td>Lv 4</td><td>₹10</td><td>₹40</td><td>₹90</td><td>₹400</td></tr>
+                        <tr class="level-row"><td>Lv 5</td><td>₹20</td><td>₹90</td><td>₹200</td><td>₹800</td></tr>
+                        <tr class="level-row"><td>Lv 6</td><td>₹40</td><td>₹200</td><td>₹400</td><td>₹1700</td></tr>
+                        <tr class="level-row"><td>Lv 7</td><td>₹80</td><td>₹400</td><td>₹800</td><td>₹3500</td></tr>
+                        <tr class="level-row"><td>Lv 8</td><td>₹170</td><td>₹800</td><td>₹1700</td><td>₹7100</td></tr>
+                        <tr class="level-row"><td>Lv 9</td><td>₹350</td><td>₹1600</td><td>₹3500</td><td>₹14500</td></tr>
+                        <tr class="total-row"><td data-tooltip="Total capital needed for 8 levels">Lv.8 TOTAL</td><td>₹327</td><td>₹1565</td><td>₹3260</td><td>₹13850</td></tr>
+                        <tr class="total-row"><td data-tooltip="Total capital needed for 9 levels">Lv.9 TOTAL</td><td>₹677</td><td>₹3165</td><td>₹6760</td><td>₹28350</td></tr>
+                    </tbody>
+                </table>
+                 <p style="text-align: center; color: var(--text-secondary); font-size: 0.8rem; margin-top: 1rem;">
+                    <i class="fas fa-exclamation-triangle" style="color: var(--warning-color);"></i> Ensure funds cover TOTAL for chosen level. ₹1 Fund assumed for Bet Suggestions.
+                 </p>
+            </div>
+        </div>
+        <div class="content-view" id="howToUseView">
+             <div class="section instructions-table">
+                <h2><i class="fas fa-book-open"></i> How to Use</h2>
+                 <table>
+                    <thead> <tr> <th>Step</th> <th>Description</th> </tr> </thead>
+                    <tbody>
+                         <tr><td>1</td><td><i class="fas fa-coins" style="color: var(--warning-color); margin-right: 5px;"></i>Select Fund column (₹1, ₹5...) from Level Chart based on budget. (Bet Suggestion uses ₹1 Fund).</td></tr>
+                        <tr><td>2</td><td><i class="fas fa-play-circle" style="color: var(--success-color); margin-right: 5px;"></i>Start by betting Level 1 amount of chosen Fund. (See suggestion below prediction).</td></tr>
+                        <tr><td>3</td><td><i class="fas fa-keyboard" style="color: var(--info-color); margin-right: 5px;"></i>Go to Prediction tab, select duration, enter <strong>last 4 digits</strong> of period, click <strong>Predict</strong>.</td></tr>
+                        <tr><td>4</td><td><i class="fas fa-check-circle" style="color: var(--success-color); margin-right: 5px;"></i>Place bet according to prediction.</td></tr>
+                        <tr><td>5</td><td><i class="fas fa-trophy" style="color: var(--success-color); margin-right: 5px;"></i>If <strong>WIN</strong>: Mark 'W'. Tool suggests Lv 1 bet, auto-predicts next period. Return to Level 1 strategy.</td></tr>
+                        <tr><td>6</td><td><i class="fas fa-times-circle" style="color: var(--danger-color); margin-right: 5px;"></i>If <strong>LOSS</strong>: Mark 'L'. Tool suggests next Level bet (₹1 Fund assumed), auto-predicts next period. Use **your** chosen Fund's next Level amount. Check loss alerts.</td></tr>
+                        <tr><td>7</td><td><i class="fas fa-repeat" style="color: var(--accent-primary); margin-right: 5px;"></i>Repeat step 6 (moving down levels on loss) until WIN. After WIN, restart at Level 1.</td></tr>
+                        <tr><td>Note</td><td><i class="fas fa-exclamation-circle" style="color: var(--warning-color); margin-right: 5px;"></i>'TOTAL' shows risk. Bet Suggestion is based on ₹1 Fund only. Always follow your chosen Fund strategy from the chart.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div> <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // --- START OF JAVASCRIPT LOGIC (v1.24) ---
+
+        // --- Constants & State ---
+        const BOX_IDS = ['30', '60', '180', '300'];
+        const CONSECUTIVE_LOSS_THRESHOLD = 4; // Alert after 4 consecutive losses
+        // ₹1 Fund levels from chart (index 0 = Level 1)
+        const FUND_LEVELS_1 = [1, 2, 4, 10, 20, 40, 80, 170, 350];
+        const MAX_LEVEL = FUND_LEVELS_1.length; // Max level based on array
+
+        let historyData = {}; // Object to hold history for each boxId
+        let consecutiveLosses = {}; // Track consecutive losses per boxId
+        let currentLevel = {}; // Track current betting level per boxId (for ₹1 Fund suggestion)
+
+        // --- Utility Functions ---
+        function getCurrentDatePrefix() { /* ... unchanged ... */
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const day = now.getDate().toString().padStart(2, '0');
+            return `${year}${month}${day}`;
+         }
+        function getBoxIdFromElement(element) { /* ... unchanged ... */
+             const container = element.closest('.container'); if (container) return container.id.replace('container', '');
+             const button = element.closest('button[data-boxid]'); if (button) return button.dataset.boxid;
+             const tab = element.closest('.tab[data-boxid]'); if (tab) return tab.dataset.boxid; return null;
+        }
+        function getNextPeriod(currentPeriod) { /* ... unchanged ... */
+            let num = parseInt(currentPeriod, 10); num++; if (num > 9999) { num = 1; } return num.toString().padStart(4, '0');
+        }
+
+        // --- DOM Elements ---
+        const mainNavButtons = document.querySelectorAll('.main-nav .nav-button');
+        const contentViews = document.querySelectorAll('.content-view');
+        const predictionView = document.getElementById('predictionView');
+
+        // --- Prediction Logic (PLACEHOLDER) ---
+        function generatePrediction(periodNumber, boxId) {
+             console.warn(`Using PLACEHOLDER prediction logic for period ${periodNumber}, box ${boxId}. REPLACE THIS!`);
+             // --- !!! START OF PLACEHOLDER LOGIC !!! ---
+             const lastDigit = parseInt(periodNumber.slice(-1), 10);
+             let color = Math.random() < 0.5 ? 'Red' : 'Green'; let size = Math.random() < 0.5 ? 'Small' : 'Big'; let number = lastDigit;
+             if ([1, 3, 7, 9].includes(lastDigit)) { color = 'Green'; } else if ([2, 4, 6, 8].includes(lastDigit)) { color = 'Red'; }
+             if (lastDigit >= 5) { size = 'Big'; } else { size = 'Small'; }
+             if (lastDigit === 0 || lastDigit === 5) { color = 'Violet'; }
+             return { color, size, number };
+             // --- !!! END OF PLACEHOLDER LOGIC !!! ---
+        }
+
+
+        // --- History, Stats, Level Functions ---
+        function loadState() { // Renamed from loadHistory
+            const storedHistory = localStorage.getItem('predictionHistoryVIP_v1.24'); // Use new version key
+            historyData = storedHistory ? JSON.parse(storedHistory) : {};
+            const storedLosses = localStorage.getItem('consecutiveLossesVIP_v1.24');
+            consecutiveLosses = storedLosses ? JSON.parse(storedLosses) : {};
+            const storedLevel = localStorage.getItem('currentLevelVIP_v1.24');
+            currentLevel = storedLevel ? JSON.parse(storedLevel) : {};
+
+            BOX_IDS.forEach(id => {
+                if (!historyData[id]) historyData[id] = [];
+                if (consecutiveLosses[id] === undefined) consecutiveLosses[id] = 0;
+                if (currentLevel[id] === undefined) currentLevel[id] = 1; // Default level is 1
+            });
+             console.log("Loaded state:", { historyData, consecutiveLosses, currentLevel });
+        }
+
+        function saveState() {
+             try {
+                localStorage.setItem('predictionHistoryVIP_v1.24', JSON.stringify(historyData));
+                localStorage.setItem('consecutiveLossesVIP_v1.24', JSON.stringify(consecutiveLosses));
+                localStorage.setItem('currentLevelVIP_v1.24', JSON.stringify(currentLevel));
+                 // console.log("Saved state:", { historyData, consecutiveLosses, currentLevel });
+             } catch (e) { console.error("Error saving state:", e); }
+        }
+
+        function addHistoryEntry(boxId, period, prediction, status = 'pending') {
+             if (!historyData[boxId]) historyData[boxId] = [];
+             const newEntry = { id: Date.now(), period: period, prediction: prediction, status: status };
+             historyData[boxId].unshift(newEntry);
+             if (historyData[boxId].length > 50) historyData[boxId].pop();
+             // Don't modify level or loss count when just adding a PENDING entry
+             saveState(); // Save only history here
+             renderHistory(boxId);
+             updateStats(boxId);
+             displayNextBetSuggestion(boxId); // Show suggestion based on current level
+        }
+
+        function updateHistoryStatus(boxId, entryId, newStatus) {
+             if (!historyData[boxId]) return false;
+             const entryIndex = historyData[boxId].findIndex(entry => entry.id === entryId);
+             if (entryIndex > -1) {
+                 const entry = historyData[boxId][entryIndex];
+                 if (entry.status === newStatus) return false; // No change
+
+                 entry.status = newStatus;
+
+                 // Update level and consecutive losses based on the NEW status
+                 if (newStatus === 'win') {
+                     currentLevel[boxId] = 1; // Reset level on win
+                     consecutiveLosses[boxId] = 0; // Reset loss count on win
+                 } else if (newStatus === 'loss') {
+                     // Increment level, capped at MAX_LEVEL
+                     currentLevel[boxId] = Math.min((currentLevel[boxId] || 1) + 1, MAX_LEVEL);
+                     consecutiveLosses[boxId] = (consecutiveLosses[boxId] || 0) + 1;
+                     // Check loss limit alert
+                     if (consecutiveLosses[boxId] >= CONSECUTIVE_LOSS_THRESHOLD) {
+                         setTimeout(() => {
+                            alert(`Warning: ${consecutiveLosses[boxId]} consecutive losses on ${boxId}s game!`);
+                         }, 100);
+                     }
+                 }
+
+                 saveState(); // Save all state changes (history, losses, level)
+                 renderHistory(boxId); // Re-render history
+                 updateStats(boxId); // Update stats display
+                 displayNextBetSuggestion(boxId); // Update bet suggestion
+                 return true; // Status updated
+             }
+             return false; // Entry not found
+        }
+
+        function clearHistory(boxId) {
+            if (historyData[boxId] && confirm(`Clear history for ${boxId}s game?`)) {
+                historyData[boxId] = [];
+                consecutiveLosses[boxId] = 0;
+                currentLevel[boxId] = 1; // Reset level to 1
+                saveState();
+                renderHistory(boxId);
+                updateStats(boxId);
+                clearPredictionResult(boxId);
+                displayNextBetSuggestion(boxId); // Show default Lv 1 suggestion
+                document.getElementById(`periodNumber${boxId}`).value = '';
+                console.log(`History cleared for ${boxId}s`);
+            }
+        }
+
+        function renderHistory(boxId) { /* ... unchanged rendering logic ... */
+             const listElement = document.getElementById(`historyList${boxId}`); if (!listElement) return;
+             const history = historyData[boxId] || []; listElement.innerHTML = '';
+             if (history.length === 0) { listElement.innerHTML = '<p style="text-align: center; color: var(--text-secondary); font-size: 0.85rem;">No history available.</p>'; return; }
+             history.forEach(entry => {
+                const item = document.createElement('div'); item.classList.add('history-item'); item.dataset.entryId = entry.id;
+                const periodSpan = document.createElement('span'); periodSpan.classList.add('period'); periodSpan.textContent = entry.period;
+                const valueSpan = document.createElement('span'); valueSpan.classList.add('value');
+                let colorClass = ''; if (entry.prediction.color === 'Green') colorClass = 'color-green'; else if (entry.prediction.color === 'Red') colorClass = 'color-red'; else if (entry.prediction.color === 'Violet') colorClass = 'color-violet';
+                let sizeClass = ''; if (entry.prediction.size === 'Big') sizeClass = 'size-big'; else if (entry.prediction.size === 'Small') sizeClass = 'size-small';
+                valueSpan.innerHTML = `${colorClass ? `<span class="color-indicator ${colorClass}">${entry.prediction.color}</span>` : ''} ${sizeClass ? `<span class="size-indicator ${sizeClass}">${entry.prediction.size}</span>` : ''} ${entry.prediction.number !== undefined ? `<span class="predicted-number">(#${entry.prediction.number})</span>` : ''}`;
+                const statusSpan = document.createElement('span'); statusSpan.classList.add('status', entry.status); statusSpan.textContent = entry.status === 'pending' ? 'P' : (entry.status === 'win' ? 'W' : 'L');
+                const actionsSpan = document.createElement('span'); actionsSpan.classList.add('actions');
+                if (entry.status === 'pending') { actionsSpan.innerHTML = `<button class="history-action-btn win-btn" aria-label="Mark as Win">W</button> <button class="history-action-btn loss-btn" aria-label="Mark as Loss">L</button>`; }
+                item.appendChild(periodSpan); item.appendChild(valueSpan); item.appendChild(statusSpan); item.appendChild(actionsSpan);
+                listElement.appendChild(item);
+            });
+        }
+
+        function updateStats(boxId) { /* ... unchanged stats calculation ... */
+             const statsContainer = document.getElementById(`statsDisplay${boxId}`); if (!statsContainer) return;
+             const history = historyData[boxId] || []; let wins = 0, losses = 0, reversals = 0; let lastStatus = null;
+             for (let i = history.length - 1; i >= 0; i--) { const entry = history[i]; if (entry.status === 'win') { wins++; if (lastStatus === 'loss') { reversals++; } lastStatus = 'win'; } else if (entry.status === 'loss') { losses++; lastStatus = 'loss'; } else { lastStatus = 'pending'; } }
+             const total = wins + losses; const accuracy = total === 0 ? 0 : Math.round((wins / total) * 100); const reversalRate = losses === 0 ? 0 : Math.round((reversals / losses) * 100);
+             statsContainer.querySelector('.stat-win').textContent = wins; statsContainer.querySelector('.stat-loss').textContent = losses; statsContainer.querySelector('.stat-acc').textContent = `${accuracy}%`; statsContainer.querySelector('.stat-rev').textContent = `${reversalRate}% (${reversals})`;
+        }
+
+        // --- New Function for Bet Suggestion ---
+        function displayNextBetSuggestion(boxId) {
+            const suggestionElement = document.getElementById(`nextBetSuggestion${boxId}`);
+            if (!suggestionElement) return;
+
+            const level = currentLevel[boxId] || 1; // Default to level 1 if undefined
+            // Get amount from FUND_LEVELS_1 array (0-based index)
+            // Use last level's amount if calculated level exceeds array bounds
+            const amountIndex = Math.min(level - 1, FUND_LEVELS_1.length - 1);
+            const amount = FUND_LEVELS_1[amountIndex];
+
+            suggestionElement.innerHTML = `Suggested Next Bet (Lv ${level}): <strong>₹${amount}</strong> <span style='font-size:0.8em; opacity: 0.7;'>(₹1 Fund)</span>`;
+        }
+
+
+        // --- UI Interaction Functions ---
+        function switchView(viewId) { /* ... unchanged ... */
+             contentViews.forEach(view => view.classList.remove('active')); mainNavButtons.forEach(button => button.classList.remove('active'));
+             const targetView = document.getElementById(viewId); const targetButton = document.querySelector(`.main-nav .nav-button[data-view="${viewId}"]`);
+             if (targetView) targetView.classList.add('active'); if (targetButton) targetButton.classList.add('active');
+        }
+        function switchGameTab(boxId) { /* ... unchanged ... */
+             const predictionView = document.getElementById('predictionView'); if (!predictionView) return;
+             predictionView.querySelectorAll('.container').forEach(c => c.classList.remove('active')); predictionView.querySelectorAll('.tabs .tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+             const targetContainer = document.getElementById(`container${boxId}`); const targetTab = predictionView.querySelector(`.tabs .tab[data-boxid="${boxId}"]`);
+             if (targetContainer) targetContainer.classList.add('active'); if (targetTab) { targetTab.classList.add('active'); targetTab.setAttribute('aria-selected', 'true'); }
+        }
+        function displayPredictionResult(boxId, prediction) { /* ... unchanged ... */
+             const resultList = document.getElementById(`resultList${boxId}`); if (!resultList) return; let colorClass = '', sizeClass = '';
+             if (prediction.color === 'Green') colorClass = 'color-green'; else if (prediction.color === 'Red') colorClass = 'color-red'; else if (prediction.color === 'Violet') colorClass = 'color-violet';
+             if (prediction.size === 'Big') sizeClass = 'size-big'; else if (prediction.size === 'Small') sizeClass = 'size-small';
+             resultList.innerHTML = `${colorClass ? `<span class="color-indicator ${colorClass}">${prediction.color}</span>` : ''} ${sizeClass ? `<span class="size-indicator ${sizeClass}">${prediction.size}</span>` : ''} ${prediction.number !== undefined ? `<span class="predicted-number">(#${prediction.number})</span>` : ''}`;
+        }
+        function clearPredictionResult(boxId) { /* ... unchanged ... */
+            const resultList = document.getElementById(`resultList${boxId}`); if (resultList) { resultList.innerHTML = `<p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">Enter period & Predict.</p>`; }
+        }
+        function handlePredictClick(event) { /* ... Mostly unchanged, adds call to display bet suggestion ... */
+             const button = event.target.closest('.predict-button'); if (!button) return; const boxId = button.dataset.boxid;
+             const inputElement = document.getElementById(`periodNumber${boxId}`); const periodNumber = inputElement.value.trim();
+             inputElement.classList.remove('error'); if (!/^\d{4}$/.test(periodNumber)) { alert('Please enter the last 4 digits.'); inputElement.classList.add('error'); inputElement.focus(); return; }
+             const prediction = generatePrediction(periodNumber, boxId);
+             displayPredictionResult(boxId, prediction);
+             addHistoryEntry(boxId, periodNumber, prediction); // Adds with 'pending' status
+             displayNextBetSuggestion(boxId); // Show suggestion after prediction
+             console.log(`Predicted for Box ${boxId}, Period ${periodNumber}:`, prediction);
+        }
+        function handleHistoryActionClick(event) { /* ... Modified in v1.23, no change here ... */
+             const winBtn = event.target.closest('.win-btn'); const lossBtn = event.target.closest('.loss-btn'); if (!winBtn && !lossBtn) return;
+             const historyItem = event.target.closest('.history-item'); const entryId = parseInt(historyItem.dataset.entryId, 10); const boxId = getBoxIdFromElement(historyItem); if (!boxId || isNaN(entryId)) return;
+             const entry = historyData[boxId]?.find(e => e.id === entryId); if (!entry || entry.status !== 'pending') { console.warn("Entry not found or not pending:", entryId); return; }
+             const newStatus = winBtn ? 'win' : 'loss';
+             const statusUpdated = updateHistoryStatus(boxId, entryId, newStatus); // Handles level, loss count, saving, rendering, stats, suggestion
+
+             // Auto-Predict Next Period (Only if status really changed and it was the latest)
+             if (statusUpdated && historyData[boxId][0]?.id === entryId) {
+                 const currentPeriod = entry.period; const nextPeriod = getNextPeriod(currentPeriod);
+                 if (nextPeriod) {
+                     console.log(`Auto-predicting next period: ${nextPeriod} for box ${boxId}`);
+                     const nextPrediction = generatePrediction(nextPeriod, boxId);
+                     addHistoryEntry(boxId, nextPeriod, nextPrediction, 'pending'); // Add next prediction
+                     // Note: displayNextBetSuggestion is already called within updateHistoryStatus
+                 }
+             }
+             const actionsSpan = historyItem.querySelector('.actions'); if (actionsSpan) actionsSpan.innerHTML = ''; // Remove buttons
+        }
+
+        // --- Event Listeners Setup ---
+        function setupEventListeners() { /* ... unchanged ... */
+            const predictionView = document.getElementById('predictionView'); if (!predictionView) return;
+            document.querySelectorAll('.main-nav .nav-button').forEach(b => { b.addEventListener('click', () => switchView(b.dataset.view)); });
+            predictionView.querySelectorAll('.tabs .tab').forEach(t => { t.addEventListener('click', () => switchGameTab(t.dataset.boxid)); });
+            predictionView.querySelectorAll('.predict-button').forEach(b => { b.addEventListener('click', handlePredictClick); });
+            predictionView.querySelectorAll('.period-input').forEach(i => { i.addEventListener('input', () => i.classList.remove('error')); });
+            predictionView.querySelectorAll('.clear-history-button').forEach(b => { b.addEventListener('click', () => clearHistory(b.dataset.boxid)); });
+            predictionView.querySelectorAll('.history-list').forEach(l => { l.addEventListener('click', handleHistoryActionClick); });
+        }
+
+        // --- Initialization ---
+        function initializeApp() {
+             const datePrefix = getCurrentDatePrefix();
+             document.querySelectorAll('.period-date-prefix').forEach(span => { span.textContent = datePrefix; });
+             loadState(); // Load history, losses, level
+             BOX_IDS.forEach(id => {
+                renderHistory(id);
+                updateStats(id);
+                clearPredictionResult(id);
+                displayNextBetSuggestion(id); // Show initial bet suggestion
+             });
+             switchView('predictionView'); switchGameTab('30');
+             setupEventListeners();
+             if (typeof particlesJS !== 'undefined') { /* ... particles init unchanged ... */ particlesJS("particles-js", { particles: { number: { value: 50, density: { enable: true, value_area: 800 } }, color: { value: "#f78166" }, shape: { type: "circle" }, opacity: { value: 0.4, random: true, anim: { enable: true, speed: 0.5, opacity_min: 0.1, sync: false } }, size: { value: 3, random: true, anim: { enable: false } }, line_linked: { enable: true, distance: 150, color: "#b0c4de", opacity: 0.2, width: 1 }, move: { enable: true, speed: 1.5, direction: "none", random: true, straight: false, out_mode: "out", bounce: false } }, interactivity: { detect_on: "canvas", events: { onhover: { enable: true, mode: "grab" }, onclick: { enable: true, mode: "push" }, resize: true }, modes: { grab: { distance: 140, line_opacity: 0.4 }, bubble: { distance: 400, size: 40, duration: 2, opacity: 8, speed: 3 }, repulse: { distance: 200, duration: 0.4 }, push: { particles_nb: 4 }, remove: { particles_nb: 2 } } }, retina_detect: true }); } else { console.warn("particles.js not found."); }
+            console.log("Predict VIP App Initialized (v1.24 - Basic Bet Suggestion).");
+        }
+
+        // --- Run the App ---
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+        // --- END OF JAVASCRIPT LOGIC ---
+    </script>
+</body>
+</html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Tool v2.2 (Layout Update)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            /* Theme & Variables */
+            --primary-color: #fbbf24; --secondary-color: #34d399; --accent-color: #f97316;
+            --bg-color: #020617; --gradient-start: #0f172a; --gradient-end: #1e3a8a;
+            --card-bg: rgba(40, 40, 68, 0.8); --card-border: rgba(255, 255, 255, 0.1); --card-blur: 0px;
+            --header-bg: rgba(26, 26, 46, 0.90); --header-blur: 5px;
+            --content-bg: transparent; --content-border-color: rgba(0, 188, 212, 0); --content-blur: 0px;
+            --nav-bg: transparent; --nav-bg-hover: rgba(0, 188, 212, 0.1);
+            --nav-border: var(--primary-color); --nav-active-bg: #00bcd4; --nav-active-text: #1a1a2e;
+            --nav-logout-bg: #ef4444;
+            --text-color: #e0e0e0; --subtle-text-color: #94a3b8; --heading-color: #00bcd4; --title-color: #00bcd4;
+            --border-color: rgba(255, 255, 255, 0.15); --shadow-color: rgba(0, 0, 0, 0.3);
+            --win-color: #4CAF50; --loss-color: #f44336; --pending-color: #ffeb3b; --violet-color-alt: #9c27b0;
+            --reverse-active-color: #ffeb3b;
+            --font-family: 'Montserrat', sans-serif; --base-font-size: 14px; --border-radius: 8px; --card-padding: 1rem; --section-gap: 1rem;
+            /* Popup Styles (also used for Sim box) */
+            --popup-bg: linear-gradient(145deg, rgba(30, 58, 138, 0.97), rgba(15, 23, 42, 0.97));
+            --popup-border: rgba(0, 188, 212, 0.5);
+            --popup-shadow: rgba(0, 0, 0, 0.5);
+            --popup-max-width: 480px; /* Max width for popup */
+            --simbox-max-width: 550px; /* Max width for sim box */
+            --section-bg: rgba(26, 26, 46, 0.5); /* Common bg for sections inside */
+            --section-padding: 10px 12px;
+            --section-radius: 6px;
+            --popup-history-bg: rgba(26, 26, 46, 0.5);
+            --popup-stat-bg: rgba(26, 26, 46, 0.6);
+            --popup-pred-bg: rgba(26, 26, 46, 0.4);
+        }
+        /* --- Base & General Styles --- */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { font-family: var(--font-family); background-color: #1a1a2e; color: var(--text-color); line-height: 1.6; padding-top: 65px; overflow-x: hidden; }
+        .body-no-scroll { overflow: hidden; }
+        #particles-js { position: fixed; width: 100%; height: 100%; background-color: #1a1a2e; z-index: -1; }
+        .navbar { background-color: var(--header-bg); backdrop-filter: blur(var(--header-blur)); padding: 0.5rem; position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; box-shadow: 0 2px 10px var(--shadow-color); min-height: 50px; }
+        .nav-links { list-style: none; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0.3rem 0.5rem; padding: 0.3rem 0; }
+        .nav-link { color: var(--text-color); text-decoration: none; font-weight: 500; font-size: 0.85rem; padding: 0.4rem 0.6rem; position: relative; transition: color 0.3s ease, background-color 0.3s ease; white-space: nowrap; border-radius: 4px; cursor: pointer; }
+        .nav-link:hover, .nav-link.active { color: var(--nav-active-text); background-color: var(--nav-active-bg); }
+        .nav-link.external:hover { color: #1a1a2e; background-color: #ffeb3b; }
+        .main-content { padding: 1rem 0.8rem 2rem 0.8rem; max-width: 1200px; margin: 0 auto; }
+        .view { display: none; padding-top: 0.5rem; animation: fadeIn 0.5s ease-in-out; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background-color: var(--card-bg); padding: var(--card-padding); border-radius: var(--border-radius); margin-bottom: var(--section-gap); box-shadow: 0 4px 15px var(--shadow-color); border: 1px solid var(--card-border); }
+        h1 { color: var(--title-color); margin-bottom: 1rem; text-align: center; font-size: 1.6rem; }
+        h2 { color: var(--heading-color); margin-bottom: 0.8rem; text-align: center; font-size: 1.3rem; }
+        p { margin-bottom: 0.8rem; font-size: 0.95rem; }
+        .disclaimer { font-size: 0.85em; color: #ffeb3b; font-weight: bold; text-align: center; border: 1px dashed #ffeb3b; padding: 0.5rem; margin-top: 1rem; border-radius: 5px;}
+        .warning-text { color: var(--loss-color); font-weight: bold; }
+        .info-text { color: var(--heading-color); font-size: 0.85em; margin-top: 0.5rem; text-align: center; }
+        label { display: block; margin-bottom: 0.3rem; font-weight: 500; color: #bdbdbd; font-size: 0.8em; }
+        input[type="number"], input[type="text"] { padding: 0.8rem 0.9rem; background-color: rgba(26, 26, 46, 0.7); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-color); font-family: 'Montserrat', sans-serif; font-size: 1rem; transition: border-color 0.3s ease, box-shadow 0.3s ease; min-width: 70px; width: 100%; }
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; } input[type=number] { -moz-appearance: textfield; }
+        input[type="number"]:focus, input[type="text"]:focus { outline: none; border-color: var(--heading-color); box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.3); }
+        .btn { display: block; width: 80%; margin: 0.8rem auto; padding: 0.8rem 1rem; border: none; border-radius: 6px; font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 500; cursor: pointer; text-align: center; transition: background-color 0.3s ease, transform 0.2s ease; white-space: nowrap; }
+        .btn:hover { transform: translateY(-2px); } .btn:active { transform: translateY(0); }
+        .btn-predict { background-color: var(--heading-color); color: #1a1a2e; } .btn-predict:hover { background-color: #0097a7; }
+        .btn-win { background-color: var(--win-color); color: white; padding: 0.4rem 0.8rem; font-size: 0.9rem; display: inline-block; width: auto; margin: 0.2rem; } .btn-win:hover { background-color: #388E3C; }
+        .btn-loss { background-color: var(--loss-color); color: white; padding: 0.4rem 0.8rem; font-size: 0.9rem; display: inline-block; width: auto; margin: 0.2rem; } .btn-loss:hover { background-color: #d32f2f; }
+        .btn-danger { background-color: #e53935; color: white; } .btn-danger:hover { background-color: #c62828; }
+        .btn-set { background-color: #ff9800; color: #1a1a2e; font-size: 0.9em; padding: 0.7rem 1rem; width: 60%; } .btn-set:hover { background-color: #f57c00; }
+        #start-prediction-popup-btn { background-color: var(--heading-color); color: #1a1a2e; padding: 0.8rem 1.5rem; font-size: 1rem; font-weight: 600; } #start-prediction-popup-btn:hover { background-color: #0097a7; }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.85rem; }
+        table th, table td { padding: 0.5rem 0.4rem; text-align: left; border: 1px solid var(--border-color); white-space: normal; }
+        table th { background-color: rgba(0, 188, 212, 0.2); color: var(--heading-color); font-weight: 700; text-align: center; }
+        table tbody tr:nth-child(even) { background-color: rgba(255, 255, 255, 0.05); }
+        #levelChartTable th, #levelChartTable td { text-align: center; white-space: nowrap; font-size: 0.8rem; padding: 0.4rem 0.3rem;}
+        #levelChartTable td:first-child { font-weight: bold; color: var(--heading-color); }
+        #levelChartTable .total-row td { font-weight: bold; background-color: rgba(0, 188, 212, 0.1); }
+        .color-red { color: var(--loss-color); font-weight: bold; } .color-green { color: var(--win-color); font-weight: bold; } .color-violet { color: var(--violet-color-alt); font-weight: bold; }
+        .size-big { color: #2196F3; font-weight: bold; } .size-small { color: #ffeb3b; font-weight: bold; }
+
+        /* --- 1 Min Game (Auto API) View --- */
+        #one-min-view { text-align: center; padding-top: 2rem;}
+        #one-min-view p { margin-bottom: 1.5rem; }
+
+        /* --- Common Styles for Popup and Sim Box --- */
+        .box-header h2 { font-size: 1.2rem; font-weight: 600; color: var(--heading-color); margin-bottom: 15px; text-align: center; }
+        .box-section { margin-bottom: 12px; background: var(--section-bg); padding: var(--section-padding); border-radius: var(--section-radius); border: 1px solid var(--border-color); }
+        .box-section .label { font-size: 0.75rem; color: var(--subtle-text-color); margin-bottom: 6px; display: block; text-transform: uppercase; }
+        .box-timer-section { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; color: var(--subtle-text-color); }
+        .box-timer-section span { font-weight: 500; }
+        .box-timer-section strong { font-weight: 700; color: var(--text-color); font-size: 1.1em; }
+        .box-stats-section { display: flex; flex-wrap: wrap; justify-content: space-around; align-items: center; font-size: 0.8rem; }
+        .box-stats-section .stat { display: flex; align-items: baseline; gap: 3px; padding: 2px 4px;}
+        .box-stats-section .stat .label { color: var(--subtle-text-color); font-size: 0.9em; margin-bottom: 0; } /* Override general label style */
+        .box-stats-section .stat .value { font-weight: 700; font-size: 1em; }
+        .box-history-section { display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; }
+        .box-history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .box-history-header h3 { font-size: 0.95rem; font-weight: 600; color: var(--heading-color); }
+        .box-clear-history-btn { padding: 4px 8px; font-size: 0.7rem; background-color: var(--loss-color); color: white; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; } .box-clear-history-btn:hover { background-color: #d32f2f; }
+        .box-history-table-wrapper { overflow-y: auto; flex-grow: 1; }
+        .box-history-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        .box-history-table th, .box-history-table td { padding: 6px 4px; border: 1px solid var(--border-color); text-align: center; white-space: normal; word-break: break-word; }
+        .box-history-table th { background-color: rgba(0, 188, 212, 0.15); font-weight: 600; text-transform: uppercase; font-size: 0.7rem; color: #bdbdbd; position: sticky; top: 0; z-index: 1; }
+        .box-history-table td { vertical-align: middle; height: 32px; }
+        .box-history-table .outcome-cell { font-weight: 600; font-size: 0.9em; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+        .box-history-table .outcome-cell .num-color-line { display: flex; align-items: center; gap: 3px;}
+        .box-history-table .outcome-cell .type { color: var(--subtle-text-color); font-size: 0.9em; }
+        .box-history-table .outcome-cell .number.RED, .box-history-table .outcome-cell .color-name.RED { color: var(--loss-color); } .box-history-table .outcome-cell .number.GREEN, .box-history-table .outcome-cell .color-name.GREEN { color: var(--win-color); } .box-history-table .outcome-cell .number.VIOLET, .box-history-table .outcome-cell .color-name.VIOLET { color: var(--violet-color-alt); }
+        .box-history-table .status-indicator { font-size: 0.9em; margin-left: 4px; } .box-history-table .status-indicator.win i { color: var(--win-color); } .box-history-table .status-indicator.loss i { color: var(--loss-color); } .box-history-table .status-indicator.pending i { display: none; }
+
+        /* --- Prediction Popup Specific Styles --- */
+        .popup-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
+        .popup-container.visible { opacity: 1; visibility: visible; }
+        .popup-content { background: var(--popup-bg); padding: 15px 20px; border-radius: 10px; max-width: var(--popup-max-width); width: 95%; box-shadow: 0 10px 30px var(--popup-shadow); border: 1px solid var(--popup-border); position: relative; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); animation: popupFadeIn 0.3s ease-out; max-height: 95vh; display: flex; flex-direction: column; overflow-y: auto; }
+        @keyframes popupFadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .popup-close-btn { position: absolute; top: 8px; right: 8px; font-size: 1.4rem; color: var(--subtle-text-color); background: none; border: none; cursor: pointer; line-height: 1; padding: 5px; transition: color 0.2s ease; } .popup-close-btn:hover { color: var(--text-color); }
+        /* Use common box styles for sections inside popup */
+        #prediction-popup .box-timer-section { background: var(--popup-stat-bg); }
+        #prediction-popup .box-prediction-section { background: var(--popup-pred-bg); text-align: center;}
+        #prediction-popup #prediction-line { font-size: 1.1rem; font-weight: 500; text-align: center; color: var(--subtle-text-color); margin: 0; padding: 5px 0; }
+        #prediction-popup #prediction-line span { font-weight: 700; margin: 0 2px; display: inline-block; }
+        #prediction-popup #popup-pred-num-inline.RED, #prediction-popup #popup-pred-color-inline.RED { color: var(--loss-color); } #prediction-popup #popup-pred-num-inline.GREEN, #prediction-popup #popup-pred-color-inline.GREEN { color: var(--win-color); } #prediction-popup #popup-pred-num-inline.VIOLET, #prediction-popup #popup-pred-color-inline.VIOLET { color: var(--violet-color-alt); } #prediction-popup #popup-pred-size-inline.BIG { color: #2196F3; } #prediction-popup #popup-pred-size-inline.SMALL { color: #ffeb3b; }
+        #prediction-popup .box-stats-section { background: var(--popup-stat-bg); }
+        #prediction-popup #popup-stat-wins .value { color: var(--win-color); } #prediction-popup #popup-stat-losses .value { color: var(--loss-color); } #prediction-popup #popup-stat-accuracy .value { color: var(--text-color); } #prediction-popup #popup-stat-level .value { color: var(--text-color); } #prediction-popup #popup-stat-reverse .value { color: var(--subtle-text-color); } #prediction-popup #popup-stat-reverse .value.active { color: var(--reverse-active-color); font-weight: 700; }
+        #prediction-popup .box-history-section { background: var(--popup-history-bg); min-height: 340px; }
+        #prediction-popup .box-history-table-wrapper { overflow-y: hidden; } /* No scroll in wrapper */
+        #prediction-popup .box-history-table th, #prediction-popup .box-history-table td { white-space: normal; } /* Allow wrap */
+
+        /* --- Styles for Inline Simulation Box --- */
+        #thirty-sec-sim-view .sim-popup-style-box {
+            background: var(--popup-bg); /* Mimic popup bg */
+            padding: 15px 20px;
+            border-radius: 10px;
+            max-width: var(--simbox-max-width); /* Can be different from popup */
+            width: 95%;
+            box-shadow: 0 8px 25px var(--popup-shadow); /* Mimic popup shadow */
+            border: 1px solid var(--popup-border); /* Mimic popup border */
+            margin: 1rem auto; /* Center the box */
+            backdrop-filter: blur(6px); /* Optional blur */
+            -webkit-backdrop-filter: blur(6px);
+        }
+         /* Apply common box styles to sim sections */
+        #thirty-sec-sim-view .box-header h2 { font-size: 1.1rem; }
+        #thirty-sec-sim-view .sim-input-section { background: var(--section-bg); padding: var(--section-padding); border-radius: var(--section-radius); display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-bottom: 12px;}
+        #thirty-sec-sim-view .sim-input-section .input-group { flex: 1 1 130px; }
+        #thirty-sec-sim-view .sim-input-section .btn { margin: 0; width: auto; padding: 0.6rem 0.9rem; font-size: 0.9em;}
+        #thirty-sec-sim-view .sim-input-section .date-prefix-display { width: 100%; margin-bottom: 5px; font-size: 0.8em;}
+        #thirty-sec-sim-view .sim-fund-bet-status { background: var(--section-bg); padding: var(--section-padding); border-radius: var(--section-radius); display: flex; justify-content: space-around; margin-bottom: 12px; font-size: 0.9rem;}
+        #thirty-sec-sim-view .sim-fund-bet-status strong { color: #ffeb3b; margin-left: 5px;}
+        #thirty-sec-sim-view #sim-prediction-line { background: var(--section-bg); padding: var(--section-padding); border-radius: var(--section-radius); font-size: 1.0rem; font-weight: 500; text-align: center; color: var(--subtle-text-color); margin-bottom: 12px; min-height: 2.5em; display: flex; align-items: center; justify-content: center;}
+        #thirty-sec-sim-view #sim-prediction-line span { font-weight: 700; margin: 0 2px; }
+        #thirty-sec-sim-view .box-stats-section { background: var(--popup-stat-bg); } /* Use popup style */
+        #thirty-sec-sim-view #sim-stat-wins .value { color: var(--win-color); } #thirty-sec-sim-view #sim-stat-losses .value { color: var(--loss-color); } #thirty-sec-sim-view #sim-stat-accuracy .value { color: var(--text-color); } #thirty-sec-sim-view #sim-stat-consecutive-loss .value { color: var(--loss-color); }
+        #thirty-sec-sim-view .box-history-section { background: var(--popup-history-bg); min-height: auto; } /* No fixed min-height */
+        #thirty-sec-sim-view .box-history-table-wrapper { max-height: 300px; overflow-y: auto; } /* Allow scroll if needed */
+        #thirty-sec-sim-view .box-history-table th, #thirty-sec-sim-view .box-history-table td { white-space: nowrap; } /* Keep sim history nowrap */
+        #thirty-sec-sim-view .box-history-table .sim-action-cell .btn { font-size: 0.75rem; padding: 3px 6px; margin: 1px;}
+
+        /* --- Responsive Adjustments --- */
+        @media (min-width: 768px) { /* Desktop */
+             body { padding-top: 70px; } .main-content { padding: 1.5rem 2rem 2rem 2rem; } .card { padding: 1.5rem; margin-bottom: 1.5rem;} h1 { font-size: 1.8rem; } h2 { font-size: 1.4rem; } p { font-size: 1rem; } .btn { font-size: 1rem; padding: 0.7rem 1.2rem; display: inline-block; width: auto; margin: 0.5rem; } .btn-danger { display: block; width: auto; max-width: 200px; margin: 1rem auto 0 auto; }
+             /* Sim Desktop */
+             #thirty-sec-sim-view .sim-input-section { flex-wrap: nowrap; } #thirty-sec-sim-view .sim-input-section .input-group { max-width: 160px;} #thirty-sec-sim-view .sim-input-section .btn-set { margin-top: 0; } #thirty-sec-sim-view .sim-stats-section { font-size: 0.85rem; } #thirty-sec-sim-view .box-history-table { font-size: 0.9rem; } #thirty-sec-sim-view .box-history-table th, #thirty-sec-sim-view .box-history-table td { padding: 0.6rem 0.8rem; } #thirty-sec-sim-view .box-history-table .sim-action-cell .btn { padding: 0.3rem 0.6rem; font-size: 0.8rem; }
+        }
+         @media (max-width: 480px) { /* Mobile */
+             :root { --base-font-size: 12px; --card-padding: 8px; --section-gap: 8px; --popup-max-width: 96%; } h1 { font-size: 1.2rem; gap: 4px; margin-bottom: 5px;} .page-header { padding: 6px 8px; min-height: 45px; } .nav-button { font-size: 0.65rem; padding: 4px 7px; gap: 3px;} #logoutBtn { width: 26px; height: 26px; font-size: 0.7rem; top: 6px; right: 8px; } #app-wrapper { padding: 6px; }
+             /* Sim Mobile */
+              #thirty-sec-sim-view .sim-content-box { padding: 10px 12px; } #thirty-sec-sim-view .sim-input-section .btn { width: 100%; margin-top: 10px; } #thirty-sec-sim-view .sim-input-section .input-group { flex-basis: 45%; } #thirty-sec-sim-view .sim-status-section { font-size: 0.8rem; flex-direction: column; align-items: flex-start; } #thirty-sec-sim-view .sim-stats-section { font-size: 0.7rem; } #thirty-sec-sim-view .box-history-table { font-size: 0.7rem; } #thirty-sec-sim-view .box-history-table th, #thirty-sec-sim-view .box-history-table td { padding: 4px 3px; } #thirty-sec-sim-view .box-history-table .sim-action-cell .btn { padding: 2px 4px; font-size: 0.7rem;}
+             /* Popup Mobile */
+             .popup-content { padding: 10px 10px; max-height: 92vh; } .popup-header h2 { font-size: 1.0rem; margin-bottom: 8px; } .popup-timer-section { font-size: 0.75rem; padding: 4px 6px; margin-bottom: 8px; } #popup-next-period, #popup-timer { font-size: 1em; } .popup-prediction-section { padding: 8px; margin-bottom: 8px; } #prediction-line { font-size: 1.0rem; } #prediction-line span { margin: 0 1px; } .popup-stats-section { font-size: 0.7rem; padding: 4px 6px; gap: 2px 8px; margin-bottom: 10px; } .popup-stats-section .stat .value { font-size: 0.95em; } .popup-history-section { padding: 8px; min-height: 280px; } .popup-history-header h3 { font-size: 0.8rem; } #popup-clear-history-btn { font-size: 0.65rem; padding: 3px 6px; } .popup-history-table { font-size: 0.68rem; } .popup-history-table th, .popup-history-table td { padding: 4px 2px; white-space: nowrap; } .popup-history-table .outcome-cell { font-size: 0.85em; gap: 1px; } .popup-history-table .outcome-cell .number, .popup-history-table .outcome-cell .color-name, .popup-history-table .outcome-cell .type { font-size: 0.9em; }
+         }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+
+    <nav class="navbar">
+        <ul class="nav-links">
+            <li><a href="#thirty-sec-sim-view" class="nav-link active" data-view="thirty-sec-sim-view">30 Sec Sim</a></li>
+            <li><a href="#one-min-view" class="nav-link" data-view="one-min-view">1 Min Auto</a></li>
+            <li><a href="#level-chart" class="nav-link" data-view="level-chart">Level Chart</a></li>
+            <li><a href="https://chat.google.com/room/AAQA95Euqo8?cls=7" target="_blank" class="nav-link external">Google Chat</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <section id="one-min-view" class="view">
+             <h1>1 Min Game (API Auto Prediction)</h1>
+             <div class="card"> <p class="info-text">Click the button below to open the live prediction window.</p> <button id="start-prediction-popup-btn" class="btn"> <i class="fas fa-play"></i> Start Auto Prediction </button> <div id="api-error-message-main" style="color: #f44336; font-size: 0.85rem; margin-top: 15px; display: none; text-align:center;"></div> </div>
+             <div class="card"> <h2>How it Works</h2> <p>This tool uses real-time data from a public API (<code style="font-size: 0.8em; background: rgba(0,0,0,0.2); padding: 1px 3px; border-radius: 3px;">api.bdg88zf.com</code>) for the 1-minute game.</p> <ul> <li>Predictions (Number, Size, Color) are generated based on patterns observed in recent results.</li> <li>Win/Loss/Accuracy/Level stats are tracked based on predictions vs actual results.</li> <li>"Rev" indicates if the reverse prediction logic is active (triggers after 2 consecutive losses).</li> </ul> <p class="disclaimer" style="margin-top: 1rem;">Predictions are algorithmic and not guaranteed. API source may change. Use for informational purposes only.</p> </div>
+        </section>
+
+        <section id="thirty-sec-sim-view" class="view active"> <h1>30 Sec Game (Manual Simulation)</h1>
+
+            <div class="sim-popup-style-box"> <div class="box-header">
+                    <h2>Simulation Controls & Status</h2>
+                 </div>
+
+                 <div class="sim-input-section box-section">
+                    <div class="input-group">
+                        <label for="initialBetSim">Initial Bet (₹):</label>
+                        <input type="number" id="initialBetSim" placeholder="e.g., 10" min="1" step="any">
+                    </div>
+                    <button id="setInitialBetButtonSim" class="btn btn-set">Set/Reset</button>
+
+                    <div class="date-prefix-display"> Date: <strong id="datePrefixSim">YYYYMMDD</strong> </div>
+                    <div class="input-group">
+                        <label for="lastFourDigitsSim">Period (Last 4):</label>
+                        <input type="number" id="lastFourDigitsSim" placeholder="1234" min="0" max="9999">
+                    </div>
+                    <button id="predictInitialButtonSim" class="btn btn-predict">Predict Next</button>
+                 </div>
+
+                 <div class="sim-fund-bet-status box-section">
+                     <span>Fund: <strong id="currentBankrollDisplaySim">₹ 10000.00</strong></span>
+                     <span>Next Bet: <strong id="currentBetDisplaySim">₹ --</strong></span>
+                 </div>
+
+                 <div id="sim-prediction-line" class="box-section">
+                     <p class="info-text">Enter Period to see prediction.</p> </div>
+
+                 <div class="box-stats-section">
+                    <div class="stat"><span class="label">Wins:</span><span class="value" id="sim-stat-wins">0</span></div>
+                    <div class="stat"><span class="label">Loss:</span><span class="value" id="sim-stat-losses">0</span></div>
+                    <div class="stat"><span class="label">Acc:</span><span class="value" id="sim-stat-accuracy">N/A</span></div>
+                    <div class="stat"><span class="label">C.Loss:</span><span class="value" id="sim-stat-consecutive-loss">0</span></div>
+                 </div>
+
+                 <div class="box-history-section">
+                     <div class="box-history-header">
+                         <h3>Simulation History</h3>
+                         <button id="clearHistoryButtonSim" class="box-clear-history-btn"><i class="fas fa-trash"></i> Clear</button>
+                     </div>
+                     <div class="box-history-table-wrapper">
+                         <table id="historyTableSim" class="box-history-table"> <thead> <tr><th>Period</th><th>Prediction</th><th>Bet (₹)</th><th>Status</th><th>Action</th></tr> </thead>
+                             <tbody></tbody>
+                         </table>
+                     </div>
+                 </div>
+
+                  <p class="disclaimer" style="margin-top: 15px;">Disclaimer: SIMULATION ONLY. Uses basic prediction & Martingale. High risk involved in real scenarios.</p>
+
+            </div> </section>
+        <section id="level-chart" class="view">
+             <h1>Level Chart</h1> <div class="card"> <div class="table-container"> <table id="levelChartTable"> <thead><tr><th>Level</th><th>Opt 1 (₹)</th><th>Opt 2 (₹)</th><th>Opt 3 (₹)</th><th>Opt 4 (₹)</th></tr></thead> <tbody> <tr class="level-row"><td>Lv 1</td><td>₹1</td><td>₹5</td><td>₹10</td><td>₹50</td></tr> <tr class="level-row"><td>Lv 2</td><td>₹2</td><td>₹10</td><td>₹20</td><td>₹100</td></tr> <tr class="level-row"><td>Lv 3</td><td>₹4</td><td>₹20</td><td>₹40</td><td>₹200</td></tr> <tr class="level-row"><td>Lv 4</td><td>₹10</td><td>₹40</td><td>₹90</td><td>₹400</td></tr> <tr class="level-row"><td>Lv 5</td><td>₹20</td><td>₹90</td><td>₹200</td><td>₹800</td></tr> <tr class="level-row"><td>Lv 6</td><td>₹40</td><td>₹200</td><td>₹400</td><td>₹1700</td></tr> <tr class="level-row"><td>Lv 7</td><td>₹80</td><td>₹400</td><td>₹800</td><td>₹3500</td></tr> <tr class="level-row"><td>Lv 8</td><td>₹170</td><td>₹800</td><td>₹1700</td><td>₹7100</td></tr> <tr class="level-row"><td>Lv 9</td><td>₹350</td><td>₹1600</td><td>₹3500</td><td>₹14500</td></tr> <tr class="total-row"><td>Lv.8 TOTAL</td><td>₹327</td><td>₹1565</td><td>₹3260</td><td>₹13850</td></tr> <tr class="total-row"><td>Lv.9 TOTAL</td><td>₹677</td><td>₹3165</td><td>₹6760</td><td>₹28350</td></tr> </tbody> </table> </div> <p style="text-align: center; font-size: 0.9em; margin-top: 1rem;">* Values represent suggested amounts based on level.</p> </div>
+         </section>
+
+    </main>
+
+     <div id="prediction-popup" class="popup-container">
+        <div class="popup-content"> <button id="close-popup-btn" class="popup-close-btn" aria-label="Close Prediction">&times;</button> <div class="popup-header box-header"> <h2>AUTO PREDICTION (1 Min)</h2> </div> <div class="popup-timer-section box-section box-timer-section"> <span>Next Period: <span id="popup-next-period">-</span></span> <span>Countdown: <span id="popup-timer">--:--</span></span> </div> <div class="popup-prediction-section box-section"> <p id="prediction-line"> Prediction: <span id="popup-pred-num-inline">-</span> (<span id="popup-pred-size-inline">-</span>), <span id="popup-pred-color-inline">-</span> </p> <div id="popup-api-error-message" style="color: #f44336; font-size: 0.8rem; text-align: center; margin-top: 5px; display: none;"></div> </div> <div class="popup-stats-section box-section box-stats-section"> <div class="stat"><span class="label">Wins:</span><span class="value" id="popup-stat-wins">0</span></div> <div class="stat"><span class="label">Loss:</span><span class="value" id="popup-stat-losses">0</span></div> <div class="stat"><span class="label">Acc:</span><span class="value" id="popup-stat-accuracy">0%</span></div> <div class="stat"><span class="label">LV:</span><span class="value" id="popup-stat-level">1</span></div> <div class="stat"><span class="label">Rev:</span><span class="value" id="popup-stat-reverse">Inactive</span></div> </div> <div class="popup-history-section box-section box-history-section"> <div class="popup-history-header box-history-header"> <h3>History (Last 10)</h3> <button id="popup-clear-history-btn" class="box-clear-history-btn"><i class="fas fa-trash"></i> Clear</button> </div> <div class="popup-history-table-wrapper box-history-table-wrapper"> <table class="popup-history-table box-history-table"> <thead> <tr> <th>Period</th> <th>Big Small</th> <th>Color</th> <th>Result</th> </tr> </thead> <tbody id="popup-history-table-body"> <tr><td colspan="4">Loading...</td></tr> </tbody> </table> </div> </div> </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+
+    <script>
+         // --- Combined Script v2.2 (Sim Layout Update) ---
+        const API_URL = "https://api.bdg88zf.com/api/webapi/GetNoaverageEmerdList"; const API_DEBOUNCE_TIME = 1500; const API_FETCH_INTERVAL = 1000; const COUNTDOWN_START = 60; const HISTORY_MAX_SIZE_API = 50; const HISTORY_DISPLAY_COUNT_API = 10;
+        const SIZE_BIG = "BIG"; const SIZE_SMALL = "SMALL"; const COLOR_RED = "RED"; const COLOR_GREEN = "GREEN"; const COLOR_VIOLET = "VIOLET";
+        const STATUS_PENDING = "Pending"; const STATUS_COMPLETED = "Completed"; const OUTCOME_WIN = "WIN"; const OUTCOME_LOSS = "LOSS"; const OUTCOME_NA = "N/A";
+        const REVERSE_LOSS_THRESHOLD = 2; const DEFAULT_BANKROLL_SIM = 10000;
+        const STORAGE_KEY_PREFIX = 'predTool_v2.2_'; // Version update
+        const GAME_HISTORY_API_STORAGE_KEY = STORAGE_KEY_PREFIX + 'gameHistoryApi'; const SIM_STATE_STORAGE_KEY = STORAGE_KEY_PREFIX + 'simState';
+        let historyDataApi = []; let lastFetchedPeriodApi = null; let countdownApi = COUNTDOWN_START; let timerIntervalIdApi = null; let isReversedApi = false; let consecutiveLossesApi = 0; let lastApiTimestamp = 0;
+        let historySim = []; let bankrollSim = DEFAULT_BANKROLL_SIM; let initialBetSim = 10; let currentBetSim = 10; let consecutiveLossesSim = 0; let simulationOKSim = false; let currentDatePrefixSim = '';
+
+        // --- Element References ---
+        const elements = {
+            navbar: document.querySelector('.navbar'), navLinks: document.querySelectorAll('.nav-link'), views: document.querySelectorAll('.view'), particlesJs: document.getElementById('particles-js'),
+            oneMinView: document.getElementById('one-min-view'), startPredictionPopupBtn: document.getElementById('start-prediction-popup-btn'), apiErrorMessageMain: document.getElementById('api-error-message-main'),
+            predictionPopup: document.getElementById('prediction-popup'), closePopupBtn: document.getElementById('close-popup-btn'), popupNextPeriod: document.getElementById('popup-next-period'), popupTimer: document.getElementById('popup-timer'),
+            popupPredNumInline: document.getElementById('popup-pred-num-inline'), popupPredSizeInline: document.getElementById('popup-pred-size-inline'), popupPredColorInline: document.getElementById('popup-pred-color-inline'),
+            popupStatWins: document.getElementById('popup-stat-wins'), popupStatLosses: document.getElementById('popup-stat-losses'), popupStatAccuracy: document.getElementById('popup-stat-accuracy'), popupStatLevel: document.getElementById('popup-stat-level'), popupStatReverse: document.getElementById('popup-stat-reverse'),
+            popupApiErrorMessage: document.getElementById('popup-api-error-message'), popupClearHistoryBtn: document.getElementById('popup-clear-history-btn'), popupHistoryTableBody: document.getElementById('popup-history-table-body'),
+            // Simulation View Elements (Updated IDs/Structure)
+            thirtySecSimView: document.getElementById('thirty-sec-sim-view'),
+            initialBetInputSim: document.getElementById('initialBetSim'),
+            setInitialBetButtonSim: document.getElementById('setInitialBetButtonSim'),
+            currentBankrollDisplaySim: document.getElementById('currentBankrollDisplaySim'),
+            currentBetDisplaySim: document.getElementById('currentBetDisplaySim'),
+            datePrefixSimEl: document.getElementById('datePrefixSim'),
+            lastFourInputSim: document.getElementById('lastFourDigitsSim'),
+            predictInitialButtonSim: document.getElementById('predictInitialButtonSim'),
+            simPredictionLineEl: document.getElementById('sim-prediction-line'), // Updated prediction display element
+            historyTableBodySim: document.getElementById('historyTableSim')?.getElementsByTagName('tbody')[0],
+            clearHistoryButtonSim: document.getElementById('clearHistoryButtonSim'),
+            simStatWins: document.getElementById('sim-stat-wins'), // Updated stat elements
+            simStatLosses: document.getElementById('sim-stat-losses'),
+            simStatAccuracy: document.getElementById('sim-stat-accuracy'),
+            simStatConsecutiveLoss: document.getElementById('sim-stat-consecutive-loss'),
+        };
+
+        // --- Core Functions ---
+
+        // --- 1 Min API Game Functions (Keep as is from previous version) ---
+        function showApiError(m) { console.error("API Error:", m); if (elements.predictionPopup?.classList.contains('visible') && elements.popupApiErrorMessage) { elements.popupApiErrorMessage.textContent = m; elements.popupApiErrorMessage.style.display = 'block'; if (elements.popupTimer) elements.popupTimer.textContent = 'Error'; } else if (elements.apiErrorMessageMain && elements.oneMinView?.classList.contains('active')) { elements.apiErrorMessageMain.textContent = m; elements.apiErrorMessageMain.style.display = 'block'; } }
+        function clearApiError() { if (elements.popupApiErrorMessage) elements.popupApiErrorMessage.style.display = 'none'; if (elements.apiErrorMessageMain) elements.apiErrorMessageMain.style.display = 'none'; }
+        async function fetchGameResult() { const n = Date.now(); if (n - lastApiTimestamp < API_DEBOUNCE_TIME && lastFetchedPeriodApi != null) return null; lastApiTimestamp = n; clearApiError(); try { const r = await fetch(API_URL, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({pageSize: 10, pageNo: 1, typeId: 1, language: 0, random: "4a0522c6ecd8410496260e686be2a57c", signature: "334B5E70A0C9B8918B0B15E517E2069C", timestamp: Math.floor(Date.now() / 1000)})}); if (!r.ok) { showApiError(`API Error: ${r.status}`); return null; } const d = await r.json(); const l = d?.data?.list?.[0]; if (l?.issueNumber && l.number !== undefined && /^[0-9]$/.test(l.number.toString())) { return {period: l.issueNumber, result: l.number.toString()}; } else { console.warn("Invalid API data:", d); showApiError("Invalid API data format."); return null; } } catch (e) { showApiError(`Workspace Error: ${e.message}`); return null; } }
+        function getResultType(s) { const n = parseInt(s, 10); return isNaN(n) ? null : (n >= 5 ? SIZE_BIG : SIZE_SMALL); }
+        function getResultColor(s) { const n = parseInt(s, 10); if (isNaN(n)) return null; if (n === 0 || n === 5) return COLOR_VIOLET; return (n % 2 === 0) ? COLOR_RED : COLOR_GREEN; }
+        function predictSizeByPattern(h, reversed = false) { const c = h.filter(i => i.status === STATUS_COMPLETED && i.actualType); const f = () => c.length > 0 ? (c[0].actualType === SIZE_BIG ? SIZE_SMALL : SIZE_BIG) : (Math.random() < 0.5 ? SIZE_BIG : SIZE_SMALL); if (c.length < 4) return f(); const m = { [SIZE_BIG]: 'B', [SIZE_SMALL]: 'S' }; const p = getLastNCompleted(h, 'actualType', 4).map(t => m[t]).join(''); let prediction = f(); if (p === 'BSBS') prediction = SIZE_BIG; else if (p === 'SBSB') prediction = SIZE_SMALL; else if (p === 'BBSS') prediction = SIZE_SMALL; else if (p === 'SSBB') prediction = SIZE_BIG; return reversed ? (prediction === SIZE_BIG ? SIZE_SMALL : SIZE_BIG) : prediction; }
+        function predictColorByPattern(h, reversed = false) { const c = h.filter(i => i.status === STATUS_COMPLETED && i.actualColor); const f = () => c.length > 0 ? (c[0].actualColor === COLOR_RED ? COLOR_GREEN : COLOR_RED) : (Math.random() < 0.5 ? COLOR_RED : COLOR_GREEN); if (c.length < 4) return f(); const l = getLastNCompleted(h, 'actualColor', 4).filter(c => c === COLOR_RED || c === COLOR_GREEN); if (l.length < 4) return f(); const m = { [COLOR_RED]: 'R', [COLOR_GREEN]: 'G' }; const p = l.map(c => m[c]).join(''); let prediction = f(); if (p === 'GRGR') prediction = COLOR_GREEN; else if (p === 'RGRG') prediction = COLOR_RED; else if (p === 'GGRR') prediction = COLOR_RED; else if (p === 'RRGG') prediction = COLOR_GREEN; return (reversed && prediction !== COLOR_VIOLET) ? (prediction === COLOR_RED ? COLOR_GREEN : COLOR_RED) : prediction; }
+        function predictNumber(pc) { const r = ['0', '2', '4', '6', '8']; const g = ['1', '3', '5', '7', '9']; if (pc === COLOR_RED) return r[Math.floor(Math.random() * r.length)]; if (pc === COLOR_GREEN) return g[Math.floor(Math.random() * g.length)]; return Math.floor(Math.random() * 10).toString(); }
+        function getLastNCompleted(h, k, n) { return h.filter(i => i.status === STATUS_COMPLETED && i[k] !== null).slice(0, n).map(i => i[k]).reverse(); }
+        function updateGameStatsPopup() { const c = historyDataApi.filter(i => i.status === STATUS_COMPLETED); const u = (el, v, cl = null) => { if (el) { el.textContent = v; if (cl) el.className = cl; else el.className = 'value'; } }; if (c.length === 0) { u(elements.popupStatWins, '0'); u(elements.popupStatLosses, '0'); u(elements.popupStatAccuracy, '0%'); u(elements.popupStatLevel, '1'); u(elements.popupStatReverse, 'Inactive', 'value'); consecutiveLossesApi = 0; isReversedApi = false; return; } let w = 0, l = 0; c.forEach(i => { const sp = i.prediction !== null; const cp = i.colorPrediction !== null; if (!sp && !cp) return; let roundWin = true; if (sp && i.typeStatus === OUTCOME_LOSS) roundWin = false; if (cp && i.colorStatus === OUTCOME_LOSS) roundWin = false; if (!sp && !cp) roundWin = false; if (roundWin) w++; else l++; }); const t = w + l; const a = t > 0 ? (w / t) * 100 : 0; const currentLevel = consecutiveLossesApi + 1; u(elements.popupStatWins, w); u(elements.popupStatLosses, l); u(elements.popupStatAccuracy, a.toFixed(0) + '%'); u(elements.popupStatLevel, currentLevel); u(elements.popupStatReverse, isReversedApi ? "Active" : "Inactive", isReversedApi ? "value active" : "value"); }
+        function updateGameHistoryPopup() { if (!elements.popupHistoryTableBody) return; const h = historyDataApi.slice(0, HISTORY_DISPLAY_COUNT_API).map(i => { const ts = i.status === STATUS_PENDING || i.prediction === null ? '' : `<span class="status-indicator ${i.typeStatus === OUTCOME_WIN ? 'win' : 'loss'}"><i class="fas ${i.typeStatus === OUTCOME_WIN ? 'fa-check' : 'fa-times'}"></i></span>`; const cs = i.status === STATUS_PENDING || i.colorPrediction === null ? '' : `<span class="status-indicator ${i.colorStatus === OUTCOME_WIN ? 'win' : 'loss'}"><i class="fas ${i.colorStatus === OUTCOME_WIN ? 'fa-check' : 'fa-times'}"></i></span>`; const ps = i.prediction ?? '-'; const pc = i.colorPrediction ?? '-'; let resultHtml = '-'; if (i.status === STATUS_COMPLETED && i.result !== null) { const actualColorClass = i.actualColor ? i.actualColor.replace(COLOR_VIOLET, 'VIOLET') : ''; const numHtml = `<span class="number ${actualColorClass}">${i.result}</span>`; const colorHtml = `<span class="color-name ${actualColorClass}">(${i.actualColor || '?'})</span>`; const typeHtml = `<span class="type">${i.actualType || '?'}</span>`; resultHtml = `<div class="num-color-line">${numHtml}${colorHtml}</div><div class="type">${typeHtml}</div>`; } else if (i.status === STATUS_PENDING) { resultHtml = `<span style="color: var(--pending-color); font-style: italic;">Pending...</span>`; } return `<tr><td>${i.period}</td><td>${ps} ${ts}</td><td>${pc} ${cs}</td><td class="outcome-cell">${resultHtml}</td></tr>`; }).join(''); elements.popupHistoryTableBody.innerHTML = h || `<tr><td colspan="4">No history available.</td></tr>`; }
+        function updatePopupPredictionUI(nextPeriod, number, size, color) { if (elements.popupNextPeriod) elements.popupNextPeriod.textContent = nextPeriod ?? '-'; const numEl = elements.popupPredNumInline; const sizeEl = elements.popupPredSizeInline; const colorEl = elements.popupPredColorInline; if (numEl) { numEl.textContent = number ?? '-'; numEl.className = color ? color.split('+')[0].toUpperCase() : ''; } if (sizeEl) { sizeEl.textContent = size ?? '-'; sizeEl.className = size ? size.toUpperCase() : ''; } if (colorEl) { colorEl.textContent = color ?? '-'; colorEl.className = color ? color.split('+')[0].toUpperCase() : ''; } }
+        async function fetchAndProcessDataApi() { const a = await fetchGameResult(); if (!a) return; const currentPeriod = a.period; const actualResult = a.result; const actualType = getResultType(actualResult); const actualColor = getResultColor(actualResult); const pendingIndex = historyDataApi.findIndex(i => i.period === currentPeriod && i.status === STATUS_PENDING); if (pendingIndex > -1) { const item = historyDataApi[pendingIndex]; item.result = actualResult; item.actualType = actualType; item.actualColor = actualColor; item.status = STATUS_COMPLETED; if (item.prediction !== null) { item.typeStatus = (item.prediction === item.actualType) ? OUTCOME_WIN : OUTCOME_LOSS; } else { item.typeStatus = OUTCOME_NA; } if (item.colorPrediction !== null) { const baseActualColor = item.actualColor === COLOR_VIOLET ? (parseInt(actualResult, 10) % 2 === 0 ? COLOR_RED : COLOR_GREEN) : item.actualColor; item.colorStatus = (item.colorPrediction === item.actualColor || item.colorPrediction === baseActualColor) ? OUTCOME_WIN : OUTCOME_LOSS; } else { item.colorStatus = OUTCOME_NA; } let isLoss = (item.typeStatus === OUTCOME_LOSS || item.colorStatus === OUTCOME_LOSS); if (item.typeStatus === OUTCOME_NA && item.colorStatus === OUTCOME_NA) isLoss = false; if (isLoss) { consecutiveLossesApi++; if (consecutiveLossesApi >= REVERSE_LOSS_THRESHOLD && !isReversedApi) { isReversedApi = true; console.log("Reverse Activated!"); } } else { if (isReversedApi) { isReversedApi = false; console.log("Reverse Deactivated."); } consecutiveLossesApi = 0; } console.log(`API Result ${currentPeriod}: ${actualResult}(${actualType}/${actualColor}). Predict: Size ${item.prediction}(${item.typeStatus}), Color ${item.colorPrediction}(${item.colorStatus}), Rev: ${isReversedApi}`); } else if (currentPeriod !== lastFetchedPeriodApi) { historyDataApi.unshift({ period: currentPeriod, prediction: null, colorPrediction: null, numberPrediction: null, result: actualResult, actualType: actualType, actualColor: actualColor, typeStatus: OUTCOME_NA, colorStatus: OUTCOME_NA, status: STATUS_COMPLETED }); console.log(`API Received result ${currentPeriod} (${actualType}/${actualColor}), no prior prediction found.`); if (isReversedApi) { isReversedApi = false; console.log("Reverse Deactivated (no prediction)."); } consecutiveLossesApi = 0; } if (currentPeriod !== lastFetchedPeriodApi) { let nextPeriod; try { nextPeriod = (BigInt(currentPeriod) + 1n).toString(); } catch (e) { console.error("Period calculation error:", e); nextPeriod = "Error"; } const nextSize = predictSizeByPattern(historyDataApi, isReversedApi); const nextColor = predictColorByPattern(historyDataApi, isReversedApi); const nextNumber = predictNumber(nextColor); updatePopupPredictionUI(nextPeriod, nextNumber, nextSize, nextColor); if (!historyDataApi.some(i => i.period === nextPeriod)) { historyDataApi.unshift({ period: nextPeriod, prediction: nextSize, colorPrediction: nextColor, numberPrediction: nextNumber, result: null, actualType: null, actualColor: null, typeStatus: STATUS_PENDING, colorStatus: STATUS_PENDING, status: STATUS_PENDING }); } lastFetchedPeriodApi = currentPeriod; countdownApi = COUNTDOWN_START; saveGameHistoryApi(); } updateGameStatsPopup(); updateGameHistoryPopup(); }
+        function tickApi() { countdownApi--; const minutes = Math.floor(countdownApi / 60).toString().padStart(2, '0'); const seconds = (countdownApi % 60).toString().padStart(2, '0'); if (elements.popupTimer) { elements.popupTimer.textContent = countdownApi >= 0 ? `${minutes}:${seconds}` : '00:00'; } if (countdownApi === 3 || countdownApi < 0) { fetchAndProcessDataApi(); if (countdownApi < 0) { if(countdownApi < -2) { countdownApi = COUNTDOWN_START; } } } }
+        function startPredictionLoopApi() { if (timerIntervalIdApi) return; console.log("Starting 1 Min Prediction Loop..."); isReversedApi = false; consecutiveLossesApi = 0; clearApiError(); fetchAndProcessDataApi().then(() => { if (timerIntervalIdApi) clearInterval(timerIntervalIdApi); timerIntervalIdApi = setInterval(tickApi, API_FETCH_INTERVAL); if (elements.popupTimer) elements.popupTimer.textContent = String(COUNTDOWN_START).padStart(2,'0') + ':00'; console.log("API Prediction timer started."); }).catch(e => { console.error("Initial API fetch failed:", e); showApiError('Initial data load failed.'); }); }
+        function stopPredictionLoopApi() { if (timerIntervalIdApi) { clearInterval(timerIntervalIdApi); timerIntervalIdApi = null; console.log("Stopped 1 Min Prediction Loop."); if (elements.popupTimer) elements.popupTimer.textContent = '--:--'; } }
+        function saveGameHistoryApi() { try { const completedHistory = historyDataApi.filter(item => item.status === STATUS_COMPLETED).slice(0, HISTORY_MAX_SIZE_API); localStorage.setItem(GAME_HISTORY_API_STORAGE_KEY, JSON.stringify(completedHistory)); } catch (e) { console.error("Error saving API game history:", e); } }
+        function loadGameHistoryApi() { try { const saved = localStorage.getItem(GAME_HISTORY_API_STORAGE_KEY); if (saved) { historyDataApi = JSON.parse(saved); if (historyDataApi.length > HISTORY_MAX_SIZE_API) { historyDataApi = historyDataApi.slice(0, HISTORY_MAX_SIZE_API); } console.log(`Loaded ${historyDataApi.length} API game history records.`); } else { historyDataApi = []; } } catch (e) { console.error("Error loading API game history:", e); historyDataApi = []; } updateGameStatsPopup(); updateGameHistoryPopup(); }
+
+        // --- 30 Sec Simulation Functions ---
+        function getCurrentDatePrefixSim() { const now = new Date(); const year = now.getFullYear(); const month = String(now.getMonth() + 1).padStart(2, '0'); const day = String(now.getDate()).padStart(2, '0'); return `${year}${month}${day}`; }
+        function generatePredictionSim(periodNumber) { console.log(`Generating sim prediction for period: ${periodNumber}`); const lastDigit = periodNumber % 10; const secondLastDigit = Math.floor(periodNumber / 10) % 10; const thirdLastDigit = Math.floor(periodNumber / 100) % 10; const calcValue = (lastDigit * 5 + secondLastDigit * 3 + thirdLastDigit * 2 + 1) % 10; let color; let size; if (calcValue === 0 || calcValue === 5) { color = Math.random() < 0.6 ? (calcValue === 0 ? 'Violet+Red' : 'Violet+Green') : 'Violet'; } else if (calcValue % 2 !== 0) { color = 'Green'; } else { color = 'Red'; } size = calcValue >= 5 ? 'Big' : 'Small'; const prediction = { period: periodNumber, number: calcValue, color: color, size: size, status: 'Pending', actualResult: null, betAmount: currentBetSim }; console.log("Generated Sim Prediction:", prediction); return prediction; }
+        // UPDATED: Display prediction in the new element
+        function displayPredictionSim(prediction) {
+            const targetEl = elements.simPredictionLineEl; // Use the new target ID
+            if (!targetEl) return;
+            if (!prediction) {
+                targetEl.innerHTML = `<p class="info-text">Set initial bet and predict the first period.</p>`;
+                 return;
+            }
+            // Replicate inline style from popup
+            let numClass = prediction.color ? prediction.color.split('+')[0].toUpperCase() : '';
+            let sizeClass = prediction.size ? prediction.size.toUpperCase() : '';
+            let colorClass = numClass; // Color based on number color
+            targetEl.innerHTML = `Prediction (P:${prediction.period}):
+                <span class="${numClass}">${prediction.number ?? '?'}</span>
+                (<span class="${sizeClass}">${prediction.size}</span>),
+                <span class="${colorClass}">${prediction.color}</span>`;
+        }
+        function renderHistoryTableSim() { if (!elements.historyTableBodySim) { console.error("Sim History table body not found!"); return; } elements.historyTableBodySim.innerHTML = ''; const historyToRender = historySim.slice(-20); [...historyToRender].reverse().forEach(pred => { const row = elements.historyTableBodySim.insertRow(); let predictedColorClass = `color-${pred.color.toLowerCase().split('+')[0]}`; let predictedSizeClass = `size-${pred.size.toLowerCase()}`; let statusClass = ''; if (pred.status === 'Win') statusClass = 'color-green'; if (pred.status === 'Loss') statusClass = 'color-red'; row.insertCell().textContent = pred.period; row.insertCell().innerHTML = `<span class="${predictedColorClass}">${pred.color}</span> / <span class="${predictedSizeClass}">${pred.size}</span>`; row.insertCell().textContent = `₹${pred.betAmount?.toFixed(2) ?? '--'}`; row.insertCell().innerHTML = `<span class="${statusClass}">${pred.status}</span>`; const actionCell = row.insertCell(); actionCell.classList.add('sim-action-cell'); if (pred.status === 'Pending') { const winButton = document.createElement('button'); winButton.textContent = 'Win'; winButton.classList.add('btn', 'btn-win'); winButton.dataset.period = pred.period; winButton.dataset.action = 'Win'; actionCell.appendChild(winButton); const lossButton = document.createElement('button'); lossButton.textContent = 'Loss'; lossButton.classList.add('btn', 'btn-loss'); lossButton.dataset.period = pred.period; lossButton.dataset.action = 'Loss'; actionCell.appendChild(lossButton); } else { actionCell.textContent = '-'; } }); }
+        // UPDATED: Update stats in the new section
+        function updateStatsSim() {
+            const wins = historySim.filter(p => p.status === 'Win').length;
+            const losses = historySim.filter(p => p.status === 'Loss').length;
+            const completed = wins + losses;
+            const accuracy = completed > 0 ? ((wins / completed) * 100).toFixed(1) : 'N/A';
+            const u = (el, v) => { if (el) el.textContent = v; };
+            u(elements.simStatWins, wins);
+            u(elements.simStatLosses, losses);
+            u(elements.simStatAccuracy, completed > 0 ? `${accuracy}%` : 'N/A');
+            u(elements.simStatConsecutiveLoss, consecutiveLossesSim);
+        }
+        function updateBettingDisplaysSim() { if(elements.currentBankrollDisplaySim) elements.currentBankrollDisplaySim.textContent = `₹ ${bankrollSim?.toFixed(2) ?? '--'}`; if(elements.currentBetDisplaySim) elements.currentBetDisplaySim.textContent = simulationOKSim ? `₹ ${currentBetSim?.toFixed(2)}` : '₹ --'; if(elements.initialBetInputSim && !elements.initialBetInputSim.matches(':focus')) elements.initialBetInputSim.value = initialBetSim > 0 ? initialBetSim.toString() : ''; const simBox = elements.thirtySecSimView?.querySelector('.sim-popup-style-box'); if (simBox) { simBox.style.border = simulationOKSim ? '1px solid var(--card-border)' : '2px solid var(--loss-color)'; } }
+        function saveAppStateSim() { try { const appState = { historySim, bankrollSim, initialBetSim, currentBetSim, consecutiveLossesSim }; localStorage.setItem(SIM_STATE_STORAGE_KEY, JSON.stringify(appState)); console.log("Sim state saved."); } catch (e) { console.error("Failed to save sim state:", e); } }
+        function loadAppStateSim() { try { const storedState = localStorage.getItem(SIM_STATE_STORAGE_KEY); if (storedState) { const state = JSON.parse(storedState); historySim = (state.historySim || []).map(item => ({...item, period: Number(item.period) })); bankrollSim = Number(state.bankrollSim) || DEFAULT_BANKROLL_SIM; initialBetSim = Number(state.initialBetSim) || 10; currentBetSim = Number(state.currentBetSim) || initialBetSim; consecutiveLossesSim = Number(state.consecutiveLossesSim) || 0; simulationOKSim = bankrollSim > 0; console.log("Sim state loaded."); } else { console.log("No saved sim state found."); resetSimulationState(false); } } catch (e) { console.error("Failed to load sim state:", e); resetSimulationState(false); } }
+        function resetSimulationState(clearHistoryFlag = true) { bankrollSim = DEFAULT_BANKROLL_SIM; let inputBet = parseFloat(elements.initialBetInputSim?.value); initialBetSim = (!isNaN(inputBet) && inputBet > 0) ? inputBet : 10; if (initialBetSim > DEFAULT_BANKROLL_SIM) { alert(`Initial bet (₹${initialBetSim.toFixed(2)}) cannot be > starting fund (₹${DEFAULT_BANKROLL_SIM.toFixed(2)}). Setting to ₹10.`); initialBetSim = 10; } currentBetSim = initialBetSim; consecutiveLossesSim = 0; simulationOKSim = true; if(elements.initialBetInputSim) elements.initialBetInputSim.value = initialBetSim.toString(); if(clearHistoryFlag) historySim = []; console.log("Simulation state reset. Initial Bet:", initialBetSim); saveAppStateSim(); updateBettingDisplaysSim(); updateStatsSim(); if (clearHistoryFlag) renderHistoryTableSim(); if (elements.simPredictionLineEl) elements.simPredictionLineEl.innerHTML = '<p class="info-text">Predict the first period to start simulation.</p>'; checkSimulationStatusSim(false); }
+        function clearHistoryOnlySim() { if (confirm("Clear simulation history only? Fund and bets remain.")) { historySim = []; saveAppStateSim(); renderHistoryTableSim(); updateStatsSim(); console.log("Sim History cleared."); } }
+        function checkSimulationStatusSim(showAlert = true) { simulationOKSim = bankrollSim >= currentBetSim && bankrollSim > 0; updateBettingDisplaysSim(); if (!simulationOKSim && showAlert) { const message = bankrollSim <= 0 ? `Simulation fund depleted! Reset simulation.` : `Warning: Fund (₹${bankrollSim.toFixed(2)}) too low for current bet (₹${currentBetSim.toFixed(2)}). Simulation stopped.`; console.error(message); alert(message); if (elements.simPredictionLineEl) elements.simPredictionLineEl.innerHTML = `<p class="warning-text">${message}</p>`; } return simulationOKSim; }
+        function handleSetInitialBetSim() { const initB = parseFloat(elements.initialBetInputSim.value); if (isNaN(initB) || initB <= 0) { alert("Please enter a valid initial bet (> 0)."); return; } if (initB > DEFAULT_BANKROLL_SIM) { alert(`Initial bet (₹${initB.toFixed(2)}) cannot be > starting fund (₹${DEFAULT_BANKROLL_SIM.toFixed(2)}).`); return; } console.log(`Attempting sim reset with initial bet: ${initB}`); resetSimulationState(true); console.log(`Sim Reset. Initial Bet set to ₹${initialBetSim.toFixed(2)}. Fund is ₹${bankrollSim.toFixed(2)}.`); }
+        function handleInitialPredictionSim() { if (!simulationOKSim) { checkSimulationStatusSim(true); return; } const lastFour = elements.lastFourInputSim.value; if (!lastFour || lastFour.length > 4 || isNaN(lastFour) || Number(lastFour) < 0) { alert("Please enter valid last 4 digits (0000 - 9999)."); return; } const paddedLastFour = lastFour.padStart(4, '0'); const initialPeriodNumber = parseInt(`${currentDatePrefixSim}${paddedLastFour}`, 10); if (isNaN(initialPeriodNumber)) { alert("Failed to construct period number."); return; } const existingPrediction = historySim.find(p => p.period === initialPeriodNumber); if (existingPrediction) { alert(`Period ${initialPeriodNumber} already processed or pending.`); return; } if (currentBetSim > bankrollSim) { alert(`Cannot predict: Fund (₹${bankrollSim.toFixed(2)}) < current bet (₹${currentBetSim.toFixed(2)}). Reset simulation.`); checkSimulationStatusSim(true); return; } const prediction = generatePredictionSim(initialPeriodNumber); historySim.push(prediction); displayPredictionSim(prediction); saveAppStateSim(); renderHistoryTableSim(); updateStatsSim(); updateBettingDisplaysSim(); elements.lastFourInputSim.value = ''; }
+        function handleHistoryActionSim(event) { if (bankrollSim <= 0 && simulationOKSim) { simulationOKSim = false; checkSimulationStatusSim(true); return; } if (!simulationOKSim && bankrollSim > 0) { alert("Warning: Fund is low. Processing last result."); } else if (!simulationOKSim) { alert("Simulation stopped due to zero/negative fund. Please Reset."); return; } const target = event.target; if (target.tagName === 'BUTTON' && target.dataset.period && target.dataset.action) { const period = parseInt(target.dataset.period, 10); const action = target.dataset.action; const predictionIndex = historySim.findIndex(p => p.period === period); if (predictionIndex > -1 && historySim[predictionIndex].status === 'Pending') { const prediction = historySim[predictionIndex]; const betAmount = prediction.betAmount; prediction.status = action; prediction.actualResult = action; if (action === 'Win') { bankrollSim += betAmount; consecutiveLossesSim = 0; currentBetSim = initialBetSim; } else { bankrollSim -= betAmount; consecutiveLossesSim++; currentBetSim = currentBetSim * 2; } console.log(`Sim P${period} ${action}. Bet: ${betAmount}. Bankroll: ${bankrollSim}. NextBet: ${currentBetSim}`); saveAppStateSim(); updateBettingDisplaysSim(); updateStatsSim(); renderHistoryTableSim(); if (checkSimulationStatusSim(true)) { predictAndDisplayNextSim(period); } } } }
+        function predictAndDisplayNextSim(basePeriodNumber) { if (!checkSimulationStatusSim(false)) { console.log("Stopping sim auto-prediction."); return; } if (isNaN(basePeriodNumber)) { console.error("Invalid base period number."); return; } const nextPeriodNumber = basePeriodNumber + 1; const existingNext = historySim.find(p => p.period === nextPeriodNumber); if (existingNext) { displayPredictionSim(existingNext); return; } const nextPrediction = generatePredictionSim(nextPeriodNumber); historySim.push(nextPrediction); displayPredictionSim(nextPrediction); saveAppStateSim(); renderHistoryTableSim(); updateStatsSim(); }
+
+        // --- UI & Navigation ---
+        function switchView(viewId) { if (!elements.views || !elements.navLinks) return; console.log("Switching view to:", viewId); elements.views.forEach(view => view.classList.remove('active')); elements.navLinks.forEach(navLink => navLink.classList.remove('active')); const targetView = document.getElementById(viewId); const targetLink = document.querySelector(`.nav-link[data-view="${viewId}"]`); if (targetView) { targetView.classList.add('active'); } else { console.warn(`View ${viewId} not found.`); document.getElementById('thirty-sec-sim-view').classList.add('active'); document.querySelector('.nav-link[data-view="thirty-sec-sim-view"]').classList.add('active');} if (targetLink) targetLink.classList.add('active'); if (viewId === 'thirty-sec-sim-view') { initializeSimulationView(); } }
+        function adjustBodyPadding() { if (elements.navbar) { requestAnimationFrame(() => { const navHeight = elements.navbar.offsetHeight; document.body.style.paddingTop = `${navHeight + 15}px`; }); } }
+
+        // --- Initialization ---
+        function initializeSimulationView() { currentDatePrefixSim = getCurrentDatePrefixSim(); if(elements.datePrefixSimEl) elements.datePrefixSimEl.textContent = currentDatePrefixSim; loadAppStateSim(); renderHistoryTableSim(); updateStatsSim(); updateBettingDisplaysSim(); checkSimulationStatusSim(false); console.log("Simulation View Initialized/Refreshed."); }
+        function initializeApp() {
+            console.log("Initializing Prediction Tool v2.2...");
+            switchView('thirty-sec-sim-view'); // Default to 30 Sec Sim view
+            elements.navLinks.forEach(link => { if (!link.classList.contains('external')) { link.addEventListener('click', (e) => { e.preventDefault(); switchView(link.dataset.view); }); } });
+            window.addEventListener('resize', adjustBodyPadding);
+            adjustBodyPadding();
+            initializeParticles();
+            // 1 Min Popup Listeners
+            if(elements.startPredictionPopupBtn) { elements.startPredictionPopupBtn.addEventListener('click', () => { if(elements.predictionPopup) { elements.predictionPopup.classList.add('visible'); document.body.classList.add('body-no-scroll'); loadGameHistoryApi(); startPredictionLoopApi(); updatePopupPredictionUI('-', '-', '-', '-'); } }); }
+            if(elements.closePopupBtn) { elements.closePopupBtn.addEventListener('click', () => { if(elements.predictionPopup) { elements.predictionPopup.classList.remove('visible'); document.body.classList.remove('body-no-scroll'); stopPredictionLoopApi(); } }); }
+            if(elements.popupClearHistoryBtn) { elements.popupClearHistoryBtn.addEventListener('click', () => { if (confirm('Clear 1 Min Game history and stats? Prediction will continue.')) { historyDataApi = []; localStorage.removeItem(GAME_HISTORY_API_STORAGE_KEY); isReversedApi = false; consecutiveLossesApi = 0; console.log("1 Min Game History & Stats Cleared. Prediction continues."); updateGameHistoryPopup(); updateGameStatsPopup(); } }); }
+             // 30 Sec Sim Listeners
+            if(elements.setInitialBetButtonSim) elements.setInitialBetButtonSim.addEventListener('click', handleSetInitialBetSim);
+            if(elements.predictInitialButtonSim) elements.predictInitialButtonSim.addEventListener('click', handleInitialPredictionSim);
+            if(elements.clearHistoryButtonSim) elements.clearHistoryButtonSim.addEventListener('click', clearHistoryOnlySim);
+            if(elements.historyTableBodySim) elements.historyTableBodySim.addEventListener('click', handleHistoryActionSim);
+            console.log("App Initialized.");
+        }
+        function initializeParticles() { if (typeof particlesJS !== 'undefined') { particlesJS('particles-js', { "particles": { "number": { "value": 50, "density": { "enable": true, "value_area": 800 } }, "color": { "value": "#00bcd4" }, "shape": { "type": "circle" }, "opacity": { "value": 0.4, "random": true, "anim": { "enable": true, "speed": 0.8, "opacity_min": 0.1, "sync": false } }, "size": { "value": 3, "random": true }, "line_linked": { "enable": true, "distance": 150, "color": "#ffffff", "opacity": 0.2, "width": 1 }, "move": { "enable": true, "speed": 2, "direction": "none", "out_mode": "out" } }, "interactivity": { "detect_on": "canvas", "events": { "onhover": { "enable": true, "mode": "repulse" }, "onclick": { "enable": false }, "resize": true }, "modes": { "repulse": { "distance": 100, "duration": 0.4 } } }, "retina_detect": true }); } else { console.warn("particles.js library not found."); } }
+
+        // --- Start App ---
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+    </script>
+
+</body>
+</html>

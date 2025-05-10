@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP Predict King</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        /* --- Theme Variables --- */
+        :root {
+            --bg-deep-blue: #1e3a8a; --bg-light-gradient: #2a4586; --card-light: rgba(255, 255, 255, 0.1); --primary-accent: #4ecca3; --secondary-accent: #ff6b6b; --text-dark: #ffffff; --text-muted-light: #b0c4de; --border-light: rgba(255, 255, 255, 0.2); --success-color: #28a745; --danger-color: #dc3545; --warning-color: #f39c12; --pending-color: #566573; --violet-color: #8a4cac; --green-color: var(--success-color); --red-color: var(--danger-color);
+            --mines-safe-color: var(--success-color); --mines-mine-color: var(--danger-color);
+            --font-family: 'Poppins', sans-serif; --border-radius: 6px; --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); --transition-speed: 0.2s;
+            --primary-accent-rgb: 78, 204, 163;
+        }
+
+        /* --- Base Styles --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes gradientXAnimation { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        /* --- Animated Gradient Background --- */
+        body { font-family: var(--font-family); color: var(--text-dark); min-height: 100vh; line-height: 1.5; padding: 0; background: linear-gradient(110deg, var(--bg-deep-blue) 0%, var(--bg-light-gradient) 25%, #3a5cc4 50%, var(--bg-light-gradient) 75%, var(--bg-deep-blue) 100% ); background-size: 300% 100%; animation: gradientXAnimation 18s ease infinite; position: relative; display: flex; align-items: center; justify-content: center; }
+        #particles-js { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+
+        /* --- Login View --- */
+        #loginView { background-color: var(--card-light); padding: 30px 40px; border-radius: var(--border-radius); box-shadow: var(--card-shadow); border: 1px solid var(--border-light); text-align: center; z-index: 1; max-width: 400px; width: 90%; backdrop-filter: blur(5px); } #loginView h1 { color: var(--text-dark); font-weight: 600; font-size: 1.8rem; margin-bottom: 25px; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); } #loginView input[type="password"] { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; border: 1px solid var(--border-light); background-color: rgba(255, 255, 255, 0.1); color: var(--text-dark); font-size: 1rem; } #loginView input[type="password"]::placeholder { color: var(--text-muted-light); } #loginView button { background-color: var(--primary-accent); color: #ffffff; padding: 10px 20px; font-size: 1rem; font-weight: 600; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; width: 100%; } #loginView button:hover { background-color: #3caa8a; } #loginErrorMessage { color: var(--danger-color); margin-top: 10px; font-size: 0.9rem; min-height: 1.2em; }
+
+        /* --- Main App Container --- */
+        #appView { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; overflow-y: auto; }
+        .main-container { max-width: 1000px; padding: 12px; margin: 10px auto; position: relative; z-index: 1; animation: fadeIn 0.6s ease-in-out; background-color: transparent; }
+
+        /* --- Typography & Links --- */
+        h1#appTitle { color: var(--text-dark); text-align: center; font-weight: 600; font-size: 1.6rem; margin-bottom: 10px; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); } h1#appTitle span { color: var(--text-muted-light); font-weight: 300; }
+        h2 { color: var(--primary-accent); font-weight: 600; font-size: 1.3rem; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--border-light); padding-bottom: 5px; }
+        h3 { color: var(--text-dark); font-weight: 600; font-size: 1.1rem; margin-bottom: 8px; } p { color: var(--text-muted-light); font-size: 0.9rem; margin-bottom: 8px; } a { color: var(--primary-accent); text-decoration: none; } a:hover { color: #3caa8a; }
+
+        /* --- Navigation --- */
+        .main-nav { display: flex; justify-content: center; gap: 8px; margin-bottom: 10px; padding: 8px; background-color: transparent; border: 1px solid var(--border-light); border-radius: var(--border-radius); box-shadow: var(--card-shadow); overflow-x: auto; scrollbar-width: thin; scrollbar-color: var(--border-light) transparent; flex-wrap: nowrap; } .main-nav::-webkit-scrollbar { height: 4px; } .main-nav::-webkit-scrollbar-thumb { background-color: var(--border-light); border-radius: 8px; } .nav-button { background-color: transparent; border: 1px solid var(--border-light); color: var(--text-muted-light); padding: 8px 15px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; transition: all 0.2s; flex-shrink: 0; } .nav-button:hover { background-color: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.4); } .nav-button.active { background-color: var(--primary-accent); color: #ffffff; border-color: var(--primary-accent); } .nav-button i { font-size: 1.1rem; line-height: 1; } .nav-button.icon-only { padding: 8px 10px; min-width: 40px; } .nav-button.icon-only i { margin: 0; font-size: 1.2rem; }
+
+        /* --- Content Views & Cards --- */
+        .content-view { display: none; } .content-view.active { display: block; animation: fadeIn 0.4s; }
+        .dashboard-card, .static-content-card { background-color: var(--card-light); padding: 15px; border-radius: var(--border-radius); box-shadow: var(--card-shadow); border: 1px solid var(--border-light); margin-bottom: 15px; backdrop-filter: blur(5px); }
+        p.card-subtitle { color: var(--text-muted-light); font-size: 0.85rem; margin-top: -8px; margin-bottom: 10px; }
+
+        /* --- Home View Styles --- */
+         #homeView .intro-section { text-align: center; margin-bottom: 15px; } /* ... rest of home styles ... */ #homeView .intro-section i.fa-crown { font-size: 2.2rem; color: var(--primary-accent); margin-bottom: 6px; } #homeView .intro-section h2 { justify-content: center; font-size: 1.4rem; margin-bottom: 6px; border-bottom: none; } #homeView .intro-section p { font-size: 0.9rem; max-width: 450px; margin: 0 auto; color: var(--text-dark); } #homeView .features-section { margin-bottom: 15px; } #homeView .features-section h3 { font-size: 1.1rem; text-align: center; margin-bottom: 10px; } #homeView .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; } #homeView .feature-card { background-color: rgba(78, 204, 163, 0.05); padding: 12px; border-radius: var(--border-radius); border: 1px solid var(--border-light); transition: transform 0.2s, box-shadow 0.2s; } #homeView .feature-card:hover { transform: translateY(-2px); box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1); } #homeView .feature-card h4 { font-size: 0.95rem; margin-bottom: 5px; display: flex; align-items: center; gap: 5px; color: var(--primary-accent); } #homeView .feature-card p { font-size: 0.8rem; margin: 0; } #homeView .start-section { background-color: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: var(--border-radius); margin-bottom: 15px; text-align: center; border: 1px solid var(--border-light); } #homeView .start-section h3 { font-size: 1.1rem; margin-bottom: 8px; } #homeView .start-section ul { list-style: none; padding: 0; margin: 0 0 10px 0; text-align: left; display: inline-block; } #homeView .start-section ul li { font-size: 0.85rem; margin-bottom: 5px; background: none; border: none; padding: 0; position: relative; padding-left: 20px; } #homeView .start-section ul li::before { content: "\f00c"; font-family: "Font Awesome 6 Free"; font-weight: 900; color: var(--primary-accent); position: absolute; left: 0; top: 1px; } #homeView .start-section ul li strong { color: var(--primary-accent); } #homeView .action-button { background-color: var(--primary-accent); color: #ffffff; padding: 8px 16px; font-size: 0.9rem; font-weight: 600; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; } #homeView .action-button:hover { background-color: #3caa8a; transform: scale(1.05); } #homeView .disclaimer-section { background-color: rgba(255, 107, 107, 0.1); padding: 10px; border-radius: var(--border-radius); border: 1px solid var(--secondary-accent); } #homeView .disclaimer-section h3 { font-size: 1rem; color: var(--secondary-accent); margin-bottom: 5px; display: flex; align-items: center; gap: 6px; } #homeView .disclaimer-section p { font-size: 0.8rem; color: #c0392b; margin: 0; }
+
+        /* --- Wingo View (Single Column Layout, Adjusted Spacing) --- */
+        #wingoView .predict-ai-card { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        #wingoView .predict-ai-card > h2 { text-align: center; border-bottom: 1px solid var(--border-light); margin-bottom: 5px; padding-bottom: 8px; width: 100%; font-size: 1.2rem; }
+
+        /* Controls Row - Force side-by-side (MODIFIED) */
+        #wingoView .controls-row {
+            display: flex !important; /* Use flexbox */
+            flex-wrap: nowrap !important; /* Prevent wrapping */
+            gap: 10px; /* Space between items */
+            align-items: center; /* Vertically align items */
+            justify-content: flex-start; /* Align items to the start */
+        }
+        #wingoView .controls-row > div { /* Styles the wrappers for Label+Input pairs */
+            display: flex;
+            align-items: center;
+            gap: 5px; /* Space between label and input */
+            flex-grow: 0; /* Prevent wrapper from growing */
+            flex-shrink: 0; /* Prevent wrapper from shrinking */
+        }
+        #wingoView .controls-row label {
+            font-weight: 500;
+            color: var(--text-muted-light);
+            font-size: 0.85rem;
+            flex-shrink: 0; /* Prevent label from shrinking */
+            white-space: nowrap; /* Keep label on one line */
+        }
+        #wingoView .controls-row input[type="number"] {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+            padding: 5px 8px;
+            color: var(--text-dark);
+            font-size: 0.85rem;
+            width: 70px; /* Give input a fixed width */
+            box-sizing: border-box; /* Include padding in width calculation */
+            -moz-appearance: textfield; /* Hide spinners in Firefox */
+        }
+        #wingoView .controls-row input[type="number"]::-webkit-outer-spin-button,
+        #wingoView .controls-row input[type="number"]::-webkit-inner-spin-button {
+             -webkit-appearance: none; /* Hide spinners in Chrome/Safari */
+             margin: 0;
+        }
+        #wingoView .controls-row input[type="number"]:focus {
+            border-color: var(--primary-accent);
+            outline: none;
+        }
+        #wingoView #startResetSimButton {
+            background-color: var(--secondary-accent); /* Existing style */
+            color: #fff; /* Existing style */
+            padding: 5px 10px; /* Adjust padding slightly if needed */
+            font-size: 0.8rem; /* Existing style */
+            border-radius: 4px; /* Existing style */
+            border: none; /* Existing style */
+            cursor: pointer; /* Existing style */
+            transition: background-color 0.2s; /* Existing style */
+            display: inline-flex; /* Keep flex properties */
+            align-items: center;
+            gap: 5px;
+            /* margin-left: auto; /* REMOVED this to keep button next to inputs */
+            flex-shrink: 0; /* Prevent button from shrinking */
+        }
+        #wingoView #startResetSimButton:hover {
+            background-color: #e74c3c; /* Existing style */
+        }
+        /* --- End of MODIFIED Controls Row CSS --- */
+
+        /* Bankroll Stats - Force side-by-side */
+        #wingoView .bankroll-stats-display { display: flex !important; flex-wrap: nowrap !important; justify-content: space-between; background-color: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 4px; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+        #wingoView .bankroll-stats-display::-webkit-scrollbar { display: none; }
+        #wingoView .bankroll-stats-display span { font-size: 0.8rem; color: var(--text-muted-light); white-space: nowrap; }
+        #wingoView .bankroll-stats-display strong { color: var(--text-dark); font-weight: 600; margin-left: 4px; }
+        /* Interval Tabs */
+        #wingoView .interval-tabs { display: flex; background-color: rgba(255, 255, 255, 0.05); border-radius: var(--border-radius); border: 1px solid var(--border-light); overflow: hidden; } #wingoView .tab-button { flex-grow: 1; padding: 6px 8px; background-color: transparent; border: none; color: var(--text-muted-light); cursor: pointer; font-size: 0.8rem; text-align: center; transition: background-color 0.2s, color 0.2s; font-weight: 500; } #wingoView .tab-button.active { background-color: var(--primary-accent); color: #fff; } #wingoView .tab-button:not(:last-child) { border-right: 1px solid var(--border-light); } #wingoView .tab-button:hover:not(.active) { background-color: rgba(255, 255, 255, 0.1); }
+        /* Period Input */
+        #wingoView .period-input-group { display: flex; border-radius: var(--border-radius); border: 1px solid var(--border-light); background-color: var(--card-light); overflow: hidden; align-items: center; } #wingoView .period-input-group label { padding: 0 8px; white-space: nowrap; color: var(--text-muted-light); font-size: 0.85rem; } #wingoView .period-input-group input[type="text"].period-input { flex-grow: 1; border: none; padding: 6px 8px; font-size: 0.85rem; outline: none; color: var(--text-dark); background: none; } #wingoView .period-input-group input[type="text"].period-input::placeholder { color: var(--text-muted-light); } #wingoView .period-input-group button { background-color: var(--primary-accent); color: #fff; border: none; padding: 6px 12px; font-size: 0.85rem; cursor: pointer; transition: background-color 0.2s; } #wingoView .period-input-group button:hover { background-color: #3caa8a; } #wingoView .spinning-icon { animation: spin 1.5s linear infinite; margin-left: 6px; font-size: 0.8rem; color: var(--primary-accent); display: inline-block; }
+        /* Log Message */
+        #wingoView .log-message { color: var(--text-muted-light); font-size: 0.8rem; text-align: center; padding: 6px; border-radius: 4px; min-height: 58px; border: 1px solid transparent; line-height: 1.4; transition: background-color 0.3s, color 0.3s, border-color 0.3s; background-color: rgba(0,0,0,0.1); } #wingoView .log-message .prediction-item { margin: 0 3px; display: inline-block; } #wingoView .log-message .prediction-number { font-weight: bold; margin: 0 3px; } #wingoView .log-message br + small { display: block; margin-top: 3px; font-size: 0.75em; } #wingoView .log-message.error { color: var(--danger-color); background-color: rgba(220, 53, 69, 0.2); border-color: rgba(220, 53, 69, 0.4); } #wingoView .log-message.success { color: var(--success-color); background-color: rgba(40, 167, 69, 0.2); border-color: rgba(40, 167, 69, 0.4); } #wingoView .log-message.warning { color: var(--warning-color); background-color: rgba(243, 156, 18, 0.2); border-color: rgba(243, 156, 18, 0.4); } #wingoView .log-message.info { color: #b0c4de; background-color: rgba(176, 196, 222, 0.1); border-color: rgba(176, 196, 222, 0.3); }
+
+        /* --- History Card Styles --- */
+        #historyCard { display: flex; flex-direction: column; gap: 8px; }
+        #historyCard h3 { font-size: 1rem; margin-bottom: 0; padding-bottom: 3px; border-color: rgba(255, 255, 255, 0.1); color: var(--primary-accent); display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--border-light);}
+        #historyCard .history-stats { font-size: 0.7rem; padding: 4px; gap: 10px; margin-bottom: 0; justify-content: space-between; background: none; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; flex-wrap: nowrap; align-items: center; overflow-x: auto; scrollbar-width: none; }
+        #historyCard .history-stats::-webkit-scrollbar { display: none; }
+        #historyCard .history-stats div { white-space: nowrap; } #historyCard .history-stats strong { font-size: 0.75rem; }
+        #historyCard .history-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        #historyCard .history-table-wrapper { max-height: 300px; overflow-y: auto; border: 1px solid var(--border-light); border-radius: var(--border-radius); scrollbar-width: thin; scrollbar-color: var(--border-light) transparent;} #historyCard .history-table-wrapper::-webkit-scrollbar { width: 5px; } #historyCard .history-table-wrapper::-webkit-scrollbar-thumb { background-color: var(--border-light); border-radius: 3px; }
+        #historyCard .history-table th, #historyCard .history-table td { font-size: 0.7rem; padding: 4px 6px; border: none; border-bottom: 1px solid var(--border-light); text-align: left; white-space: normal; word-break: break-word; }
+        #historyCard .history-table td:first-child { white-space: nowrap; font-size: 0.65rem; }
+        #historyCard .history-table th { background-color: rgba(255, 255, 255, 0.05); color: var(--text-muted-light); font-weight: 600; position: sticky; top: 0; z-index: 2; border-bottom-width: 2px; border-bottom-color: var(--border-light);} #historyCard .history-table tr:last-child td { border-bottom: none; } #historyCard .history-table td { color: var(--text-dark); } #historyCard .history-table tbody tr:nth-child(even) { background-color: transparent; } #historyCard .history-table tbody tr:hover { background-color: rgba(78, 204, 163, 0.08); }
+        /* Table Column Widths */
+        #historyCard .history-table th:nth-child(1), td:nth-child(1) { width: 22%; text-align: center; } /* Per. */
+        #historyCard .history-table th:nth-child(2), td:nth-child(2) { width: 33%; } /* Prediction */
+        #historyCard .history-table th:nth-child(3), td:nth-child(3) { width: 15%; text-align: right; } /* Bet (Lv) */
+        #historyCard .history-table th:nth-child(4), td:nth-child(4) { width: 15%; text-align: center; } /* Status */
+        #historyCard .history-table th:nth-child(5), td:nth-child(5) { width: 15%; text-align: center; } /* Action */
+
+        #historyCard .history-table td .action-buttons { display: flex; justify-content: center; gap: 4px; } #historyCard .history-table td button.mark-btn { background: none; border: 1px solid; padding: 2px 5px; font-size: 0.65rem; border-radius: 3px; cursor: pointer; transition: background-color 0.2s, color 0.2s; } #historyCard .history-table td button.mark-win { color: var(--success-color); border-color: var(--success-color); } #historyCard .history-table td button.mark-win:hover { background-color: var(--success-color); color: #fff; } #historyCard .history-table td button.mark-loss { color: var(--danger-color); border-color: var(--danger-color); } #historyCard .history-table td button.mark-loss:hover { background-color: var(--danger-color); color: #fff; }
+        #historyCard .clear-history-container { text-align: center; margin-top: 5px; padding-top: 5px;}
+        #historyCard #clearHistoryButton { font-size: 0.8rem; padding: 4px 8px; background-color: var(--secondary-accent); color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; display: inline-flex; align-items: center; gap: 6px; } #historyCard #clearHistoryButton:hover { background-color: #e74c3c; }
+        .status-badge { padding: 2px 6px; border-radius: 10px; font-size: 0.65rem; display: inline-block; min-width: 50px; text-align: center;} /* Status badge */
+
+
+        /* --- Mines View Specific Styles --- */
+        #minesView .mines-controls { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; } #minesView .mines-controls input[type="number"] { width: 70px; padding: 6px 8px; font-size: 0.9rem; background: rgba(255,255,255,0.1); border: 1px solid var(--border-light); color: var(--text-dark); border-radius: 4px; text-align: center; -moz-appearance: textfield; } #minesView .mines-controls input[type="number"]::-webkit-outer-spin-button, #minesView .mines-controls input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; } #minesView .mines-controls input[type="number"]:focus { border-color: var(--primary-accent); outline: none; box-shadow: 0 0 0 2px rgba(78, 204, 163, 0.2); } #minesView .mines-controls button { display: inline-flex; background-color: var(--primary-accent); color: white; padding: 7px 14px; border-radius: 4px; font-weight: 500; transition: background-color var(--transition-speed); cursor: pointer; border: none; font-size: 0.9rem; align-items: center; gap: 5px; flex-shrink: 0; } #minesView .mines-controls button:hover { background-color: #3caa8a; } #minesView .mines-error { color: var(--danger-color); text-align: center; margin-top: 5px; font-size: 0.85rem; min-height: 1.2em; } #minesView .mines-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; max-width: 280px; width: 85vw; margin: 15px auto; aspect-ratio: 1 / 1; } #minesView .mines-tile { width: 100%; height: auto; aspect-ratio: 1 / 1; background-color: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-light); border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; font-size: 1.4em; font-weight: bold; cursor: default; position: relative; color: transparent; } #minesView .mines-tile.predicted-safe { border: 2px solid var(--mines-safe-color); background-color: rgba(40, 167, 69, 0.1); box-shadow: 0 0 8px rgba(40, 167, 69, 0.3); } #minesView .mines-tile.predicted-safe::after { content: '\f00c'; font-family: 'Font Awesome 6 Free'; font-weight: 900; color: var(--mines-safe-color); font-size: 0.8em; } #minesView .mines-tile.predicted-mine { border: 2px solid var(--mines-mine-color); background-color: rgba(220, 53, 69, 0.1); box-shadow: 0 0 8px rgba(220, 53, 69, 0.3); } #minesView .mines-tile.predicted-mine::after { content: '\f1e2'; font-family: 'Font Awesome 6 Free'; font-weight: 900; color: var(--mines-mine-color); font-size: 0.8em; } #minesView .mines-prediction-summary { font-size: 0.85rem; color: var(--text-muted-light); text-align: center; padding: 8px; background-color: rgba(0,0,0,0.1); border-radius: var(--border-radius); border: 1px solid var(--border-light); margin-top: 15px; min-height: 40px; } #minesView .mines-prediction-summary.hidden { display: none; } #minesView .mines-prediction-summary strong { color: var(--text-dark); } #minesView .mines-prediction-summary span { display: block; margin-top: 3px; }
+
+        /* --- Register View --- */
+        #registerView h2 { font-size: 1.3rem; margin-bottom: 15px; } #registerView .register-list { list-style: none; padding: 0; margin: 0; } #registerView .register-list li { position: relative; background-color: rgba(255, 255, 255, 0.05); padding: 0; margin-bottom: 10px; border-radius: 4px; border: 1px solid var(--border-light); transition: background-color 0.2s, border-color 0.2s; overflow: hidden; } #registerView .register-list li:hover { background-color: rgba(var(--primary-accent-rgb), 0.15); border-color: var(--primary-accent); } #registerView .register-list li a { display: flex; align-items: center; gap: 10px; padding: 12px 15px; color: var(--text-dark); text-decoration: none; font-weight: 500; font-size: 0.95rem; } #registerView .register-list li a::before { content: "\f35d"; font-family: "Font Awesome 6 Free"; font-weight: 900; color: var(--primary-accent); font-size: 1em; }
+
+        /* --- Help & Info View --- */
+         #helpInfoView h2 { font-size: 1.3rem; margin-bottom: 10px; } #helpInfoView p { font-size: 0.85rem; margin-bottom: 12px; } #helpInfoView ul { list-style: none; padding: 0; margin: 0 0 12px 0; } #helpInfoView .help-heading { color: var(--primary-accent); font-size: 1.1rem; margin: 20px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; gap: 6px; } #helpInfoView .help-list li { font-size: 0.85rem; margin-bottom: 8px; background: none; border: none; padding: 0; position: relative; padding-left: 20px; } #helpInfoView .help-list li::before { content: "\f105"; font-family: "Font Awesome 6 Free"; font-weight: 900; color: var(--primary-accent); position: absolute; left: 0; top: 2px; } #helpInfoView .help-list li strong { color: var(--primary-accent); } #helpInfoView .help-list li ul { padding-left: 20px; margin: 8px 0 8px 0; list-style: disc; } #helpInfoView .help-list li ul li { font-size: 0.8rem; margin-bottom: 4px; padding-left: 0; } #helpInfoView .help-list li ul li::before { content: none; } #helpInfoView .info-section ul { list-style: disc; padding-left: 20px; margin-top: 10px;} #helpInfoView .info-section ul li { font-size: 0.85rem; margin-bottom: 6px; } #helpInfoView .warning-box { background-color: rgba(243, 156, 18, 0.08); border: 1px solid var(--warning-color); border-radius: var(--border-radius); padding: 12px; margin-top: 20px; } #helpInfoView .warning-box h3 { font-size: 1rem; color: var(--warning-color); margin-bottom: 5px; display: flex; align-items: center; gap: 6px; border: none; padding: 0;} #helpInfoView .warning-box p { font-size: 0.8rem; color: #e6a13a; margin: 0; } #helpInfoView .version-info { font-size: 0.8rem; color: var(--text-muted-light); margin-top: 15px; text-align: center; }
+
+        /* --- Contact View Styles --- */
+        #contactView h2 { font-size: 1.3rem; margin-bottom: 10px; } #contactView p { font-size: 0.9rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; } #contactView p i { color: var(--primary-accent); width: 16px; text-align: center; } #contactView p strong { color: var(--text-dark); }
+
+        /* --- Color/Size Styles --- */
+        .color-green, .color-red, .color-violet { padding: 2px 6px; border-radius: 3px; font-size: 0.75rem; color: #fff; display: inline-block; margin: 0 1px; text-align: center; min-width: 16px; font-weight: 500;} .color-green { background-color: var(--green-color); } .color-red { background-color: var(--red-color); } .color-violet { background-color: var(--violet-color); } .size-big, .size-small { font-weight: 600; display: inline-block; padding: 1px 4px; border-radius: 3px; font-size: 0.75rem; margin: 0 1px; min-width: 16px; text-align: center; border: 1px solid; } .size-big { color: var(--primary-accent); background-color: rgba(78, 204, 163, 0.1); border-color: var(--primary-accent); } .size-small { color: var(--warning-color); background-color: rgba(243, 156, 18, 0.1); border-color: var(--warning-color); }
+
+        /* --- Responsive Design --- */
+        @media (max-width: 768px) {
+            #loginView { padding: 25px 30px; }
+            .main-container { padding: 10px; margin: 10px auto; max-width: 100%; }
+            h1#appTitle { font-size: 1.5rem; }
+            h2 { font-size: 1.2rem; }
+            .dashboard-card, .static-content-card { padding: 12px; }
+            .main-nav { gap: 5px; padding: 6px; flex-wrap: wrap; justify-content: flex-start; }
+            .nav-button { padding: 6px 12px; font-size: 0.85rem; }
+            .nav-button.icon-only { padding: 6px 8px; }
+            #wingoView .controls-row {
+                gap: 8px; /* Adjust gap for tablet */
+                flex-wrap: wrap; /* Allow wrapping if needed on tablet */
+                justify-content: space-between; /* Space out items */
+            }
+            #wingoView .bankroll-stats-display { flex-wrap: wrap; justify-content: flex-start; gap: 10px;}
+            #registerView .register-list li { flex-direction: column; align-items: flex-start; }
+            #registerView .register-list li a { width: 100%; }
+            #historyCard .history-stats { flex-wrap: wrap; justify-content: flex-start; gap: 10px; }
+        }
+        @media (max-width: 480px) {
+             #loginView { padding: 20px; width: 95%; } #loginView h1 { font-size: 1.6rem; } body { align-items: flex-start; padding-top: 0;} #appView { position: static; }
+             .main-container { padding: 8px; margin: 5px auto; }
+             #mainNav { margin-bottom: 8px; }
+             .dashboard-card, .static-content-card { padding: 10px; margin-bottom: 10px; }
+             h1#appTitle { font-size: 1.4rem; margin-bottom: 10px; } h2 { font-size: 1.1rem; } h3 { font-size: 1rem; } p { font-size: 0.85rem; }
+             .main-nav { gap: 4px; padding: 5px; border-radius: 0; } .nav-button { padding: 5px 10px; font-size: 0.8rem; } .nav-button.icon-only { padding: 5px 8px; }
+             #wingoView .dashboard-card { gap: 8px; padding: 10px; }
+
+            /* Side-by-side controls for mobile (MODIFIED) */
+            #wingoView .controls-row {
+                flex-wrap: nowrap !important; /* Ensure no wrapping on mobile */
+                justify-content: space-between; /* Space out items better */
+                gap: 5px; /* Reduce gap */
+            }
+            #wingoView .controls-row > div {
+                /* Keep flex-grow: 0 */
+                gap: 3px; /* Reduce gap between label/input */
+            }
+             #wingoView .controls-row label {
+                 font-size: 0.8rem; /* Adjust if needed */
+             }
+            #wingoView .controls-row input[type="number"] {
+                width: 60px; /* Slightly smaller width for mobile */
+                padding: 5px; /* Adjust padding */
+            }
+            #wingoView #startResetSimButton {
+                 /* margin-left: 5px; /* Not needed */
+                 padding: 5px 8px; /* Adjust padding */
+                 font-size: 0.75rem; /* Adjust font size */
+                 gap: 4px; /* Adjust icon gap */
+            }
+            /* --- End of MODIFIED mobile controls --- */
+
+            /* Allow bankroll stats to wrap if needed */
+             #wingoView .bankroll-stats-display { flex-wrap: wrap !important; justify-content: space-between; padding: 6px 8px; }
+             #wingoView .bankroll-stats-display span { font-size: 0.75rem; }
+             #wingoView .period-input-group { flex-direction: row;}
+             #wingoView .period-input-group label { padding: 0 5px; font-size: 0.8rem; } #wingoView .period-input-group input { padding: 5px 6px; font-size: 0.8rem;} #wingoView .period-input-group button { padding: 5px 10px; font-size: 0.8rem;}
+             #historyCard { margin-top: 10px; padding: 10px; }
+             #historyCard h3 { font-size: 1rem; } #historyCard .history-stats { justify-content: space-between; gap: 6px; /* Reduced gap */ padding: 6px 4px; flex-wrap: nowrap; } #historyCard .history-stats div { font-size: 0.65rem; } #historyCard .history-stats strong { font-size: 0.7rem; } #historyCard .history-table th, #historyCard .history-table td { font-size: 0.65rem; padding: 3px 5px; } #historyCard .history-table-wrapper { max-height: 200px; }
+             #minesView .mines-grid { max-width: 240px; gap: 3px; } #minesView .mines-tile { font-size: 1.2em; } #minesView .mines-controls input[type="number"] { width: 60px; padding: 5px; } #minesView .mines-predict-btn { padding: 6px 12px; font-size: 0.85rem; }
+         }
+
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+
+    <div id="loginView">
+        <h1>VIP Predict King</h1>
+        <input type="password" id="passwordInput" placeholder="Enter Access Code">
+        <button onclick="handleLogin()">Login</button>
+        <div id="loginErrorMessage">&nbsp;</div>
+    </div>
+
+    <div id="appView">
+        <div class="main-container">
+            <h1 id="appTitle">VIP Predict King <span>V 8.3</span></h1>
+             <nav id="mainNav" class="main-nav">
+                <button class="nav-button" onclick="showView('homeView')"><i class="fa-solid fa-house"></i> Homepage</button>
+                <button class="nav-button active" onclick="showView('wingoView')"><i class="fa-solid fa-trophy"></i> Wingo</button>
+                <button class="nav-button" onclick="showView('minesView')"><i class="fa-solid fa-bomb"></i> Mines</button>
+                <button class="nav-button" onclick="showView('registerView')"><i class="fa-solid fa-link"></i> Register</button>
+                <button class="nav-button icon-only" onclick="showView('helpInfoView')" title="Help & Information"> <i class="fa-solid fa-circle-question"></i> </button>
+                <button class="nav-button icon-only" onclick="showView('contactView')" title="Contact"> <i class="fa-solid fa-envelope"></i> </button>
+                <button class="nav-button icon-only" onclick="handleLogout()" title="Logout" style="margin-left: auto; background-color: rgba(255,107,107,0.2); border-color: var(--secondary-accent);"> <i class="fa-solid fa-right-from-bracket" style="color: var(--secondary-accent);"></i> </button>
+            </nav>
+
+            <div id="homeView" class="content-view static-content-card">
+                 <div class="intro-section"> <i class="fa-solid fa-crown"></i> <h2>Welcome to VIP Predict King!</h2> <p>Your AI assistant for Wingo & Mines predictions, analyzing patterns to guide you.</p> </div> <div class="features-section"> <h3><i class="fa-solid fa-star"></i> Key Features</h3> <div class="feature-grid"> <div class="feature-card"><h4><i class="fa-solid fa-trophy"></i> Wingo Sim</h4><p>Color, Size, Number predictions with history.</p></div> <div class="feature-card"><h4><i class="fa-solid fa-bomb"></i> Mines Sim</h4><p>Minesweeper game prediction assistance.</p></div> <div class="feature-card"><h4><i class="fa-solid fa-cogs"></i> AI Methods</h4><p>Multiple prediction algorithms.</p></div> <div class="feature-card"><h4><i class="fa-solid fa-list-check"></i> History</h4><p>Track predictions, results, and stats.</p></div> <div class="feature-card"><h4><i class="fa-solid fa-shield-alt"></i> Risk Mgmt</h4><p>Bankroll tracking and bet suggestions.</p></div> <div class="feature-card"><h4><i class="fa-solid fa-link"></i> Register</h4><p>Quick links for popular platforms.</p></div> </div> </div> <div class="start-section"> <h3><i class="fa-solid fa-rocket"></i> Get Started</h3> <ul> <li>Go to the <strong>Wingo</strong> or <strong>Mines</strong> tab.</li> <li>Configure settings (Initial Bet, Loss Limit).</li> <li>Click <strong>Start/Reset Sim</strong> (uses default 1000 bankroll initially).</li> <li>Enter <strong>Period</strong> & click Predict.</li> <li>Use History Actions (<i class="fa-solid fa-check"></i>/<i class="fa-solid fa-xmark"></i>) to track results.</li> </ul> <button class="action-button" onclick="showView('wingoView')"><i class="fa-solid fa-trophy"></i> Go to Wingo</button> </div> <div class="disclaimer-section"> <h3><i class="fa-solid fa-triangle-exclamation"></i> Disclaimer</h3> <p>AI predictions are for guidance & simulation only; no guarantees. <strong>Play responsibly.</strong></p> </div>
+            </div>
+
+             <div id="wingoView" class="content-view active">
+                 <div class="dashboard-card predict-ai-card">
+                     <h2><i class="fa-solid fa-brain"></i> Predict AI</h2>
+
+                     <div class="controls-row">
+                         <div>
+                             <label for="initialBetInput">Initial Bet:</label>
+                             <input type="number" id="initialBetInput" value="10" min="1">
+                         </div>
+                         <div>
+                             <label for="lossLimitInput">Loss Limit:</label>
+                             <input type="number" id="lossLimitInput" value="4" min="1"> </div>
+                         <button id="startResetSimButton" onclick="startResetSim()">Start/Reset Sim</button>
+                     </div>
+                     <div class="bankroll-stats-display">
+                         <span>Bankroll: <strong id="currentBankrollDisplay">N/A</strong></span>
+                         <span>Level: <strong id="currentLevelDisplay">N/A</strong></span>
+                         <span>Next Bet: <strong id="suggestedBetAmount">N/A</strong></span>
+                         <span>P/L: <strong id="profitlossDisplay">N/A</strong></span>
+                     </div>
+                     <div id="intervalTabs" class="interval-tabs"></div>
+                     <div class="period-input-group">
+                         <label for="periodNumberInput">Period (Last 4):</label>
+                         <input type="text" id="periodNumberInput" class="period-input" placeholder="XXXX" maxlength="4" pattern="[0-9]*" inputmode="numeric">
+                         <button id="predictButton" onclick="predict()"><i class="fa-solid fa-bolt"></i> Predict</button>
+                         <i id="predictionSpinner" class="fa-solid fa-gear spinning-icon" style="display: none; margin-left: 10px;"></i>
+                     </div>
+                     <div id="aiLog" class="log-message">&nbsp;</div>
+                 </div>
+
+                 <div id="historyCard" class="dashboard-card">
+                     <h3><i class="fa-solid fa-list-check"></i> History & Analysis (<span id="historyContextInterval">N/A</span>)</h3>
+                     <div class="history-stats">
+                         <div>Wins <strong id="historyWins">0</strong></div>
+                         <div>Losses <strong id="historyLosses">0</strong></div>
+                         <div>Acc <strong id="historyAccuracy">0%</strong></div>
+                         <div>Rev <strong id="historyReverse">0%(0)</strong></div>
+                     </div>
+                     <div class="history-table-wrapper">
+                         <table id="historyList" class="history-table">
+                             <thead>
+                                 <tr>
+                                     <th>Per.</th>
+                                     <th>Prediction</th>
+                                     <th>Bet (Lv)</th>
+                                     <th>Status</th>
+                                     <th>Action</th>
+                                 </tr>
+                             </thead>
+                             <tbody>
+                                 <tr><td colspan="5" style="text-align: center; color: var(--text-muted-light); padding: 10px;">Start simulation...</td></tr>
+                             </tbody>
+                         </table>
+                     </div>
+                     <div class="clear-history-container">
+                         <button id="clearHistoryButton" onclick="clearHistory()"><i class="fa-solid fa-trash-can"></i> Clear Interval History</button>
+                     </div>
+                 </div>
+             </div>
+
+             <div id="minesView" class="content-view static-content-card">
+                 <h2><i class="fa-solid fa-bomb"></i> Mines Predictor</h2> <p class="card-subtitle">Suggest safe/risky tiles (pattern or random)</p>
+                 <div class="mines-controls"> <label for="minesCountInput">Mines in Game:</label> <input type="number" id="minesCountInput" min="1" max="24" value="3" inputmode="numeric"> <button id="minesPredictBtn" class="mines-predict-btn"> <i class="fa-solid fa-search"></i> Predict </button> </div>
+                 <p id="minesErrorMsg" class="mines-error"></p> <div id="minesGrid" class="mines-grid"></div>
+                 <div id="minesPredictionSummary" class="mines-prediction-summary hidden"> <strong>Prediction:</strong><br> <span id="minesSafePredictionText"></span><br> <span id="minesMinePredictionText"></span> </div>
+             </div>
+
+             <div id="registerView" class="content-view static-content-card">
+                 <h2><i class="fa-solid fa-link"></i> Register Links</h2> <p>Sign up using these referral links:</p>
+                 <ul class="register-list">
+                     <li><a href="https://tcandroid.download/register?invite_code=D23DC8536481" target="_blank" rel="noopener noreferrer">TC Lottery</a></li>
+                     <li><a href="https://www.bdg-0.com//#/register?invitationCode=3783710836033" target="_blank" rel="noopener noreferrer">Big Daddy</a></li>
+                     <li><a href="https://www.55234.in/#/register?invitationCode=725831007259" target="_blank" rel="noopener noreferrer">55 Club</a></li>
+                     <li><a href="https://www.91appu.com/#/register?invitationCode=8828612752009" target="_blank" rel="noopener noreferrer">91 Club</a></li>
+                 </ul>
+                 <p class="note" style="text-align: center; margin-top: 15px;">Note: Using these links may support the tool's development.</p>
+             </div>
+
+             <div id="helpInfoView" class="content-view static-content-card">
+                  <h2><i class="fa-solid fa-question-circle"></i> How to Use & Info</h2> <p>Follow these steps and important information regarding VIP Predict King:</p> <h3 class="help-heading"><i class="fa-solid fa-trophy"></i> Wingo Tab</h3> <ul class="help-list"> <li><strong>Navigate:</strong> Click the 'Wingo' tab.</li> <li><strong>Controls:</strong> Set your 'Initial Bet' and 'Loss Limit' in the "Predict AI" card. Click 'Start/Reset Sim' to initialize (uses default 1000 bankroll).</li> <li><strong>Interval:</strong> Pick the game interval (e.g., 30s, 1m, 3m, 5m).</li> <li><strong>Period:</strong> Enter the last 4 digits of the game period number.</li> <li><strong>Predict:</strong> Click the lightning bolt <i class="fa-solid fa-bolt"></i> button. Predictions for Color, Size, and Number will appear, along with the suggested 'Next Bet'.</li> <li><strong>History Actions:</strong> After the game result, use the Action buttons (<i class="fa-solid fa-check"></i> / <i class="fa-solid fa-xmark"></i>) in the history table below to mark Win/Loss (based on the primary prediction type, usually Color). This updates your Bankroll, P/L, Level, and suggests the next bet. The next period's prediction will then generate automatically.</li> <li><strong>Stats:</strong> Track Wins, Losses, Accuracy (based on primary type), and Bankroll status.</li> <li><strong>Clear:</strong> Use 'Clear Interval History' to reset the history for the current Interval.</li> </ul> <h3 class="help-heading"><i class="fa-solid fa-bomb"></i> Mines Tab</h3> <ul class="help-list"><li>Select the number of Mines in the game.</li><li>Click Predict to see suggested safe/risky tiles based on simple patterns or random distribution.</li><li>This is a basic helper, not a guaranteed solver.</li></ul> <div class="info-section" style="margin-top: 20px;"> <h3 class="help-heading"><i class="fa-solid fa-circle-info"></i> About VIP Predict King</h3> <p><strong>Purpose:</strong> This tool provides AI-driven predictions and simulation for various Wingo color prediction games to assist users. It is intended for informational and entertainment purposes only.</p> <p><strong>Technology Used:</strong></p> <ul> <li>Frontend: HTML, CSS, JavaScript</li> <li>Storage: Browser LocalStorage for history & state persistence.</li> <li>AI/ML: Simulated models & algorithms for prediction generation.</li> </ul> <p class="version-info"><strong>Version:</strong> 8.3 | Last Updated: <span id="lastUpdatedDate">Date Error</span></p> <div class="warning-box"> <h3><i class="fa-solid fa-handshake-angle"></i> Responsible Gaming</h3> <p>Predictions are not guaranteed. Online gaming involves financial risk. Use this tool for simulation and analysis. Please play responsibly on actual platforms, set limits, and do not chase losses. Seek help if gaming becomes problematic.</p> </div> </div>
+             </div>
+
+             <div id="contactView" class="content-view static-content-card">
+                 <h2><i class="fa-solid fa-envelope"></i> Contact Us</h2> <p>For support, feedback, or inquiries, please reach out:</p> <p><i class="fa-solid fa-envelope"></i> <strong>Email:</strong> <a href="mailto:vippredictking@zohomail.in">vippredictking@zohomail.in</a></p> <p><i class="fa-solid fa-phone"></i> <strong>Mobile:</strong> <a href="tel:+916290530153">06290530153</a></p>
+            </div>
+
+        </div> </div> <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script>
+        // --- Constants and Global Variables ---
+        const HISTORY_LIMIT = 10; const CONSECUTIVE_LOSS_THRESHOLD = 1; const ACCESS_CODE = "1234"; const DEFAULT_START_BANKROLL = 1000;
+        let predictionHistory = []; let immediateConsecutiveLosses = 0;
+        let selectedInterval = '60'; const fixedPlatform = 'Generic'; const primaryPredictionType = 'color'; let selectedPredictionMethod = 'algorithmic';
+        let initialBet = 10; let currentBankroll = DEFAULT_START_BANKROLL; let currentLevel = 1; let profitLoss = 0; let simulationActive = false;
+
+        // --- Mines Specific Constants & State ---
+        const MINES_HISTORY_KEY = 'vipPredictKing_MinesHistory_v8_integrated'; const MINES_HISTORY_LIMIT = 150; const MINES_GRID_SIZE = 25; const MINES_MIN_HISTORY_FOR_PATTERN = 5; const MINES_DEFAULT_COUNT = 3; const MINES_PREDICT_SAFE_COUNT = 7;
+        let minesPredictorHistory = []; let minesCount = MINES_DEFAULT_COUNT; let minesInitialized = false;
+
+        // --- DOM Elements Cache ---
+        let periodInput, predictButton, predictionSpinner;
+        let initialBetInput, startResetSimButton, lossLimitInput; // Added lossLimitInput
+        let currentBankrollDisplay, currentLevelDisplay, suggestedBetAmountDisplay, profitlossDisplay;
+        let historyTableBody, historyContextInterval;
+        let historyWinsEl, historyLossesEl, historyAccuracyEl, historyReverseEl;
+        let aiLogElement;
+        let loginView, appView, passwordInput, loginErrorMessage;
+        let minesGridEl, minesCountInputEl, minesPredictBtnEl, minesPredictionSummaryEl, minesSafePredictionTextEl, minesMinePredictionTextEl, minesErrorMsgEl;
+
+        // --- Interval Definitions ---
+        const availableIntervals = ['30', '60', '180', '300'];
+
+        // --- Prediction Logic (Revised) ---
+        function generatePrediction(features) {
+            // Note: This uses the formula snippet provided by user and basic trend breaking.
+            // It DOES NOT implement the full logic from the unavailable PDF.
+            // Effectiveness is not guaranteed.
+            const { interval, period, consecutiveLosses } = features;
+            const lastFour = parseInt(period.slice(-4)) || 0;
+            const fullPeriod = parseInt(period) || 0; // Use full period for modulo
+            const lossAdjustment = consecutiveLosses * 0.5; // Example loss adjustment
+
+            // Calculate Base Number using user's formula snippet
+            const base = ((lastFour**2) + (lastFour*3) + fullPeriod%10) % 10;
+            const predictedNumber = Math.round((base + lossAdjustment) % 10);
+
+            // Derive initial Color and Size
+            let predictedColor = getColorForNumber(predictedNumber);
+            let predictedSize = getSizeForNumber(predictedNumber);
+
+            // --- Simple Trend Breaking (Based on last 1 actual result) ---
+            const history = predictionHistory.filter(p => p.interval === interval && p.status !== 'Pending').sort((a, b) => b.timestamp - a.timestamp);
+            let explanationNotes = [];
+
+            if (history.length > 0) {
+                const lastResult = history[0];
+                const lastActualNumber = lastResult.predictedValue?.number; // Assuming result number is stored if possible, otherwise derive
+                const lastActualColor = lastResult.predictedValue?.color || getColorForNumber(lastActualNumber);
+                const lastActualSize = lastResult.predictedValue?.size || getSizeForNumber(lastActualNumber);
+
+                // Break Size repetition?
+                if (predictedSize === lastActualSize) {
+                    predictedSize = (predictedSize === 'Big') ? 'Small' : 'Big';
+                    explanationNotes.push("Size reversed due to trend.");
+                }
+
+                // Break Color repetition? (Avoid Violet)
+                if (predictedColor === lastActualColor && predictedColor !== 'Violet') {
+                     if (predictedColor === 'Red') predictedColor = 'Green';
+                     else if (predictedColor === 'Green') predictedColor = 'Red';
+                     explanationNotes.push("Color reversed due to trend.");
+                 }
+            }
+
+            // --- Recalculate Number based on potentially changed Color/Size? (Optional, adds complexity) ---
+            // For now, number prediction remains based on the initial formula.
+
+             // --- Confidence Placeholder ---
+             // Confidence calculation needs refinement based on the new logic
+             let confidence = 60 + (lastFour % 10) - (consecutiveLosses * 5);
+             if (explanationNotes.length > 0) confidence *= 0.9; // Slightly lower confidence if trend broken
+             if (predictedColor === 'Violet') confidence *= 0.7;
+             confidence = Math.max(30, Math.min(95, confidence));
+
+            return {
+                number: predictedNumber, // Keep original number from formula for now
+                color: predictedColor,
+                size: predictedSize,
+                confidence: confidence,
+                trendBreakNotes: explanationNotes.join(' ')
+            };
+        }
+
+        const mockApi = {
+            predict: async (inputs) => {
+                const { interval, period } = inputs;
+                // Get consecutive losses for the current interval
+                const currentConsecutiveLosses = calculateIntervalStreak(interval);
+
+                await new Promise(resolve => setTimeout(resolve, 150 + Math.random() * 250));
+
+                // --- Generate Prediction using the new logic ---
+                const generated = generatePrediction({
+                    interval,
+                    period,
+                    consecutiveLosses: currentConsecutiveLosses
+                });
+
+                let finalPredictions = {
+                    color: generated.color,
+                    size: generated.size,
+                    number: generated.number
+                };
+                let explanation = `Prediction for ${period.slice(-4)}. ${generated.trendBreakNotes}`;
+                let reversed = false; // Separate reversal flag
+                let confidence = generated.confidence;
+
+                // --- Apply Martingale Loss Reversal (Optional Enhancement from User Doc - logic needed) ---
+                // This part still needs the specific logic from the applyAdvancedReversal function in the PDF.
+                // Without it, we rely only on the trend breaking above and the Martingale level limit.
+                // Example placeholder: Basic reversal on primary type after N losses
+                if (currentConsecutiveLosses >= 2) { // Example threshold
+                    reversed = true;
+                    explanation += ` | Loss Reversal Applied (Streak: ${currentConsecutiveLosses})`;
+                    confidence = Math.max(40, confidence * 0.85);
+                    const primaryType = primaryPredictionType;
+                    const primaryPrediction = finalPredictions[primaryType];
+                    const outcomes = primaryType === 'color' ? ['Green', 'Red', 'Violet'] : primaryType === 'size' ? ['Big', 'Small'] : [...Array(10).keys()].map(String);
+                    let possibleReversals = outcomes.filter(o => o !== primaryPrediction);
+                    if (primaryType === 'color' && primaryPrediction !== 'Violet') {
+                         possibleReversals = possibleReversals.filter(o => o !== 'Violet');
+                         if (possibleReversals.length === 0) possibleReversals = ['Violet'];
+                     }
+                    finalPredictions[primaryType] = possibleReversals[Math.floor(Math.random() * possibleReversals.length)] || outcomes[0];
+                     // Need to decide if other predictions (size/number) should change based on reversed color/size
+                 }
+                // --- End Martingale Loss Reversal ---
+
+
+                const colorLabel = formatPredictionLabel(finalPredictions.color, 'color');
+                const sizeLabel = formatPredictionLabel(finalPredictions.size, 'size');
+                const numberLabel = finalPredictions.number; // Raw number
+
+                return {
+                    predictions: finalPredictions,
+                    labels: { color: colorLabel, size: sizeLabel, number: numberLabel },
+                    confidence: confidence,
+                    explanation: explanation,
+                    reversed: reversed, // Indicates if Martingale Loss Reversal was applied
+                    methodUsed: "Formula/Trend" // New method name
+                };
+            }
+        };
+
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+             loginView = document.getElementById('loginView'); appView = document.getElementById('appView'); passwordInput = document.getElementById('passwordInput'); loginErrorMessage = document.getElementById('loginErrorMessage');
+             periodInput = document.getElementById('periodNumberInput'); predictButton = document.getElementById('predictButton'); predictionSpinner = document.getElementById('predictionSpinner');
+             initialBetInput = document.getElementById('initialBetInput');
+             startResetSimButton = document.getElementById('startResetSimButton');
+             lossLimitInput = document.getElementById('lossLimitInput'); // Assign Loss Limit Input
+             currentBankrollDisplay = document.getElementById('currentBankrollDisplay'); currentLevelDisplay = document.getElementById('currentLevelDisplay'); suggestedBetAmountDisplay = document.getElementById('suggestedBetAmount'); profitlossDisplay = document.getElementById('profitlossDisplay'); historyTableBody = document.querySelector('#historyList tbody'); historyContextInterval = document.getElementById('historyContextInterval'); historyWinsEl = document.getElementById('historyWins'); historyLossesEl = document.getElementById('historyLosses'); historyAccuracyEl = document.getElementById('historyAccuracy'); historyReverseEl = document.getElementById('historyReverse'); aiLogElement = document.getElementById('aiLog');
+             if (localStorage.getItem('vipPredictKingLoggedIn') === 'true') { showApp(); } else { loginView.style.display = 'block'; appView.style.display = 'none'; document.body.style.alignItems = 'center'; document.body.style.justifyContent = 'center'; } initializeParticles();
+         });
+
+        function initializeApp() {
+            if (!appView || !periodInput) { console.error("Initialization failed: App elements not found post-login."); return; }
+            // Assign Loss Limit Input here as well if DOMContentLoaded is not enough
+            lossLimitInput = document.getElementById('lossLimitInput');
+            loadAppState();
+            setupEventListeners();
+            updateIntervalTabs();
+            updateHistoryContext();
+            updatePeriodInputWithDate();
+            updateHistoryList();
+            updateStatistics();
+            updateBankrollDisplay();
+            logMessage("App initialized. Set Initial Bet, Loss Limit, click Start/Reset Sim, then Predict.", "info");
+            const lastUpdatedEl = document.getElementById('lastUpdatedDate');
+            if (lastUpdatedEl) {
+                try {
+                    lastUpdatedEl.textContent = new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date());
+                } catch(e) {
+                    console.error("Error formatting date:", e);
+                    lastUpdatedEl.textContent = new Date().toLocaleDateString();
+                }
+            }
+            showView('wingoView');
+        }
+
+        // --- Particles, Login, Logout ---
+        function initializeParticles() { if (typeof particlesJS !== 'undefined') { particlesJS('particles-js', { "particles":{"number":{"value":30,"density":{"enable":true,"value_area":800}},"color":{"value":"#b0c4de"},"shape":{"type":"circle"},"opacity":{"value":0.4,"random":true},"size":{"value":2.5,"random":true},"line_linked":{"enable":false},"move":{"enable":true,"speed":1.5,"direction":"none","out_mode":"out"}},"interactivity":{"detect_on":"canvas","events":{"onhover":{"enable":false},"onclick":{"enable":false},"resize":true},"modes":{"push":{"particles_nb":4}}},"retina_detect":true}); } else { console.warn("particles.js library not loaded."); } }
+        function setupEventListeners() {
+            periodInput?.addEventListener('input', () => handlePeriodInput(periodInput));
+            initialBetInput?.addEventListener('change', () => {
+                initialBet = parseInt(initialBetInput.value) || 10;
+                if(simulationActive) {updateBankrollDisplay();}
+                saveAppState();
+            });
+            // Add listener for Loss Limit if needed for instant state save
+            lossLimitInput?.addEventListener('change', () => {
+                // const lossLimitValue = parseInt(lossLimitInput.value) || 4; // Read value
+                // You could save this value to appState if needed
+                saveAppState(); // Save state if you want loss limit persisted
+            });
+            document.querySelectorAll('#mainNav .nav-button').forEach(btn => { if (btn.hasAttribute('onclick')) { btn.style.cursor = 'pointer'; } });
+            const formElements = [initialBetInput, periodInput, lossLimitInput]; // Added lossLimitInput
+            formElements.forEach(el => { el?.closest('form')?.addEventListener('submit', e => e.preventDefault()); });
+        }
+        function handleLogin() { const enteredCode = passwordInput.value; if (enteredCode === ACCESS_CODE) { localStorage.setItem('vipPredictKingLoggedIn', 'true'); showApp(); } else { loginErrorMessage.textContent = 'Invalid Access Code.'; passwordInput.value = ''; } }
+        function handleLogout() { if (confirm("Are you sure you want to logout?")) { localStorage.removeItem('vipPredictKingLoggedIn'); window.location.reload(); } }
+        function showApp() { loginView.style.display = 'none'; appView.style.display = 'block'; document.body.style.alignItems = ''; document.body.style.justifyContent = ''; initializeApp(); }
+
+        // --- View Management (Modified to Init Mines) ---
+        function showView(viewId) { try { document.querySelectorAll('#appView .content-view').forEach(view => { view.classList.remove('active'); }); const targetView = document.getElementById(viewId); if (targetView) { targetView.classList.add('active'); } else { console.error(`View ${viewId} not found.`); return; } if (viewId === 'minesView' && !minesInitialized) { console.log("Initializing Mines view..."); assignMinesDOMElements(); if(checkMinesElements()) { initMinesPredictor(); } else { console.error("Failed to initialize Mines view elements."); if(targetView) targetView.innerHTML = '<p style="color: var(--danger-color);">Error initializing Mines Predictor.</p>'; } } document.querySelectorAll('#mainNav .nav-button').forEach(btn => { btn.classList.remove('active'); const onclickAttr = btn.getAttribute('onclick'); if (onclickAttr && onclickAttr.includes(`showView('${viewId}')`)) { btn.classList.add('active'); } }); window.scrollTo(0, 0); } catch (error) { console.error('Error in showView:', error); } }
+
+        // --- Input Handling & Formatters ---
+        function handlePeriodInput(inputElement) { let originalValue = inputElement.value; let caretPos = inputElement.selectionStart; let newValue = originalValue.replace(/\D/g, ''); if (newValue.length > 4) { newValue = newValue.slice(0, 4); } if (newValue !== originalValue) { inputElement.value = newValue; requestAnimationFrame(() => { let removedCharsBeforeCaret = 0; for(let i = 0; i < caretPos; i++) { if (/\D/.test(originalValue[i])) { removedCharsBeforeCaret++; } } let newCaretPos = Math.max(0, caretPos - removedCharsBeforeCaret); newCaretPos = Math.min(newCaretPos, newValue.length); inputElement.setSelectionRange(newCaretPos, newCaretPos); }); } }
+        function formatIntervalText(intervalSec) { const sec = parseInt(intervalSec); if (sec === 30) return '30s'; if (sec === 60) return '1m'; if (sec === 180) return '3m'; if (sec === 300) return '5m'; return `${intervalSec}s`; }
+        function formatPredictionLabel(value, type) { if (!value && value !== 0) return '?'; if (type === 'color') { return `<span class="color-${String(value).toLowerCase()}">${value}</span>`; } else if (type === 'size') { return `<span class="${String(value).toLowerCase() === 'big' ? 'size-big' : 'size-small'}">${value}</span>`; } else { return String(value); } /* Return plain number */ }
+        function getColorForNumber(num) { const n = parseInt(num); if (isNaN(n)) return '?'; if ([1, 3, 7, 9].includes(n)) return 'Green'; if ([2, 4, 6, 8].includes(n)) return 'Red'; if ([0, 5].includes(n)) return 'Violet'; return '?'; }
+        function getSizeForNumber(num) { const n = parseInt(num); if (isNaN(n)) return '?'; if (n >= 5 && n <= 9) return 'Big'; if (n >= 0 && n <= 4) return 'Small'; return '?'; }
+        function updateHistoryContext() { if (!historyContextInterval) return; historyContextInterval.textContent = selectedInterval ? formatIntervalText(selectedInterval) : 'N/A'; }
+
+        // --- Wingo Predictor Setup ---
+        function updateIntervalTabs() { const tabsContainer = document.getElementById('intervalTabs'); if (!tabsContainer) return; tabsContainer.innerHTML = ''; if (!availableIntervals.includes(selectedInterval)) { selectedInterval = availableIntervals[0] || '60'; } availableIntervals.forEach(intervalSec => { const button = document.createElement('button'); button.className = 'tab-button'; button.textContent = formatIntervalText(intervalSec); button.dataset.interval = intervalSec; button.onclick = () => selectIntervalTab(intervalSec); if (intervalSec === selectedInterval) { button.classList.add('active'); } tabsContainer.appendChild(button); }); }
+        function selectIntervalTab(interval) { if (selectedInterval !== interval) { selectedInterval = interval; document.querySelectorAll('#intervalTabs .tab-button').forEach(tab => { tab.classList.toggle('active', tab.dataset.interval === interval); }); updateHistoryContext(); updateHistoryList(); updateStatistics(); updatePeriodInputWithDate(); logMessage(''); saveAppState(); immediateConsecutiveLosses = calculateIntervalStreak(selectedInterval); updateBankrollDisplay(); } }
+        function updatePeriodInputWithDate() { if (!periodInput) return; const now = new Date(); const datePrefix = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`; periodInput.placeholder = "XXXX"; const lastRelevantPrediction = predictionHistory.filter(p => p.interval === selectedInterval).sort((a, b) => b.periodDisplay.localeCompare(a.periodDisplay))[0]; let nextPeriodSuffix = "0001"; if (lastRelevantPrediction && lastRelevantPrediction.periodDisplay.startsWith(datePrefix)) { const lastSuffix = parseInt(lastRelevantPrediction.periodDisplay.slice(-4)); if (!isNaN(lastSuffix)) { nextPeriodSuffix = String(lastSuffix + 1).padStart(4, '0'); } } else if(lastRelevantPrediction) { nextPeriodSuffix = "0001"; } if (periodInput.value.length !== 4 || !/^\d{4}$/.test(periodInput.value)) { periodInput.value = nextPeriodSuffix; } handlePeriodInput(periodInput); }
+
+        // --- Wingo Simulation Logic ---
+        function startResetSim() {
+            if (!initialBetInput || !lossLimitInput) { // Check for both inputs
+                 console.error("Initial Bet or Loss Limit input not found!");
+                 return;
+            }
+            console.log("Start/Reset Sim button clicked. Resetting simulation automatically.");
+            initialBet = parseInt(initialBetInput.value) || 10;
+            const lossLimitValue = parseInt(lossLimitInput.value) || 4; // Read loss limit value
+            currentBankroll = DEFAULT_START_BANKROLL;
+            profitLoss = 0;
+            currentLevel = 1;
+            simulationActive = true;
+            immediateConsecutiveLosses = 0;
+            if(predictButton) predictButton.disabled = false;
+            updateBankrollDisplay();
+            logMessage(`Simulation Started/Reset. Initial Bet: ${initialBet}, Loss Limit: ${lossLimitValue}, Bankroll: ${currentBankroll}`, 'info');
+            updateHistoryList(); // Clear visual history if needed (current impl. filters, so maybe ok)
+            updateStatistics();
+            saveAppState(); // Save the reset state
+        }
+
+        function updateBankrollDisplay() {
+            const displayBankroll = simulationActive ? currentBankroll : DEFAULT_START_BANKROLL;
+            const displayPL = simulationActive ? profitLoss : 0;
+            const displayLevel = simulationActive ? currentLevel : 1;
+            const displayNextBet = simulationActive ? calculateNextBet() : (parseInt(initialBetInput?.value) || 10);
+            if(currentBankrollDisplay) currentBankrollDisplay.textContent = displayBankroll.toFixed(2);
+            if(profitlossDisplay) {
+                profitlossDisplay.textContent = displayPL.toFixed(2);
+                profitlossDisplay.style.color = displayPL > 0 ? 'var(--success-color)' : displayPL < 0 ? 'var(--danger-color)' : 'var(--text-dark)';
+            }
+            if(currentLevelDisplay) currentLevelDisplay.textContent = displayLevel;
+            if(suggestedBetAmountDisplay) suggestedBetAmountDisplay.textContent = displayNextBet.toFixed(2);
+        }
+        function calculateNextBet() { let betMultiplier = Math.pow(2, currentLevel - 1); let nextBet = initialBet * betMultiplier; return nextBet; }
+
+        // --- Wingo Prediction Logic ---
+        async function predict() {
+             if (!predictButton || !periodInput || !predictionSpinner) return; if (!simulationActive) { logMessage('Start the simulation first using "Start/Reset Sim".', 'warning'); return; }
+             const nextBetAmount = calculateNextBet(); if (currentBankroll <= 0 || currentBankroll < nextBetAmount) { logMessage('Insufficient funds for the next bet. Please reset simulation.', 'error'); predictButton.disabled = true; return; }
+             const periodNumPart = periodInput.value.replace(/\D/g, ''); if (periodNumPart.length !== 4) { logMessage('Error: Enter exactly 4 digits for Period.', 'error'); periodInput.focus(); return; }
+             predictButton.disabled = true; predictionSpinner.style.display = 'inline-block'; logMessage('Generating AI prediction...', 'info');
+             const now = new Date(); const datePrefix = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`; const fullPeriodStr = datePrefix + periodNumPart;
+             const alreadyPredicted = predictionHistory.filter(p => p.interval === selectedInterval).some(p => p.periodDisplay === fullPeriodStr);
+             if (alreadyPredicted) { logMessage(`Period ${periodNumPart} already in history for this interval. Mark result or clear history.`, 'warning'); predictButton.disabled = false; predictionSpinner.style.display = 'none'; return; }
+             try {
+                 const currentBetAmount = nextBetAmount; // Use pre-calculated bet
+                 // *** Call the updated mockApi.predict ***
+                 const response = await mockApi.predict({
+                     interval: selectedInterval,
+                     period: fullPeriodStr
+                     // Method is now handled internally by mockApi
+                  });
+                 const { predictions, labels, confidence, explanation, reversed, methodUsed } = response; const confidenceText = confidence ? ` (${confidence.toFixed(0)}%)` : '';
+                 logMessage(` Period ${periodNumPart}:&nbsp; <span class="prediction-item">${labels.color}</span> <span class="prediction-item">${labels.size}</span> <strong class="prediction-number">${labels.number}</strong> ${confidenceText} - Bet: ${currentBetAmount.toFixed(2)} <br><small style="font-size: 0.8em; color: var(--text-muted-light);">${explanation || ''}</small> `, 'success');
+                 const predictionEntry = { periodDisplay: fullPeriodStr, predictedValue: predictions, platform: fixedPlatform, interval: selectedInterval, type: primaryPredictionType, status: 'Pending', timestamp: Date.now(), methodUsed: methodUsed || 'Formula/Trend', confidence, reversed, betAmount: currentBetAmount, level: currentLevel };
+                 predictionHistory.unshift(predictionEntry); updateHistoryList(); updateStatistics(); saveAppState();
+             } catch (error) { console.error('Prediction error:', error); logMessage('Error generating prediction.', 'error'); }
+             finally { predictButton.disabled = false; predictionSpinner.style.display = 'none'; }
+         }
+
+        // --- Wingo History Management ---
+        function updateHistoryList() {
+             if (!historyTableBody) return; const relevantHistory = predictionHistory.filter(p => p.interval === selectedInterval).sort((a, b) => b.timestamp - a.timestamp).slice(0, HISTORY_LIMIT);
+             if (relevantHistory.length === 0) { historyTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted-light); padding: 10px;">No history for this interval yet.</td></tr>'; return; }
+             historyTableBody.innerHTML = ''; relevantHistory.forEach(entry => { const row = document.createElement('tr');
+             const fullPeriod = entry.periodDisplay; // Show full period
+             const betInfo = `${entry.betAmount?.toFixed(2) || '?'} (Lv${entry.level || '?'})`;
+             let predictionDisplay = ''; if (entry.predictedValue && typeof entry.predictedValue === 'object') { predictionDisplay += formatPredictionLabel(entry.predictedValue.color, 'color') + '&nbsp;'; predictionDisplay += formatPredictionLabel(entry.predictedValue.size, 'size') + '&nbsp;'; predictionDisplay += `<strong class="prediction-number">${entry.predictedValue.number}</strong>`; } else { predictionDisplay = formatPredictionLabel(entry.predictedValue, entry.type || primaryPredictionType); }
+             row.innerHTML = ` <td style="text-align: center; white-space: nowrap; font-size: 0.7rem;">${fullPeriod}</td> <td>${predictionDisplay}${entry.confidence ? ` (${entry.confidence.toFixed(0)}%)` : ''}${entry.reversed ? ' <i title="Reversed prediction" class="fa-solid fa-recycle" style="font-size:0.8em; color: var(--warning-color);"></i>' : ''}</td> <td style="text-align: right;">${betInfo}</td> <td style="text-align: center;"><span class="status-badge ${entry.status}">${entry.status}</span></td> <td class="action-buttons"> ${entry.status === 'Pending' ? `<button class="mark-btn mark-win" title="Mark Win" onclick="markResult('${entry.periodDisplay}', 'Win')"><i class="fa-solid fa-check"></i></button> <button class="mark-btn mark-loss" title="Mark Loss" onclick="markResult('${entry.periodDisplay}', 'Lost')"><i class="fa-solid fa-xmark"></i></button>` : ''} </td> `; historyTableBody.appendChild(row); });
+         }
+
+        async function markResult(periodDisplay, status) {
+             console.log(`Marking result for ${periodDisplay} as ${status}.`); if (!simulationActive) { logMessage('Start the simulation before marking results.', 'warning'); return; }
+             const entryIndex = predictionHistory.findIndex(p => p.periodDisplay === periodDisplay && p.interval === selectedInterval);
+             if (entryIndex !== -1 && predictionHistory[entryIndex].status === 'Pending') {
+                  const entry = predictionHistory[entryIndex]; entry.status = status; const betAmount = entry.betAmount || 0; console.log(`Entry found. Bet amount: ${betAmount}`);
+                  const lossLimitValue = parseInt(lossLimitInput?.value) || 4; // Read loss limit from input
+
+                  if (status === 'Win') {
+                      const payoutRate = 0.95; const winnings = betAmount * payoutRate;
+                      currentBankroll += winnings; profitLoss += winnings; currentLevel = 1;
+                      logMessage(`Period ${periodDisplay.slice(-4)}: WIN! +${winnings.toFixed(2)}`, 'success');
+                  }
+                  else { // Status is 'Lost'
+                      currentBankroll -= betAmount; profitLoss -= betAmount; currentLevel++;
+                      logMessage(`Period ${periodDisplay.slice(-4)}: Loss. -${betAmount.toFixed(2)}. New Level: ${currentLevel}`, 'error');
+
+                      // Check against Loss Limit Input value
+                      if (currentLevel > lossLimitValue) {
+                          simulationActive = false;
+                          if(predictButton) predictButton.disabled = true;
+                          alert(`Loss Limit (${lossLimitValue}) reached after consecutive losses. Please reset simulation.`);
+                          console.warn(`Loss Limit (${lossLimitValue}) reached. Simulation stopped.`);
+                          updateBankrollDisplay();
+                          saveAppState();
+                          return; // Stop further processing for this result
+                      }
+                  }
+                  immediateConsecutiveLosses = calculateIntervalStreak(selectedInterval); console.log(`Streak updated to: ${immediateConsecutiveLosses}`);
+                  updateHistoryList(); updateStatistics(); updateBankrollDisplay(); saveAppState(); console.log("State updated and saved.");
+
+                  if (simulationActive) {
+                       const nextPeriodSuffix = String(parseInt(periodDisplay.slice(-4)) + 1).padStart(4, '0');
+                       if (periodInput) periodInput.value = nextPeriodSuffix;
+                       handlePeriodInput(periodInput);
+                       console.log("Triggering next prediction...");
+                       await predict(); // Await the next prediction call
+                       console.log("Next prediction triggered.");
+                  }
+             } else { console.warn(`Could not mark result for ${periodDisplay}. Entry not found or already marked.`); }
+         }
+
+        function calculateIntervalStreak(interval) { const intervalHistory = predictionHistory.filter(p => p.interval === interval); let streak = 0; for (const entry of intervalHistory.sort((a, b) => b.timestamp - a.timestamp)) { if (entry.status === 'Lost') streak++; else if (entry.status === 'Win' || entry.status === 'Pending') break; } return streak; }
+        function clearHistory() { if (confirm(`Are you sure you want to clear history for the ${formatIntervalText(selectedInterval)} interval?`)) { predictionHistory = predictionHistory.filter(p => p.interval !== selectedInterval); immediateConsecutiveLosses = 0; updateHistoryList(); updateStatistics(); logMessage(`History cleared for interval ${formatIntervalText(selectedInterval)}.`, 'success'); saveAppState(); } }
+        function updateStatistics() { const relevantHistory = predictionHistory.filter(p => p.interval === selectedInterval); let wins = 0; let losses = 0; let reversedCount = 0; let reversedWins = 0; relevantHistory.forEach(p => { if (p.status === 'Win') { wins++; if (p.reversed) reversedWins++; } else if (p.status === 'Lost') { losses++; } if (p.reversed) reversedCount++; }); const total = wins + losses; const accuracy = total > 0 ? ((wins / total) * 100).toFixed(1) : '0'; const reverseAccuracy = reversedCount > 0 ? ((reversedWins / reversedCount) * 100).toFixed(1) : '0'; if (historyWinsEl) historyWinsEl.textContent = wins; if (historyLossesEl) historyLossesEl.textContent = losses; if (historyAccuracyEl) historyAccuracyEl.textContent = `${accuracy}%`; if (historyReverseEl) historyReverseEl.textContent = `${reverseAccuracy}% (${reversedCount})`; immediateConsecutiveLosses = calculateIntervalStreak(selectedInterval); }
+
+        // --- LocalStorage ---
+        function saveAppState() {
+            try {
+                const lossLimitValue = lossLimitInput ? (parseInt(lossLimitInput.value) || 4) : 4; // Get loss limit value
+                const appState = {
+                    selectedInterval,
+                    initialBet,
+                    lossLimit: lossLimitValue, // Save loss limit
+                    currentBankroll,
+                    profitLoss,
+                    currentLevel,
+                    simulationActive,
+                    immediateConsecutiveLosses
+                };
+                localStorage.setItem('vipPredictKing_v8.3_appState', JSON.stringify(appState));
+                localStorage.setItem('vipPredictKing_v8.3_history', JSON.stringify(predictionHistory));
+            } catch(e) {
+                console.error("Error saving state:", e);
+                logMessage("Could not save state.", "warning");
+            }
+        }
+
+        function loadAppState() {
+            try {
+                const savedState = localStorage.getItem('vipPredictKing_v8.3_appState');
+                if (savedState) {
+                    const state = JSON.parse(savedState);
+                    selectedInterval = state.selectedInterval || '60';
+                    initialBet = state.initialBet || 10;
+                    const lossLimitValue = state.lossLimit || 4; // Load loss limit
+                    currentBankroll = state.simulationActive ? (state.currentBankroll ?? DEFAULT_START_BANKROLL) : DEFAULT_START_BANKROLL;
+                    profitLoss = state.simulationActive ? (state.profitLoss || 0) : 0;
+                    currentLevel = state.simulationActive ? (state.currentLevel || 1) : 1;
+                    simulationActive = state.simulationActive || false;
+                    immediateConsecutiveLosses = state.immediateConsecutiveLosses || 0;
+                    if(initialBetInput) initialBetInput.value = initialBet;
+                    if(lossLimitInput) lossLimitInput.value = lossLimitValue; // Set loaded loss limit
+                } else {
+                    if(initialBetInput) initialBetInput.value = initialBet;
+                    if(lossLimitInput) lossLimitInput.value = 4; // Default loss limit if no saved state
+                }
+                const savedHistory = localStorage.getItem('vipPredictKing_v8.3_history');
+                predictionHistory = savedHistory ? JSON.parse(savedHistory).map(entry => ({ ...entry, timestamp: new Date(entry.timestamp).getTime() })) : [];
+            } catch(e) {
+                console.error("Error loading state:", e);
+                predictionHistory = []; immediateConsecutiveLosses = 0; initialBet = 10; currentBankroll = DEFAULT_START_BANKROLL; profitLoss = 0; currentLevel = 1; simulationActive = false;
+                if(initialBetInput) initialBetInput.value = initialBet;
+                if(lossLimitInput) lossLimitInput.value = 4; // Default loss limit on error
+                logMessage("Error loading saved state. Using defaults.", "error");
+            }
+        }
+
+        // --- Utility Functions ---
+        function logMessage(message, type = 'info') { if (aiLogElement) { aiLogElement.className = `log-message ${type}`; aiLogElement.innerHTML = message || '&nbsp;'; } }
+
+        // --- Mines Predictor JS (Integrated) ---
+        function assignMinesDOMElements() { minesGridEl = document.getElementById('minesGrid'); minesCountInputEl = document.getElementById('minesCountInput'); minesPredictBtnEl = document.getElementById('minesPredictBtn'); minesPredictionSummaryEl = document.getElementById('minesPredictionSummary'); minesSafePredictionTextEl = document.getElementById('minesSafePredictionText'); minesMinePredictionTextEl = document.getElementById('minesMinePredictionText'); minesErrorMsgEl = document.getElementById('minesErrorMsg'); }
+        function checkMinesElements() { const elements = [minesGridEl, minesCountInputEl, minesPredictBtnEl, minesPredictionSummaryEl, minesSafePredictionTextEl, minesMinePredictionTextEl, minesErrorMsgEl]; return elements.every(el => el); }
+        function initMinesPredictor() { createMinesGrid(); if (minesPredictBtnEl) { minesPredictBtnEl.addEventListener('click', runMinesPrediction); } loadMinesHistory(); resetMinesGridVisuals(); if (minesCountInputEl) minesCountInputEl.value = minesCount; minesInitialized = true; console.log("Mines Predictor Initialized."); }
+        function createMinesGrid() { if (!minesGridEl) return; minesGridEl.innerHTML = ''; for (let i = 0; i < MINES_GRID_SIZE; i++) { const tile = document.createElement('div'); tile.className = 'mines-tile'; tile.dataset.index = i; minesGridEl.appendChild(tile); } }
+        function loadMinesHistory() { try { const s = localStorage.getItem(MINES_HISTORY_KEY); minesPredictorHistory = s ? JSON.parse(s) : []; console.log(`Loaded ${minesPredictorHistory.length} Mines history.`); } catch (e) { console.error("Error loading Mines history:", e); minesPredictorHistory = []; } }
+        function updateMinesPredictorHistory(tileIndex, result) { console.warn("Mines history update needs implementation based on actual game interaction."); }
+        function analyzeMinesPatterns() { let mf = new Array(MINES_GRID_SIZE).fill(0); let sf = new Array(MINES_GRID_SIZE).fill(0); const rh = minesPredictorHistory.slice(-50); rh.forEach(h => { if (h.tile !== undefined && h.tile >= 0 && h.tile < MINES_GRID_SIZE) { if (h.result === 'mine') { mf[h.tile]++; getMinesNeighbors(h.tile).forEach(n => mf[n] += 0.2); } else { sf[h.tile]++; getMinesNeighbors(h.tile).forEach(n => sf[n] += 0.1); } } }); let l = new Array(MINES_GRID_SIZE).fill(0); for (let i = 0; i < MINES_GRID_SIZE; i++) { l[i] = mf[i] - (sf[i] * 0.5); } return l; }
+        function getMinesNeighbors(tileIndex) { let n = []; const gs = 5; const r = Math.floor(tileIndex / gs), c = tileIndex % gs; for (let dr = -1; dr <= 1; dr++) { for (let dc = -1; dc <= 1; dc++) { if (dr === 0 && dc === 0) continue; let nr = r + dr, nc = c + dc; if (nr >= 0 && nr < gs && nc >= 0 && nc < gs) { n.push(nr * gs + nc); } } } return n; }
+        function predictMinesSafestAndRiskiest(likelihood) { const twl = likelihood.map((s, i) => ({ index: i, score: s })); twl.sort((a, b) => a.score - b.score); const ps = twl.slice(0, MINES_PREDICT_SAFE_COUNT).map(t => t.index + 1); const nr = Math.max(3, minesCount); const pr = twl.slice(-nr).map(t => t.index + 1).reverse(); return { predictedSafe: ps, predictedRisky: pr }; }
+        function resetMinesGridVisuals() { if (!minesGridEl) return; Array.from(minesGridEl.children).forEach(tile => { if(tile) tile.className = 'mines-tile'; }); if(minesSafePredictionTextEl) minesSafePredictionTextEl.textContent = ''; if(minesMinePredictionTextEl) minesMinePredictionTextEl.textContent = ''; if(minesPredictionSummaryEl) minesPredictionSummaryEl.classList.add('hidden'); if(minesErrorMsgEl) minesErrorMsgEl.textContent = ''; }
+        function runMinesPrediction() { console.log("runMinesPrediction called"); if (!checkMinesElements()) return; minesErrorMsgEl.textContent = ''; resetMinesGridVisuals(); try { minesCount = parseInt(minesCountInputEl.value); if (isNaN(minesCount) || minesCount < 1 || minesCount > MINES_GRID_SIZE - 1) { minesErrorMsgEl.textContent = `Enter valid mines (1-${MINES_GRID_SIZE - 1}).`; return; } } catch(e) { minesErrorMsgEl.textContent = "Invalid number for mines."; return; } console.log(`Predicting for ${minesCount} mines.`); let ps = [], pr = [], pt = ""; try { if (minesPredictorHistory.length >= MINES_MIN_HISTORY_FOR_PATTERN) { pt = "Pattern Based"; const l = analyzeMinesPatterns(); const p = predictMinesSafestAndRiskiest(l); ps = p.predictedSafe; pr = p.predictedRisky; } else { pt = `Random (Need ${MINES_MIN_HISTORY_FOR_PATTERN - minesPredictorHistory.length} history)`; const ai = Array.from({ length: MINES_GRID_SIZE }, (_, i) => i); const si = ai.sort(() => 0.5 - Math.random()); ps = si.slice(0, MINES_PREDICT_SAFE_COUNT).map(i => i + 1); const ri = si.slice(MINES_PREDICT_SAFE_COUNT); pr = ri.slice(0, Math.max(3, minesCount)).map(i => i + 1); } } catch (e) { console.error("Mines prediction error:", e); minesErrorMsgEl.textContent = "Prediction generation error."; return; } console.log("Mines Safe:", ps); console.log("Mines Risky:", pr); if (!minesGridEl || minesGridEl.children.length !== MINES_GRID_SIZE) { console.error("Mines grid error."); minesErrorMsgEl.textContent = "Grid display error."; return; } ps.forEach(i1 => { const i0=i1-1; if (i0 >= 0 && i0 < MINES_GRID_SIZE && minesGridEl.children[i0]) minesGridEl.children[i0].classList.add('predicted-safe'); }); pr.forEach(i1 => { const i0=i1-1; if (i0 >= 0 && i0 < MINES_GRID_SIZE && minesGridEl.children[i0]) { if (!minesGridEl.children[i0].classList.contains('predicted-safe')) minesGridEl.children[i0].classList.add('predicted-mine'); } }); minesSafePredictionTextEl.textContent = `Safe: ${ps.join(', ')}`; minesMinePredictionTextEl.textContent = `Risky: ${pr.join(', ')} (${pt})`; minesPredictionSummaryEl.classList.remove('hidden'); }
+
+        // --- Initial Bet Popup Comment ---
+        // Note: Initial Bet ইনপুটে ক্লিক করলে কোনো popup আসার কোড এখানে নেই।
+
+    </script>
+</body>
+</html>

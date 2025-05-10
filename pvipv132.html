@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predict VIP v1.32 - Full Text History</title> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- CSS Variables (Dark Theme) --- */
+        :root {
+            --bg-primary: #1c2128; --bg-secondary: #2d333b; --accent-primary: #f78166; --accent-secondary: #ea6045;
+            --text-primary: #e6edf3; --text-secondary: #b0c4de; --card-bg: linear-gradient(145deg, rgba(45, 51, 59, 0.85), rgba(60, 70, 80, 0.75));
+            --border-color: rgba(255, 255, 255, 0.15); --shadow-color: rgba(0, 0, 0, 0.4); --success-color: #56d364;
+            --danger-color: #f85149; --violet-color: #a371f7; --warning-color: #fcc62e; --info-color: #6cb6f1;
+            --border-radius-main: 0.5rem; --transition-speed: 0.3s;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Montserrat', sans-serif; background-color: var(--bg-primary); color: var(--text-primary); line-height: 1.6; min-height: 100vh; padding: 5rem 0.75rem 1.5rem; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
+        #particles-js { position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: -1; background-image: linear-gradient(145deg, var(--bg-primary), var(--bg-secondary)); }
+        .main-container { width: 100%; max-width: 750px; padding: 0.75rem; z-index: 1; }
+        h1 { color: var(--accent-primary); font-size: 1.5rem; text-align: center; margin: 0 0 1rem; font-weight: 700; text-shadow: 0 2px 5px var(--shadow-color); }
+        .main-nav { position: fixed; top: 0; left: 0; width: 100%; background: rgba(45, 51, 59, 0.7); backdrop-filter: blur(8px); display: flex; flex-wrap: wrap; justify-content: center; padding: 0.6rem; box-shadow: 0 4px 10px var(--shadow-color); z-index: 1000; gap: 0.5rem; }
+        .nav-button, .nav-link { background: rgba(255, 255, 255, 0.05); color: var(--text-secondary); border: 1px solid var(--border-color); padding: 0.5rem 0.9rem; border-radius: var(--border-radius-main); cursor: pointer; font-size: 0.8rem; font-weight: 500; display: flex; align-items: center; gap: 0.4rem; text-decoration: none; transition: all var(--transition-speed) ease; }
+        .nav-button:hover, .nav-link:hover { background: var(--accent-primary); color: var(--bg-primary); border-color: var(--accent-primary); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0, 0.2); }
+        .nav-button.active { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: var(--bg-primary); border-color: var(--accent-secondary); box-shadow: 0 0 8px rgba(247, 129, 102, 0.4); }
+        .content-view { display: none; width: 100%; }
+        .content-view.active { display: block; animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .section { background: var(--card-bg); padding: 1rem; border-radius: var(--border-radius-main); border: 1px solid var(--border-color); margin-bottom: 1.2rem; backdrop-filter: blur(5px); box-shadow: 0 5px 15px var(--shadow-color); transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease; width: 100%; }
+        .section:hover { transform: translateY(-3px); box-shadow: 0 6px 18px var(--shadow-color); }
+        .section h2 { color: var(--accent-primary); font-size: 1.2rem; text-align: center; margin-bottom: 1rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.6rem; }
+
+        /* --- Simulation Settings & Status --- */
+        #predictionView .simulation-controls { display: flex; flex-wrap: wrap; gap: 0.8rem; align-items: flex-end; justify-content: center; background: rgba(0,0,0,0.1); padding: 0.8rem; border-radius: var(--border-radius-main); margin-bottom: 1rem; }
+        #predictionView .sim-input-group { flex: 1 1 160px; max-width: 220px; }
+        #predictionView .sim-input-group label { font-size: 0.75rem; color: var(--text-secondary); display: block; margin-bottom: 0.3rem; font-weight: 500;}
+        #predictionView .sim-input-group input { width: 100%; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem; color: var(--text-primary); font-size: 0.85rem; }
+        #predictionView .sim-start-button { padding: 0.6rem 1rem; background: var(--success-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; transition: background-color var(--transition-speed); flex-shrink: 0; height: 34px; line-height: 1; font-size: 0.85rem; }
+        #predictionView .sim-start-button:hover { background-color: #46b454; }
+        #predictionView .sim-status-bar { display: flex; flex-wrap: wrap; justify-content: space-around; gap: 0.5rem 1rem; padding: 0.6rem; background: var(--bg-secondary); border-radius: var(--border-radius-main); margin-bottom: 1rem; font-size: 0.8rem; border: 2px solid transparent; transition: border-color var(--transition-speed); text-align: center; }
+        #predictionView .sim-status-bar span { color: var(--text-secondary); }
+        #predictionView .sim-status-bar strong { color: var(--text-primary); margin-left: 0.3rem; font-weight: 600;}
+        #predictionView .sim-status-bar.sim-active { border-color: var(--success-color); }
+        #predictionView .sim-status-bar.sim-paused { border-color: var(--warning-color); }
+        #predictionView .sim-status-bar.sim-stopped { border-color: var(--danger-color); }
+
+        /* --- Unified Prediction View Elements --- */
+        #predictionView .tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin-bottom: 1rem; }
+        #predictionView .tab { padding: 0.5rem 1rem; background: rgba(255, 255, 255, 0.08); color: var(--text-secondary); border-radius: var(--border-radius-main); border: 1px solid var(--border-color); font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; transition: all var(--transition-speed) ease; user-select: none; }
+        #predictionView .tab:hover { background: rgba(255, 255, 255, 0.15); color: var(--text-primary); border-color: rgba(255, 255, 255, 0.3); transform: translateY(-2px); }
+        #predictionView .tab.active { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: var(--bg-primary); border-color: var(--accent-secondary); box-shadow: 0 0 8px rgba(247, 129, 102, 0.4); }
+        #predictionView .period-input-group { display: flex; align-items: stretch; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--border-radius-main); margin: 0.8rem auto; max-width: 300px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.3); overflow: hidden; }
+        #predictionView .period-date-prefix { padding: 0.6rem; background: rgba(255, 255, 255, 0.05); color: var(--text-primary); font-size: 0.85rem; border-right: 1px solid var(--border-color); font-weight: 500; white-space: nowrap; }
+        #predictionView .period-input { background: none; border: none; color: var(--text-primary); padding: 0.6rem; font-size: 0.85rem; flex-grow: 1; min-width: 50px; text-align: center; font-family: inherit; }
+        #predictionView .period-input::placeholder { color: var(--text-secondary); opacity: 0.7; }
+        #predictionView .period-input:focus { outline: none; background: rgba(255, 255, 255, 0.05); }
+        #predictionView .period-input.error { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; border: 1px solid var(--danger-color); border-left: none; border-right: none; }
+        @keyframes shake { 10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(2px); } 30%, 50%, 70% { transform: translateX(-3px); } 40%, 60% { transform: translateX(3px); } }
+        #predictionView .predict-button { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: var(--bg-primary); border: none; padding: 0.6rem 1rem; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem; font-weight: 600; transition: all var(--transition-speed) ease; white-space: nowrap; }
+        #predictionView .predict-button:hover { filter: brightness(1.15); box-shadow: 0 0 10px rgba(247, 129, 102, 0.5); transform: scale(1.02); }
+        #predictionView .predict-button:active { transform: scale(0.98); filter: brightness(1.0); }
+        #predictionView .predict-button:disabled { background: #555; cursor: not-allowed; filter: brightness(0.7); box-shadow: none; transform: none;}
+        #predictionView .result { margin: 0.8rem 0; padding: 0.8rem; background: rgba(0, 0, 0, 0.2); border-radius: var(--border-radius-main); border: 1px solid var(--border-color); min-height: 40px; display: flex; flex-direction: column; align-items: center; }
+        #predictionView .result h3 { font-size: 1rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600; }
+        #predictionView .result-display-list { font-size: 0.9rem; display: flex; justify-content: center; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.3rem; font-weight: 600; min-height: 20px; }
+        #predictionView .result-display-list p { font-weight: 400; font-size: 0.85rem; }
+        #predictionView .history { margin-top: 1rem; padding: 0.8rem; background: rgba(0, 0, 0, 0.2); border-radius: var(--border-radius-main); border: 1px solid var(--border-color); }
+        #predictionView .history h3 { font-size: 1rem; color: var(--text-secondary); margin-bottom: 0.6rem; font-weight: 600; text-align: center; }
+        #predictionView .stats-display { display: flex; flex-wrap: wrap; justify-content: space-around; gap: 0.8rem; background: var(--bg-secondary); padding: 0.6rem; border-radius: var(--border-radius-main); font-size: 0.75rem; margin-bottom: 0.8rem; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2); text-align: center; }
+        #predictionView .stats-display div { color: var(--text-secondary); position: relative; cursor: help; flex-basis: auto; }
+        #predictionView .stats-display div::after { content: attr(data-tooltip); position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background: var(--bg-primary); color: var(--text-primary); padding: 0.3rem 0.6rem; border-radius: 0.3rem; font-size: 0.7rem; white-space: nowrap; z-index: 10; opacity: 0; visibility: hidden; transition: opacity var(--transition-speed) ease, visibility var(--transition-speed) ease; pointer-events: none; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        #predictionView .stats-display div:hover::after { opacity: 1; visibility: visible; }
+        #predictionView .stats-display strong { color: var(--text-primary); font-weight: 600; display: block; margin-top: 0.1rem; font-size: 1.1em;}
+        #predictionView .stat-win { color: var(--success-color); } #predictionView .stat-loss { color: var(--danger-color); } #predictionView .stat-acc { color: var(--accent-primary); } #predictionView .stat-rev { color: var(--warning-color); }
+        #predictionView .history-controls { display: flex; justify-content: center; margin-top: 0.8rem; }
+        #predictionView .clear-history-button { background: var(--danger-color); color: white; border: none; padding: 0.5rem 1rem; border-radius: var(--border-radius-main); cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all var(--transition-speed) ease; display: flex; align-items: center; gap: 0.4rem; }
+        #predictionView .clear-history-button:hover { background: #d73c34; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0, 0.2); }
+
+        /* --- History Table Styles (Inside Prediction View) --- */
+        #predictionView .table-container { overflow-x: auto; margin-bottom: 1rem; border: 1px solid var(--border-color); border-radius: 6px; background-color: rgba(0,0,0,0.1); max-height: 200px; overflow-y: auto; }
+        #predictionView .table-container::-webkit-scrollbar { width: 5px; height: 5px; } #predictionView .table-container::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 3px; } #predictionView .table-container::-webkit-scrollbar-thumb { background: var(--text-secondary); border-radius: 3px; } #predictionView .table-container::-webkit-scrollbar-thumb:hover { background: var(--accent-primary); }
+        #predictionView .history-table { width: 100%; border-collapse: collapse; font-size: 0.7rem; table-layout: fixed; }
+        #predictionView .history-table th, #predictionView .history-table td { padding: 0.3rem 0.2rem; border-bottom: 1px solid var(--border-color); text-align: center; vertical-align: middle; word-wrap: break-word; white-space: normal; overflow: hidden; text-overflow: ellipsis; }
+        #predictionView .history-table th { background-color: rgba(45, 51, 59, 0.7); color: var(--accent-primary); font-weight: 600; position: sticky; top: 0; z-index: 1; border-bottom-width: 2px; border-color: var(--accent-primary); }
+        /* --- ADJUSTED Column Widths for Full Text History --- */
+        #predictionView .history-table th:nth-child(1), #predictionView .history-table td:nth-child(1) { width: 15%; } /* Period - Reduced */
+        #predictionView .history-table th:nth-child(2), #predictionView .history-table td:nth-child(2) { width: 35%; } /* Prediction - Increased */
+        #predictionView .history-table th:nth-child(3), #predictionView .history-table td:nth-child(3) { width: 23%; } /* Bet (Lv) - Reduced */
+        #predictionView .history-table th:nth-child(4), #predictionView .history-table td:nth-child(4) { width: 13%; } /* Status - Reduced */
+        #predictionView .history-table th:nth-child(5), #predictionView .history-table td:nth-child(5) { width: 14%; } /* Action - Reduced */
+        /* --- End Column Width Adjustments --- */
+        #predictionView .history-table tbody tr:last-child td { border-bottom: none; }
+        #predictionView .history-table tbody tr:nth-child(even) td { background-color: rgba(255, 255, 255, 0.03); }
+        #predictionView .history-table tbody tr:hover td { background-color: rgba(255, 255, 255, 0.08); }
+        #predictionView .prediction-cell span { margin: 0 2px; /* Add slight space */ font-weight: bold; display: inline-block; /* Allows wrap */ }
+        #predictionView .prediction-cell .separator { color: var(--text-secondary); opacity: 0.6; margin: 0 1px; } /* Style separator */
+        #predictionView .color-green { color: var(--success-color); } #predictionView .color-violet { color: var(--violet-color); } #predictionView .color-red { color: var(--danger-color); }
+        #predictionView .size-big { color: var(--info-color); } #predictionView .size-small { color: var(--warning-color); }
+        #predictionView .predicted-number { color: var(--text-secondary); font-size: 0.9em; font-weight: normal; margin-left: 2px;}
+        #predictionView .status-cell span { font-weight: bold; padding: 1px 2px; border-radius: 3px; font-size: 0.9em;}
+        #predictionView .status-win { color: var(--success-color); } #predictionView .status-loss { color: var(--danger-color); } #predictionView .status-pending { color: var(--text-secondary); opacity: 0.8;}
+        #predictionView .action-cell button { padding: 3px; font-size: 0.75rem; margin: 0px; min-width: 24px; width: 24px; height: 24px; line-height: 1; }
+        #predictionView .win-btn { background: var(--success-color); color: white; }
+        #predictionView .loss-btn { background: var(--danger-color); color: white; }
+        #predictionView .action-cell button:disabled { background: #555; cursor: not-allowed; opacity: 0.6;}
+
+        /* --- Level Chart / Instructions Table Styles --- */
+        #levelChartView .section, #howToUseView .section {}
+        #levelChartView .table-container,
+        #howToUseView .table-container { max-height: none; overflow-y: visible; border: none; background: none; margin-bottom: 0; }
+        #levelChartTable, #howToUseTable { width: 100%; border-collapse: collapse; font-size: 0.8rem; color: var(--text-primary); margin-top: 0.8rem; table-layout: auto; }
+        #levelChartTable th, #levelChartTable td, #howToUseTable th, #howToUseTable td { padding: 0.5rem 0.4rem; border: 1px solid var(--border-color); text-align: center; vertical-align: middle; word-wrap: break-word; white-space: normal; }
+        #levelChartTable th, #howToUseTable th { background: var(--accent-primary); color: var(--bg-primary); font-weight: 600; }
+        #levelChartTable td, #howToUseTable td { background: rgba(45, 51, 59, 0.5); }
+        #levelChartTable tbody tr:nth-child(even) td, #howToUseTable tbody tr:nth-child(even) td { background: rgba(45, 51, 59, 0.7); }
+        #levelChartTable .total-row td, #howToUseTable .total-row td { background: rgba(252, 198, 46, 0.2); color: var(--warning-color); font-weight: bold; }
+        #levelChartTable .level-row td:first-child, #howToUseTable .level-row td:first-child { color: var(--warning-color); font-weight: bold; }
+        #howToUseTable td { text-align: left; }
+        #howToUseTable td:first-child { text-align: center; font-weight: bold; width: auto; min-width: 30px; color: var(--accent-primary); vertical-align: top; }
+        #howToUseTable td:first-child i { margin-right: 3px;}
+
+        /* --- Responsive Adjustments --- */
+        @media (max-width: 480px) {
+             body { padding: 4.5rem 0.5rem 1rem; }
+             h1 { font-size: 1.3rem; } .nav-button, .nav-link { font-size: 0.7rem; padding: 0.4rem 0.7rem; gap: 0.3rem;}
+             .tab { font-size: 0.7rem; padding: 0.4rem 0.7rem; gap: 0.3rem;} .section { padding: 0.8rem;} .section h2 { font-size: 1rem; margin-bottom: 0.8rem; }
+             /* Prediction View Mobile */
+             #predictionView .period-input-group { max-width: 95%; margin: 0.6rem auto;} #predictionView .period-date-prefix, #predictionView .period-input, #predictionView .predict-button { font-size: 0.8rem; padding: 0.5rem;}
+             #predictionView .predict-button { padding: 0.5rem 0.8rem;}
+             #predictionView .stats-display { gap: 0.2rem 0.6rem; font-size: 0.7rem; padding: 0.5rem;} #predictionView .stats-display strong { font-size: 1.05em; }
+             #predictionView .table-container { max-height: 180px; overflow-y: auto; }
+             #predictionView .history-table { font-size: 0.65rem; }
+              /* Readjust widths slightly for mobile history */
+             #predictionView .history-table th:nth-child(1), #predictionView .history-table td:nth-child(1) { width: 18%; } /* Period */
+             #predictionView .history-table th:nth-child(2), #predictionView .history-table td:nth-child(2) { width: 37%; } /* Prediction */
+             #predictionView .history-table th:nth-child(3), #predictionView .history-table td:nth-child(3) { width: 20%; } /* Bet (Lv) */
+             #predictionView .history-table th:nth-child(4), #predictionView .history-table td:nth-child(4) { width: 12%; } /* Status */
+             #predictionView .history-table th:nth-child(5), #predictionView .history-table td:nth-child(5) { width: 13%; } /* Action */
+             #predictionView .history-table th, #predictionView .history-table td { padding: 0.2rem 0.15rem;}
+             #predictionView .action-cell button { padding: 2px; font-size: 0.7rem; margin: 0; min-width: 20px; width: 20px; height: 20px;}
+             /* Sim Controls Mobile */
+             .simulation-controls { padding: 0.5rem; gap: 0.4rem; } .sim-input-group label { font-size: 0.7rem; } .sim-input-group input { padding: 0.4rem; font-size: 0.75rem; } .sim-start-button { font-size: 0.75rem; padding: 0.5rem 0.8rem; height: auto;}
+             .sim-status-bar { font-size: 0.7rem; padding: 0.4rem; gap: 0.2rem 0.6rem;}
+             /* Chart/HowTo Mobile */
+             #levelChartTable, #howToUseTable { font-size: 0.7rem; }
+             #levelChartTable th, #levelChartTable td, #howToUseTable th, #howToUseTable td { padding: 0.4rem; }
+             #levelChartView .table-container, #howToUseView .table-container { overflow-y: auto; max-height: 75vh; } /* Adjust height slightly */
+        }
+        @media (min-width: 768px) {
+             body { padding-top: 5rem; } .main-container { padding: 1rem; } .section { padding: 1.5rem; }
+             h1 { font-size: 1.8rem; } .nav-button, .nav-link { font-size: 0.9rem; padding: 0.7rem 1.2rem; }
+             .tab { font-size: 0.9rem; padding: 0.7rem 1.4rem; }
+             #predictionView .period-input-group { max-width: 380px; }
+             #predictionView .period-date-prefix, #predictionView .period-input, #predictionView .predict-button { font-size: 1rem; }
+             #predictionView .result h3, #predictionView .history h3 { font-size: 1.2rem; }
+             #predictionView .stats-display { font-size: 0.85rem; } #predictionView .history-table { font-size: 0.8rem; }
+             #predictionView .history-table th, #predictionView .history-table td { padding: 0.5rem 0.6rem; }
+             #predictionView .action-cell button { font-size: 0.8rem; padding: 4px 8px; }
+             .sim-status-bar { font-size: 0.9rem;}
+             #levelChartTable, #howToUseTable { font-size: 0.9rem; }
+             #levelChartTable th, #levelChartTable td, #howToUseTable th, #howToUseTable td { padding: 0.6rem; }
+        }
+
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+
+    <h1><i class="fas fa-shield-alt"></i> Predict VIP <span style="font-size: 0.6em; color: var(--accent-secondary);">v1.32 (Full Text)</span></h1>
+
+    <nav class="main-nav">
+        <button class="nav-button active" data-view="predictionView"><i class="fas fa-chart-line"></i> Prediction</button>
+        <button class="nav-button" data-view="levelChartView"><i class="fas fa-table-list"></i> Level Chart</button>
+        <button class="nav-button" data-view="howToUseView"><i class="fas fa-circle-info"></i> How to Use</button>
+        <a href="https://chat.google.com/room/AAQA95Euqo8?cls=7" target="_blank" rel="noopener" class="nav-link"><i class="fas fa-comments"></i> Chat</a>
+    </nav>
+
+    <div class="main-container">
+
+        <div class="content-view active" id="predictionView">
+            <div class="section">
+                <h2><i class="fas fa-gamepad"></i> Game Prediction</h2>
+                <div class="simulation-controls"> <div class="sim-input-group"> <label for="initialBet"><i class="fas fa-coins"></i> Initial Bet (Lv 1):</label> <input type="number" id="initialBet" placeholder="e.g., 10" min="1" value="10"> </div> <button id="simStartButton" class="sim-start-button"><i class="fas fa-play"></i> Start / Reset Sim</button> </div>
+                <div class="sim-status-bar" id="simStatusBar"> <span>Bankroll: <strong id="simBankroll">₹ --</strong></span> <span>Level: <strong id="simLevel">Lv --</strong></span> <span>Next Bet: <strong id="simNextBet">₹ --</strong></span> <span>P/L: <strong id="simProfitLoss">₹ --</strong></span> </div>
+                <div class="tabs"> <div class="tab active" data-boxid="30" role="tab" aria-selected="true"><i class="fas fa-stopwatch"></i> 30s</div> <div class="tab" data-boxid="60" role="tab" aria-selected="false"><i class="fas fa-clock"></i> 1m</div> <div class="tab" data-boxid="180" role="tab" aria-selected="false"><i class="fas fa-hourglass-half"></i> 3m</div> <div class="tab" data-boxid="300" role="tab" aria-selected="false"><i class="fas fa-hourglass-end"></i> 5m</div> </div>
+                <div class="period-input-group"> <span class="period-date-prefix" id="datePrefix"></span> <input type="text" id="periodNumber" class="period-input" placeholder="Last 4 Digits" maxlength="4" pattern="\d{4}" inputmode="numeric"> <button id="predictButton" class="predict-button"><i class="fas fa-play"></i> Predict</button> </div>
+                 <div class="result"> <h3><i class="fas fa-bullseye"></i> Prediction Result (<span id="activeIntervalDisplay">30s</span>)</h3> <div class="result-display-list" id="resultList"> <p>Start Sim & Predict.</p> </div> </div>
+                <div class="history"> <h3><i class="fas fa-history"></i> History (<span id="activeIntervalHistoryDisplay">30s</span>)</h3> <div class="stats-display" id="statsDisplay"> <div data-tooltip="Total wins in this interval">Wins<strong class="stat-win">0</strong></div> <div data-tooltip="Total losses in this interval">Losses<strong class="stat-loss">0</strong></div> <div data-tooltip="Win percentage in this interval">Accuracy<strong class="stat-acc">0%</strong></div> <div data-tooltip="Loss -> Win Reversals in this interval">Reversed<strong class="stat-rev">0% (0)</strong></div> </div> <div class="table-container"> <table class="history-table" id="historyTable"> <thead><tr><th>Period</th><th>Prediction</th><th>Bet Amt (Lv)</th><th>Status</th><th>Action</th></tr></thead> <tbody id="historyTableBody"></tbody> </table> </div> <div class="history-controls"> <button id="clearHistoryButton" class="clear-history-button"><i class="fas fa-trash-alt"></i> Clear Interval History</button> </div> </div>
+            </div>
+        </div>
+
+        <div class="content-view" id="levelChartView">
+             <div class="section fund-chart"> <h2><i class="fas fa-layer-group"></i> Fund Management Chart</h2> <div class="table-container"> <table id="levelChartTable"> <thead><tr><th>LEVEL</th><th>₹1 FUND</th><th>₹5 FUND</th><th>₹10 FUND</th><th>₹50 FUND</th></tr></thead><tbody><tr class="level-row"><td>Lv 1</td><td>₹1</td><td>₹5</td><td>₹10</td><td>₹50</td></tr><tr class="level-row"><td>Lv 2</td><td>₹2</td><td>₹10</td><td>₹20</td><td>₹100</td></tr><tr class="level-row"><td>Lv 3</td><td>₹4</td><td>₹20</td><td>₹40</td><td>₹200</td></tr><tr class="level-row"><td>Lv 4</td><td>₹10</td><td>₹40</td><td>₹90</td><td>₹400</td></tr><tr class="level-row"><td>Lv 5</td><td>₹20</td><td>₹90</td><td>₹200</td><td>₹800</td></tr><tr class="level-row"><td>Lv 6</td><td>₹40</td><td>₹200</td><td>₹400</td><td>₹1700</td></tr><tr class="level-row"><td>Lv 7</td><td>₹80</td><td>₹400</td><td>₹800</td><td>₹3500</td></tr><tr class="level-row"><td>Lv 8</td><td>₹170</td><td>₹800</td><td>₹1700</td><td>₹7100</td></tr><tr class="level-row"><td>Lv 9</td><td>₹350</td><td>₹1600</td><td>₹3500</td><td>₹14500</td></tr><tr class="total-row"><td data-tooltip="Total capital needed for 8 levels">Lv.8 TOTAL</td><td>₹327</td><td>₹1565</td><td>₹3260</td><td>₹13850</td></tr><tr class="total-row"><td data-tooltip="Total capital needed for 9 levels">Lv.9 TOTAL</td><td>₹677</td><td>₹3165</td><td>₹6760</td><td>₹28350</td></tr></tbody></table></div> <p style="text-align: center; color: var(--text-secondary); font-size: 0.8rem; margin-top: 1rem;"><i class="fas fa-exclamation-triangle" style="color: var(--warning-color);"></i> This chart shows potential bet amounts per level. Use the simulation settings to define your actual starting bet.</p> </div>
+        </div>
+
+        <div class="content-view" id="howToUseView">
+             <div class="section instructions-table"> <h2><i class="fas fa-book-open"></i> How to Use</h2> <div class="table-container"> <table id="howToUseTable"> <thead><tr><th>Step</th><th>Description</th></tr></thead><tbody>
+                <tr><td>1</td><td><i class="fas fa-cog" style="color: var(--info-color); margin-right: 5px;"></i>Go to the <strong>Prediction</strong> tab. Enter your <strong>Initial Bet</strong> (Level 1 Amount).</td></tr>
+                <tr><td>2</td><td><i class="fas fa-play-circle" style="color: var(--success-color); margin-right: 5px;"></i>Click <strong>Start / Reset Sim</strong>. This sets your starting bankroll (calculated to cover Lv 9) and activates the simulation. Check the status bar.</td></tr>
+                <tr><td>3</td><td><i class="fas fa-keyboard" style="color: var(--info-color); margin-right: 5px;"></i>Select game duration tab (30s, 1m...). Enter the <strong>last 4 digits</strong> of the period, click <strong>Predict</strong>.</td></tr>
+                <tr><td>4</td><td><i class="fas fa-money-bill-wave" style="color: var(--success-color); margin-right: 5px;"></i>The tool calculates the bet amount based on the current Level & your Initial Bet (displayed in Status Bar & History). Place this bet in the actual game (if playing).</td></tr>
+                <tr><td>5</td><td><i class="fas fa-trophy" style="color: var(--success-color); margin-right: 5px;"></i>If <strong>WIN</strong>: Mark <i class="fas fa-check"></i> in history for that period. Level resets to 1. Bankroll increases. Auto-predicts next.</td></tr>
+                <tr><td>6</td><td><i class="fas fa-times-circle" style="color: var(--danger-color); margin-right: 5px;"></i>If <strong>LOSS</strong>: Mark <i class="fas fa-times"></i> in history. Level increases. Bankroll decreases. Auto-predicts next.</td></tr>
+                <tr><td>7</td><td><i class="fas fa-exclamation-triangle" style="color: var(--warning-color); margin-right: 5px;"></i>If bankroll is too low for the next bet, the simulation pauses. You must Reset to continue.</td></tr>
+                <tr><td>Note</td><td><i class="fas fa-info-circle" style="color: var(--info-color); margin-right: 5px;"></i>This is a Martingale simulation tool. Use responsibly. Losses can be significant. Starting bankroll covers 9 levels.</td></tr>
+             </tbody></table></div></div>
+        </div>
+
+    </div> <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // --- START OF JAVASCRIPT LOGIC (v1.32 - Full Text History) ---
+
+        // --- Constants ---
+        const BOX_IDS = ['30', '60', '180', '300']; const CONSECUTIVE_LOSS_THRESHOLD = 4; const FUND_LEVELS_BASE = [1, 2, 4, 10, 20, 40, 80, 170, 350]; const MAX_LEVEL = FUND_LEVELS_BASE.length; const HISTORY_LIMIT = 50; const STORAGE_KEY_PREFIX = 'predictVIP_v1.32_'; // Updated key
+
+        // --- Global Simulation State ---
+        let simulationState = { active: false, bankroll: 0, initialBet: 10, currentLevel: 1, startingBankroll: 0, };
+        // --- Per-Interval State ---
+        let historyData = {}; let consecutiveLosses = {}; let activeBoxId = '30';
+
+        // --- Utility Functions ---
+        function getCurrentDatePrefix() { const now = new Date(); const year = now.getFullYear(); const month = (now.getMonth() + 1).toString().padStart(2, '0'); const day = now.getDate().toString().padStart(2, '0'); return `${year}${month}${day}`; }
+        function getBoxIdFromActionRow(element) { const row = element.closest('tr'); return row ? row.dataset.boxid : null; }
+        function getNextPeriod(currentPeriod) { let num = parseInt(currentPeriod, 10); num++; if (num > 9999) num = 1; return num.toString().padStart(4, '0'); }
+        function formatCurrency(amount) { return `₹${amount.toFixed(2)}`; }
+
+        // --- DOM Elements Cache ---
+        const mainNavButtons = document.querySelectorAll('.main-nav .nav-button'); const contentViews = document.querySelectorAll('.content-view'); const predictionView = document.getElementById('predictionView'); const initialBetInput = document.getElementById('initialBet'); const simStartButton = document.getElementById('simStartButton'); const simStatusBar = document.getElementById('simStatusBar'); const simBankrollEl = document.getElementById('simBankroll'); const simLevelEl = document.getElementById('simLevel'); const simNextBetEl = document.getElementById('simNextBet'); const simProfitLossEl = document.getElementById('simProfitLoss'); const gameTabs = predictionView.querySelectorAll('.tabs .tab'); const datePrefixEl = document.getElementById('datePrefix'); const periodNumberInput = document.getElementById('periodNumber'); const predictButton = document.getElementById('predictButton'); const resultListEl = document.getElementById('resultList'); const activeIntervalDisplayEl = document.getElementById('activeIntervalDisplay'); const activeIntervalHistoryDisplayEl = document.getElementById('activeIntervalHistoryDisplay'); const statsDisplayEl = document.getElementById('statsDisplay'); const historyTableBodyEl = document.getElementById('historyTableBody'); const clearHistoryButton = document.getElementById('clearHistoryButton');
+
+        // --- Prediction Logic (PLACEHOLDER) ---
+        function generatePrediction(periodNumber, boxId) { console.warn(`Using PLACEHOLDER prediction logic for period ${periodNumber}, box ${boxId}. REPLACE THIS!`); const lastDigit = parseInt(periodNumber.slice(-1), 10); let color = Math.random() < 0.5 ? 'Red' : 'Green'; let size = Math.random() < 0.5 ? 'Small' : 'Big'; let number = lastDigit; if ([1, 3, 7, 9].includes(lastDigit)) { color = 'Green'; } else if ([2, 4, 6, 8].includes(lastDigit)) { color = 'Red'; } if (lastDigit >= 5) { size = 'Big'; } else { size = 'Small'; } if (lastDigit === 0 || lastDigit === 5) { color = 'Violet'; } return { color, size, number }; }
+
+        // --- State Management ---
+        function loadState() { const simStateStr = localStorage.getItem(STORAGE_KEY_PREFIX + 'simulationState'); if (simStateStr) { try { const loadedSimState = JSON.parse(simStateStr); delete loadedSimState.lossLimitValue; delete loadedSimState.lossLimitReached; simulationState = { ...simulationState, ...loadedSimState }; simulationState.bankroll = Number(simulationState.bankroll) || 0; simulationState.initialBet = Number(simulationState.initialBet) || 10; simulationState.currentLevel = Number(simulationState.currentLevel) || 1; simulationState.startingBankroll = Number(simulationState.startingBankroll) || 0; } catch (e) { console.error("Error parsing simulation state:", e); } } const historyStr = localStorage.getItem(STORAGE_KEY_PREFIX + 'historyData'); historyData = historyStr ? JSON.parse(historyStr) : {}; const lossesStr = localStorage.getItem(STORAGE_KEY_PREFIX + 'consecutiveLosses'); consecutiveLosses = lossesStr ? JSON.parse(lossesStr) : {}; BOX_IDS.forEach(id => { if (!historyData[id]) historyData[id] = []; if (consecutiveLosses[id] === undefined) consecutiveLosses[id] = 0; }); initialBetInput.value = simulationState.initialBet; console.log("Loaded state:", { simulationState, historyData, consecutiveLosses }); }
+        function saveState() { try { const stateToSave = { ...simulationState }; localStorage.setItem(STORAGE_KEY_PREFIX + 'simulationState', JSON.stringify(stateToSave)); localStorage.setItem(STORAGE_KEY_PREFIX + 'historyData', JSON.stringify(historyData)); localStorage.setItem(STORAGE_KEY_PREFIX + 'consecutiveLosses', JSON.stringify(consecutiveLosses)); } catch (e) { console.error("Error saving state:", e); alert("Error saving data. Local storage might be full."); } }
+
+        // --- Simulation Control ---
+        function startResetSimulation() { const initialBetValue = parseFloat(initialBetInput.value); if (isNaN(initialBetValue) || initialBetValue <= 0) { alert("Please enter a valid Initial Bet amount (> 0)."); return; } simulationState.initialBet = initialBetValue; simulationState.currentLevel = 1; const baseMultiplierTotal = FUND_LEVELS_BASE.reduce((sum, val) => sum + val, 0); simulationState.startingBankroll = baseMultiplierTotal * simulationState.initialBet; simulationState.bankroll = simulationState.startingBankroll; simulationState.active = true; BOX_IDS.forEach(id => { historyData[id] = []; consecutiveLosses[id] = 0; }); console.log("Simulation Started/Reset:", simulationState); refreshActiveIntervalView(); updateGlobalStatusUI(); saveState(); }
+
+        // --- History, Stats, Level Functions ---
+        function calculateBetAmount(level, initialBet) { if (level < 1 || level > MAX_LEVEL) { console.error("Invalid level:", level); return 0; } const multiplier = FUND_LEVELS_BASE[level - 1] / FUND_LEVELS_BASE[0]; return initialBet * multiplier; }
+        function addHistoryEntry(boxId, period, prediction, status = 'pending') { if (!simulationState.active) { alert("Simulation not active. Please Start/Reset Simulation first."); return false; } const level = simulationState.currentLevel; const betAmount = calculateBetAmount(level, simulationState.initialBet); if (betAmount > simulationState.bankroll) { alert(`Bankroll insufficient (${formatCurrency(simulationState.bankroll)}) for the required bet (${formatCurrency(betAmount)} at Level ${level}). Simulation Paused.`); simulationState.active = false; updateGlobalStatusUI(); saveState(); return false; } if (!historyData[boxId]) historyData[boxId] = []; const newEntry = { id: Date.now(), period: period, prediction: prediction, status: status, level: level, betAmount: betAmount }; historyData[boxId].unshift(newEntry); if (historyData[boxId].length > HISTORY_LIMIT) historyData[boxId].pop(); saveState(); if (boxId === activeBoxId) { renderHistory(boxId); updateStats(boxId); } updateGlobalStatusUI(); return true; }
+        function updateHistoryStatus(boxId, entryId, newStatus) { console.log(`Updating status: boxId=${boxId}, entryId=${entryId}, newStatus=${newStatus}`); if (!historyData[boxId]) { console.error("History data missing:", boxId); return false; } const entryIndex = historyData[boxId].findIndex(entry => entry.id === entryId); if (entryIndex === -1) { console.error("Entry not found:", entryId); return false; } const entry = historyData[boxId][entryIndex]; if (entry.status !== 'pending') { console.warn("Entry already processed:", entry); return false; } if (!simulationState.active) { console.warn("Updating status while simulation paused."); } entry.status = newStatus; const betAmount = entry.betAmount; if (newStatus === 'win') { simulationState.bankroll += betAmount; simulationState.currentLevel = 1; consecutiveLosses[boxId] = 0; console.log(`WIN: Bankroll=${formatCurrency(simulationState.bankroll)}, Level=1`); } else if (newStatus === 'loss') { simulationState.bankroll -= betAmount; simulationState.currentLevel = Math.min(simulationState.currentLevel + 1, MAX_LEVEL); consecutiveLosses[boxId] = (consecutiveLosses[boxId] || 0) + 1; console.log(`LOSS: Bankroll=${formatCurrency(simulationState.bankroll)}, Level=${simulationState.currentLevel}`); if (consecutiveLosses[boxId] >= CONSECUTIVE_LOSS_THRESHOLD) { setTimeout(() => { alert(`Warning: ${consecutiveLosses[boxId]} consecutive losses on ${boxId}s game! Consider pausing.`); }, 100); } } let stopped = false; if (simulationState.bankroll <= 0) { simulationState.active = false; stopped = true; alert("BANKRUPT! Simulation Stopped. Reset simulation."); console.error("Bankrupt. Simulation stopped."); } const nextBetAmount = calculateBetAmount(simulationState.currentLevel, simulationState.initialBet); if (simulationState.active && nextBetAmount > simulationState.bankroll && !stopped) { simulationState.active = false; stopped = true; alert(`Warning: Bankroll (${formatCurrency(simulationState.bankroll)}) insufficient for the NEXT bet (${formatCurrency(nextBetAmount)} at Level ${simulationState.currentLevel}). Simulation Paused.`); console.warn("Insufficient funds for next bet. Simulation paused."); } saveState(); if (boxId === activeBoxId) { renderHistory(boxId); updateStats(boxId); } updateGlobalStatusUI(); return true; }
+        function clearHistory(boxId) { if (!boxId) return; if (historyData[boxId] && confirm(`Clear history for interval ${getIntervalName(boxId)}? This won't reset the main simulation.`)) { historyData[boxId] = []; consecutiveLosses[boxId] = 0; saveState(); if (boxId === activeBoxId) { renderHistory(boxId); updateStats(boxId); clearPredictionResult(); } console.log(`History cleared for ${boxId}s`); } }
+
+        // --- Rendering Functions ---
+        // --- UPDATED renderHistory ---
+        function renderHistory(boxId) {
+            if (!boxId) return;
+            const history = historyData[boxId] || [];
+            historyTableBodyEl.innerHTML = '';
+
+            if (history.length === 0) { const row = historyTableBodyEl.insertRow(); const cell = row.insertCell(); cell.colSpan = 5; cell.textContent = 'No history available for this interval.'; cell.style.textAlign = 'center'; cell.style.color = 'var(--text-secondary)'; cell.style.padding = '10px'; return; }
+
+            history.forEach(entry => {
+                const row = historyTableBodyEl.insertRow();
+                row.dataset.entryId = entry.id;
+                row.dataset.boxid = boxId;
+                row.insertCell().textContent = entry.period; // Period
+
+                // Prediction Cell (Full Text)
+                const predictionCell = row.insertCell();
+                predictionCell.classList.add('prediction-cell');
+                let colorClass = entry.prediction.color ? `color-${entry.prediction.color.toLowerCase().split('+')[0]}` : '';
+                let sizeClass = entry.prediction.size ? `size-${entry.prediction.size.toLowerCase()}` : '';
+
+                // Construct innerHTML with full text spans
+                let predictionHTML = '';
+                if (entry.prediction.color) {
+                    predictionHTML += `<span class="${colorClass}">${entry.prediction.color}</span>`;
+                }
+                if (entry.prediction.size) {
+                    // Add separator if color is also present
+                    if (predictionHTML) predictionHTML += `<span class="separator"> / </span>`;
+                    predictionHTML += `<span class="${sizeClass}">${entry.prediction.size}</span>`;
+                }
+                if (entry.prediction.number !== undefined) {
+                     predictionHTML += `<span class="predicted-number"> (#${entry.prediction.number})</span>`;
+                }
+                predictionCell.innerHTML = predictionHTML.trim();
+
+
+                // Bet Amount (Level) Cell
+                const betCell = row.insertCell();
+                betCell.innerHTML = `${formatCurrency(entry.betAmount)}<span style="opacity:0.6; font-size:0.8em;"> L${entry.level}</span>`;
+
+                // Status Cell
+                const statusCell = row.insertCell(); statusCell.classList.add('status-cell'); const statusSpan = document.createElement('span'); const statusClass = `status-${entry.status.toLowerCase()}`; statusSpan.classList.add(statusClass); statusSpan.textContent = entry.status.charAt(0).toUpperCase() + entry.status.slice(1); statusCell.appendChild(statusSpan);
+
+                // Action Cell
+                const actionCell = row.insertCell(); actionCell.classList.add('action-cell');
+                if (entry.status === 'pending') { const winButton = document.createElement('button'); winButton.innerHTML = '<i class="fas fa-check"></i>'; winButton.classList.add('win-btn'); winButton.dataset.entryId = entry.id; winButton.dataset.action = 'win'; winButton.setAttribute('aria-label', 'Mark as Win'); winButton.disabled = !simulationState.active; const lossButton = document.createElement('button'); lossButton.innerHTML = '<i class="fas fa-times"></i>'; lossButton.classList.add('loss-btn'); lossButton.dataset.entryId = entry.id; lossButton.dataset.action = 'loss'; lossButton.setAttribute('aria-label', 'Mark as Loss'); lossButton.disabled = !simulationState.active; actionCell.appendChild(winButton); actionCell.appendChild(lossButton); }
+                 else { actionCell.textContent = '-'; }
+            });
+        }
+        // --- End UPDATED renderHistory ---
+
+        function updateStats(boxId) { if (!boxId) return; const history = historyData[boxId] || []; let wins = 0, losses = 0, reversals = 0; let lastStatus = null; for (let i = history.length - 1; i >= 0; i--) { const entry = history[i]; if (entry.status === 'win') { wins++; if (lastStatus === 'loss') { reversals++; } lastStatus = 'win'; } else if (entry.status === 'loss') { losses++; lastStatus = 'loss'; } else { lastStatus = 'pending'; } } const total = wins + losses; const accuracy = total === 0 ? 0 : Math.round((wins / total) * 100); const reversalRate = losses === 0 ? 0 : Math.round((reversals / losses) * 100); statsDisplayEl.querySelector('.stat-win').textContent = wins; statsDisplayEl.querySelector('.stat-loss').textContent = losses; statsDisplayEl.querySelector('.stat-acc').textContent = `${accuracy}%`; statsDisplayEl.querySelector('.stat-rev').textContent = `${reversalRate}% (${reversals})`; }
+        function updateGlobalStatusUI() { simBankrollEl.textContent = simulationState.active || simulationState.bankroll > 0 ? formatCurrency(simulationState.bankroll) : '₹ --'; simLevelEl.textContent = simulationState.active ? `Lv ${simulationState.currentLevel}`: 'Lv --'; const nextBetAmount = calculateBetAmount(simulationState.currentLevel, simulationState.initialBet); const profitLoss = simulationState.bankroll - simulationState.startingBankroll; simProfitLossEl.textContent = simulationState.active || simulationState.startingBankroll > 0 ? formatCurrency(profitLoss) : '₹ --'; simProfitLossEl.style.color = profitLoss >= 0 ? 'var(--success-color)' : 'var(--danger-color)'; const canAffordNext = nextBetAmount <= simulationState.bankroll; const showNextBet = simulationState.active && canAffordNext; simNextBetEl.textContent = showNextBet ? formatCurrency(nextBetAmount) : '₹ --'; simStatusBar.classList.remove('sim-active', 'sim-paused', 'sim-stopped'); const actionButtons = document.querySelectorAll('.action-cell button'); if (simulationState.bankroll <= 0 && simulationState.startingBankroll > 0) { simStatusBar.classList.add('sim-stopped'); predictButton.disabled = true; actionButtons.forEach(btn => btn.disabled = true); } else if (simulationState.active && canAffordNext) { simStatusBar.classList.add('sim-active'); predictButton.disabled = false; actionButtons.forEach(btn => btn.disabled = false); } else if (simulationState.active && !canAffordNext) { simStatusBar.classList.add('sim-paused'); predictButton.disabled = true; actionButtons.forEach(btn => btn.disabled = false); } else { simStatusBar.classList.add('sim-paused'); predictButton.disabled = true; actionButtons.forEach(btn => btn.disabled = true); } if(activeBoxId) renderHistory(activeBoxId); }
+        function displayPredictionResult(prediction) { if (!prediction) { clearPredictionResult(); return; } let colorClass = '', sizeClass = ''; if (prediction.color === 'Green') colorClass = 'color-green'; else if (prediction.color === 'Red') colorClass = 'color-red'; else if (prediction.color === 'Violet') colorClass = 'color-violet'; if (prediction.size === 'Big') sizeClass = 'size-big'; else if (prediction.size === 'Small') sizeClass = 'size-small'; resultListEl.innerHTML = `${colorClass ? `<span class="${colorClass}">${prediction.color}</span>` : ''} ${sizeClass ? `<span class="${sizeClass}">${prediction.size}</span>` : ''} ${prediction.number !== undefined ? `<span class="predicted-number">(#${prediction.number})</span>` : ''}`; }
+        function clearPredictionResult() { resultListEl.innerHTML = `<p style="text-align: center; color: var(--text-secondary); font-size: 0.85rem;">Start Sim & Predict.</p>`; }
+        function getIntervalName(boxId) { const tab = document.querySelector(`.tab[data-boxid="${boxId}"]`); return tab ? tab.innerText.trim() : `${boxId}s`; }
+        function refreshActiveIntervalView() { const intervalName = getIntervalName(activeBoxId); activeIntervalDisplayEl.textContent = intervalName; activeIntervalHistoryDisplayEl.textContent = intervalName; renderHistory(activeBoxId); updateStats(activeBoxId); clearPredictionResult(); periodNumberInput.value = ''; periodNumberInput.classList.remove('error'); }
+
+        // --- UI Interaction Functions ---
+        function switchView(viewId) { contentViews.forEach(view => view.classList.remove('active')); mainNavButtons.forEach(button => button.classList.remove('active')); const targetView = document.getElementById(viewId); const targetButton = document.querySelector(`.main-nav .nav-button[data-view="${viewId}"]`); if (targetView) targetView.classList.add('active'); if (targetButton) targetButton.classList.add('active'); updateGlobalStatusUI(); }
+        function switchGameTab(newBoxId) { if (newBoxId === activeBoxId) return; activeBoxId = newBoxId; gameTabs.forEach(t => { t.classList.toggle('active', t.dataset.boxid === newBoxId); t.setAttribute('aria-selected', t.dataset.boxid === newBoxId); }); refreshActiveIntervalView(); console.log("Switched to interval:", activeBoxId); }
+        function handlePredictClick() { if (!simulationState.active) { alert("Simulation not active. Please Start/Reset Simulation first."); return; } const periodNum = periodNumberInput.value.trim(); periodNumberInput.classList.remove('error'); if (!/^\d{4}$/.test(periodNum)) { alert('Please enter the last 4 digits.'); periodNumberInput.classList.add('error'); periodNumberInput.focus(); return; } const predictionResult = generatePrediction(periodNum, activeBoxId); displayPredictionResult(predictionResult); const added = addHistoryEntry(activeBoxId, periodNum, predictionResult); if (added) { periodNumberInput.value = ''; console.log(`Predicted for Box ${activeBoxId}, Period ${periodNum}:`, predictionResult); } }
+        function handleHistoryActionClick(event) { const button = event.target.closest('.win-btn, .loss-btn'); if (!button || button.disabled) return; const row = button.closest('tr'); if (!row) return; const entryId = parseInt(button.dataset.entryId, 10); const action = button.dataset.action; const boxIdForRow = row.dataset.boxid; if (!boxIdForRow || isNaN(entryId) || !action) { console.error("Missing data for history action", { boxIdForRow, entryId, action }); return; } const entryIndex = historyData[boxIdForRow]?.findIndex(e => e.id === entryId); if (entryIndex === -1) { console.warn("Entry not found for action", entryId); return; } const entry = historyData[boxIdForRow][entryIndex]; const statusUpdated = updateHistoryStatus(boxIdForRow, entryId, action); if (statusUpdated && simulationState.active && entryIndex === 0) { const currentPeriod = entry.period; const nextPeriod = getNextPeriod(currentPeriod); if (nextPeriod) { console.log(`Auto-predicting next period: ${nextPeriod} for box ${boxIdForRow}`); const nextPredictionResult = generatePrediction(nextPeriod, boxIdForRow); addHistoryEntry(boxIdForRow, nextPeriod, nextPredictionResult, 'pending'); } } }
+
+        // --- Event Listeners Setup ---
+        function setupEventListeners() { mainNavButtons.forEach(button => button.addEventListener('click', () => switchView(button.dataset.view))); gameTabs.forEach(tab => tab.addEventListener('click', () => switchGameTab(tab.dataset.boxid))); predictButton.addEventListener('click', handlePredictClick); periodNumberInput.addEventListener('input', () => periodNumberInput.classList.remove('error')); periodNumberInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handlePredictClick(); }); clearHistoryButton.addEventListener('click', () => clearHistory(activeBoxId)); historyTableBodyEl.addEventListener('click', handleHistoryActionClick); simStartButton.addEventListener('click', startResetSimulation); }
+
+        // --- Initialization ---
+        function initializeApp() { const datePrefix = getCurrentDatePrefix(); datePrefixEl.textContent = datePrefix; loadState(); activeBoxId = BOX_IDS[0]; switchGameTab(activeBoxId); refreshActiveIntervalView(); updateGlobalStatusUI(); switchView('predictionView'); setupEventListeners(); if (typeof particlesJS !== 'undefined') { particlesJS("particles-js", { particles: { number: { value: 50, density: { enable: true, value_area: 800 } }, color: { value: "#f78166" }, shape: { type: "circle" }, opacity: { value: 0.4, random: true, anim: { enable: true, speed: 0.5, opacity_min: 0.1, sync: false } }, size: { value: 3, random: true }, line_linked: { enable: true, distance: 150, color: "#b0c4de", opacity: 0.2, width: 1 }, move: { enable: true, speed: 1.5, direction: "none", random: true, straight: false, out_mode: "out", bounce: false } }, interactivity: { detect_on: "canvas", events: { onhover: { enable: true, mode: "grab" }, onclick: { enable: false, mode: "push" }, resize: true }, modes: { grab: { distance: 140, line_opacity: 0.4 }, push: { particles_nb: 4 } } }, retina_detect: true }); } else { console.warn("particles.js library not found."); } console.log("Predict VIP App Initialized (v1.32 - Full Text History)."); }
+
+        // --- Run the App ---
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+        // --- END OF JAVASCRIPT LOGIC ---
+    </script>
+</body>
+</html>
+<ALOASK-SEPARATE-EDITORS><ALOASK-SEPARATE-EDITORS>

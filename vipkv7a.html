@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP Predict King V8.4 (Purple Glass)</title> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            /* --- Purple Glassmorphism Theme V2 --- */
+            --primary-color: #a78bfa; /* Violet 400 */
+            --secondary-color: #34d399; /* Emerald 400 (Win/CTA) */
+            --accent-color: #f472b6; /* Pink 400 */
+
+            /* Background & Gradient */
+            --bg-color: #1e1b4b; /* Indigo 950 */
+            --gradient-start: #312e81; /* Indigo 900 */
+            --gradient-end: #5b21b6; /* Violet 800 */
+
+            /* Glassmorphism Effect */
+            --card-bg: rgba(49, 46, 129, 0.5); /* Indigo 900 semi-transparent */
+            --card-border: rgba(255, 255, 255, 0.15);
+            --card-blur: 8px;
+            --header-bg: rgba(49, 46, 129, 0.7); /* Slightly less transparent header */
+            --header-blur: 10px;
+            --content-bg: rgba(49, 46, 129, 0.4); /* More transparent content area */
+            --content-border-color: rgba(167, 139, 250, 0.5); /* Primary color border */
+
+            /* Navigation */
+            --nav-bg: rgba(167, 139, 250, 0.15); /* Subtle Violet Transparent */
+            --nav-bg-hover: rgba(167, 139, 250, 0.3);
+            --nav-border: var(--primary-color);
+            --nav-active-bg: var(--primary-color);
+            --nav-active-text: #ffffff;
+            --nav-logout-bg: #ef4444; /* Red 600 */
+
+            /* Text */
+            --text-color: #e5e7eb; /* Gray 200 */
+            --subtle-text-color: #a1a1aa; /* Zinc 400 */
+            --heading-color: #f9fafb; /* Gray 50 */
+            --title-color: #ffffff; /* White */
+
+            /* Borders & Shadows */
+            --border-color: rgba(255, 255, 255, 0.1);
+            --shadow-color: rgba(0, 0, 0, 0.35);
+
+            /* Status Colors */
+            --win-color: var(--secondary-color);
+            --loss-color: #f87171;
+            --pending-color: #fbbf24;
+            --violet-color-alt: #c084fc;
+
+            /* Aviator (Themed) */
+            --aviator-pred-color: #ef4444;
+            --aviator-gold-accent: #facc15; /* Reverted back to gold for Aviator */
+            --aviator-input-bg: rgba(30, 27, 75, 0.6);
+            --aviator-glow: rgba(239, 68, 68, 0.4);
+
+            /* Layout */
+            --font-family: 'Inter', sans-serif;
+            --base-font-size: 14px;
+            --border-radius: 10px;
+            --card-padding: 12px;
+            --section-gap: 12px;
+            --header-height-estimate: 90px; /* ESTIMATED height with stacking */
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; height: 100%; }
+        @keyframes gradientAnimationX { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+        body { font-family: var(--font-family); background: linear-gradient(-45deg, var(--gradient-start), var(--gradient-end), var(--gradient-start)); background-size: 400% 400%; animation: gradientAnimationX 25s ease infinite; color: var(--text-color); line-height: 1.5; font-size: var(--base-font-size); min-height: 100vh; display: flex; flex-direction: column; padding: 0; overflow-x: hidden; }
+
+        /* --- Login Screen --- */
+        #login-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; background: linear-gradient(-45deg, var(--gradient-start), var(--gradient-end), var(--gradient-start)); background-size: 400% 400%; animation: gradientAnimationX 25s ease infinite; position: absolute; top: 0; left: 0; width: 100%; z-index: 100; }
+        #login-card { background: rgba(49, 46, 129, 0.7); padding: 25px 30px; border-radius: var(--border-radius); border: 1px solid var(--card-border); box-shadow: 0 8px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); max-width: 400px; width: 90%; text-align: center; }
+        #login-card h2 { color: var(--heading-color); font-size: 1.4rem; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        #login-card h2 i { color: var(--primary-color); }
+        #login-card p { color: var(--subtle-text-color); margin-bottom: 20px; font-size: 0.9rem;}
+        .login-form-group { margin-bottom: 15px; text-align: left; }
+        .login-form-group label { display: block; font-size: 0.85rem; color: var(--text-color); margin-bottom: 5px; font-weight: 500; }
+        .login-form-group input { padding: 10px 12px; font-size: 0.9rem; background-color: rgba(30, 27, 75, 0.7); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; width: 100%; }
+        .login-form-group input:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.3); }
+        #loginButton { padding: 10px 20px; font-size: 0.95rem; font-weight: 600; background-color: var(--primary-color); color: var(--bg-color); border: none; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 10px; transition: background-color 0.2s ease; }
+        #loginButton:hover { background-color: #8b5cf6; /* Darker Violet */ }
+        #loginErrorMessage { font-size: 0.85rem; margin-top: 15px; color: var(--loss-color); display: none; }
+
+        /* --- Main Application Container (Hidden initially) --- */
+        #main-app { display: none; flex-direction: column; min-height: 100vh; width: 100%; }
+
+        /* Header */
+        .page-header {
+            margin: 0;
+            background-color: var(--header-bg); /* Purple Glass */
+            padding: 10px 15px; /* Adjust padding for stacked layout */
+            position: sticky; /* Sticky header */
+            top: 0; left: 0; width: 100%; z-index: 10;
+            backdrop-filter: blur(var(--header-blur));
+            -webkit-backdrop-filter: blur(var(--header-blur));
+            box-shadow: 0 5px 25px var(--shadow-color);
+            border-bottom: 1px solid var(--card-border); /* Add bottom border */
+            border-radius: 0;
+            display: flex; /* Use flex */
+            flex-direction: column; /* Stack title and nav */
+            align-items: center; /* Center items horizontally */
+            height: auto; /* Auto height */
+        }
+        h1 { /* Centered Title */
+            font-size: 1.6rem; font-weight: 700; color: var(--title-color);
+            display: flex; align-items: center; justify-content: center; /* Center within its own row */
+            gap: 8px; margin-bottom: 8px; /* Space below title */
+            text-shadow: 0 2px 4px var(--shadow-color);
+            width: 100%; /* Take full width to center */
+            order: 1; /* Title first */
+        }
+        h1 i { color: var(--primary-color); }
+        h1 small { font-size: 0.6em; opacity: 0.9; }
+
+        /* Navigation Bar (Below Title) */
+        .top-nav {
+            display: flex; align-items: center; justify-content: center; /* Center nav items */
+            gap: 6px; flex-wrap: wrap;
+            width: 100%; /* Take full width */
+            order: 2; /* Nav bar second */
+        }
+        .nav-button {
+            padding: 5px 10px;
+            background-color: var(--nav-bg); /* Violet Transparent */
+            color: var(--text-color);
+            border: 1px solid transparent; /* Subtle border */
+            border-radius: var(--border-radius); text-decoration: none; font-size: 0.75rem; font-weight: 500;
+            transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .nav-button:hover { background-color: var(--nav-bg-hover); border-color: rgba(167, 139, 250, 0.5); transform: translateY(-1px); }
+        .nav-button.active { background-color: var(--nav-active-bg); color: var(--nav-active-text); border-color: var(--nav-active-bg); font-weight: 600; box-shadow: 0 0 10px rgba(167, 139, 250, 0.5); }
+
+        #logoutBtn { /* Positioned absolutely */
+             display: none; background-color: var(--nav-logout-bg); color: white;
+             padding: 0; width: 30px; height: 30px; font-size: 0.9rem;
+             border: none; border-radius: 6px;
+             position: absolute; top: 12px; right: 15px; /* Position top right */
+             flex-shrink: 0; justify-content: center; align-items: center;
+             box-shadow: 0 2px 5px rgba(0,0,0,0.3); cursor: pointer; transition: all 0.2s ease;
+             z-index: 11; /* Ensure above header content */
+        }
+        #logoutBtn:hover { background-color: #dc2626; transform: scale(1.05); }
+        #logoutBtn span { display: none; }
+
+        /* Main Content Area Wrapper */
+        #app-wrapper {
+             margin: var(--section-gap) auto; /* Centered with margin */
+             padding: var(--card-padding);
+             /* Removed padding-top as header is sticky, not fixed */
+             border: 1px solid var(--content-border-color); /* Primary color border */
+             border-radius: var(--border-radius);
+             background-color: var(--content-bg); /* Purple glass content area */
+             backdrop-filter: blur(var(--content-blur));
+             -webkit-backdrop-filter: blur(var(--content-blur));
+             box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+             width: calc(100% - var(--section-gap) * 2); /* Full width minus gaps */
+             max-width: 1200px;
+             flex-grow: 1;
+             overflow-y: auto; /* Scroll content if needed */
+         }
+
+        /* Views & Cards */
+        .view { display: none; width: 100%; }
+        .view.view-active { display: block; animation: viewFadeIn 0.4s ease-out; }
+        @keyframes viewFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background: rgba(30, 27, 75, 0.6); /* Slightly different internal card bg */ padding: var(--card-padding); border-radius: var(--border-radius); margin-bottom: var(--section-gap); border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: none; /* Remove hover transform from internal cards */ }
+        .card:hover { transform: none; }
+        .card h2 { font-size: 1.1rem; font-weight: 600; color: var(--heading-color); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; }
+        .card h2 i { color: var(--primary-color); }
+        .view > *:first-child { margin-top: 5px; }
+        .view > *:last-child { margin-bottom: 5px; }
+
+        /* Homepage Styles (No outer cards for sections) */
+        #home-view .welcome-section, #home-view .features-section, #home-view .get-started-section, #home-view .disclaimer-section { padding: 10px 0; margin-bottom: var(--section-gap); }
+        #home-view .welcome-section { text-align: center; } #home-view .welcome-section h2 { justify-content: center; border: none; font-size: 1.3rem; margin-bottom: 5px; } #home-view .welcome-section h2 i { color: var(--primary-color); } #home-view .subtitle { font-size: 0.9rem; color: var(--subtle-text-color); margin-bottom: 15px; }
+        #home-view .features-title { font-size: 1rem; font-weight: 600; color: var(--heading-color); margin-bottom: 10px; text-align: center; margin-top: 15px; display: block; } #home-view .features-title i { margin-right: 5px; color: var(--primary-color); }
+        #home-view .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: var(--section-gap); margin-bottom: 15px; }
+        #home-view .feature-card { background: rgba(49, 46, 129, 0.4); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center; font-size: 0.8rem; transition: background-color 0.2s ease, transform 0.2s ease; }
+        #home-view .feature-card:hover { background-color: rgba(49, 46, 129, 0.6); transform: translateY(-2px); }
+        #home-view .feature-card i { font-size: 1.4em; color: var(--primary-color); margin-bottom: 6px; display: block; } #home-view .feature-card strong { display: block; font-weight: 600; color: var(--heading-color); margin-bottom: 3px; font-size: 0.85rem; } #home-view .feature-card p { color: var(--subtle-text-color); font-size: 0.75rem; line-height: 1.3; }
+        #home-view .get-started-section h2 { font-size: 1.1rem; } #home-view .get-started-section h2 i { color: var(--secondary-color); } #home-view .get-started-list ul { list-style: none; padding-left: 5px; margin-bottom: 12px; margin-top: 10px;} #home-view .get-started-list li { margin-bottom: 6px; position: relative; padding-left: 20px; font-size: 0.85rem; color: var(--text-color); } #home-view .get-started-list li::before { content: "\f00c"; font-family: 'Font Awesome 6 Free'; font-weight: 900; color: var(--secondary-color); position: absolute; left: 0; top: 2px; font-size: 0.9em; }
+        #home-view .cta-button { display: inline-block; margin-top: 10px; padding: 8px 18px; background-color: var(--secondary-color); color: var(--bg-color); border: none; border-radius: var(--border-radius); font-weight: 600; font-size: 0.9rem; text-decoration: none; cursor: pointer; transition: background-color 0.2s ease, transform 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.2); } #home-view .cta-button:hover { background-color: #10b981; transform: translateY(-1px); }
+        #home-view .disclaimer-section { background: rgba(239, 68, 68, 0.1); border: 1px solid var(--loss-color); padding: 10px; border-radius: var(--border-radius); color: var(--loss-color); font-size: 0.8rem; margin-top: var(--section-gap); } #home-view .disclaimer-section h3 { color: var(--loss-color); font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 5px; margin-bottom: 5px; border: none; padding: 0;} #home-view .disclaimer-section p { color: #fca5a5; line-height: 1.4; }
+
+        /* Prediction View Styles */
+        #prediction-view .card { margin-bottom: var(--section-gap); }
+        .timer-area { font-size: 0.9rem; padding: 6px 8px; margin-bottom: 12px; background-color: rgba(30, 27, 75, 0.7); border-radius: 6px; color: var(--subtle-text-color); border: 1px solid var(--border-color); text-align: center;} .timer-area i { margin-right: 5px; color: var(--primary-color); } #period-timer { font-weight: 700; color: var(--primary-color); font-size: 1.05rem; margin: 0 3px; } #api-error-message { color: var(--loss-color); font-size: 0.8rem; display: none; margin-top: 6px; }
+        .current-prediction-table-wrapper { overflow-x: auto; } .current-prediction-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 10px; } .current-prediction-table th, .current-prediction-table td { border: 1px solid var(--border-color); padding: 8px 5px; font-size: 0.85rem; text-align: center; word-break: break-all; } .current-prediction-table th { font-size: 0.65rem; font-weight: 600; color: var(--subtle-text-color); text-transform: uppercase; background-color: rgba(167, 139, 250, 0.15); } /* Violet transparent header */ .current-prediction-table td { height: 40px; vertical-align: middle; font-weight: 600; } .current-prediction-table .th-period, .current-prediction-table .td-period { width: 35%; font-weight: 500; color: var(--subtle-text-color); font-size: 0.9em; } .current-prediction-table .th-number, .current-prediction-table .td-number { width: 20%; } .current-prediction-table .th-size, .current-prediction-table .td-size { width: 20%; } .current-prediction-table .th-color, .current-prediction-table .td-color { width: 25%; }
+        #currentPredictionNumber { font-size: 1.2em; font-weight: 700; } #currentPredictionNumber.RED, #currentPredictionColor.RED { color: var(--loss-color); } #currentPredictionNumber.GREEN, #currentPredictionColor.GREEN { color: var(--win-color); } #currentPredictionNumber.VIOLET { color: var(--violet-color-alt); } #currentPredictionSize { color: var(--primary-color); font-weight: 700;} #currentPredictionColor.VIOLET { color: var(--violet-color-alt); }
+        #analysis-card { order: 2; padding: 6px var(--card-padding); } .stats-line-area { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 12px; font-size: 0.8rem; text-align: center; } .stat-item { display: flex; align-items: baseline; gap: 5px; } .stat-item .label { font-weight: 500; color: var(--subtle-text-color); } .stat-item .value { font-weight: 700; font-size: 1.1em; } .stat-item:not(:first-child)::before { content: "|"; color: var(--border-color); font-weight: 300; margin-right: 12px; opacity: 0.5; } #statWins .value { color: var(--win-color); } #statLoss .value { color: var(--loss-color); } #statAcc .value { color: var(--primary-color); } #statCLoss .value { color: var(--loss-color); }
+        #history-card { order: 3; flex-grow: 1; display: flex; flex-direction: column; } .history-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; margin-bottom: 10px; } #history-card .history-header h2 { margin-bottom: 0; border-bottom: none; padding-bottom: 0; font-size: 1.1em; } .history-table-wrapper { overflow: auto; flex-grow: 1; border: 1px solid var(--border-color); border-radius: 8px; min-height: 180px; } .history-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; table-layout: auto; } .history-table th, .history-table td { padding: 5px 4px; border: 1px solid var(--border-color); text-align: center; white-space: normal; word-break: break-word; vertical-align: middle; } .history-table th { background-color: rgba(167, 139, 250, 0.15); font-weight: 600; text-transform: uppercase; font-size: 0.65rem; color: var(--subtle-text-color); position: sticky; top: 0; z-index: 1; border-bottom: 1px solid var(--primary-color); } .history-table tbody tr:nth-child(odd) { background-color: rgba(255, 255, 255, 0.02); } .history-table tbody tr:hover { background-color: rgba(167, 139, 250, 0.1); }
+        .outcome-cell { font-weight: 600; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 3px; flex-wrap: wrap;} .outcome-cell .number { font-weight: 700; font-size: 1.1em; } .outcome-cell .color-name { font-size: 0.85em; opacity: 0.8; margin-left: 2px; } .outcome-cell .separator { color: var(--subtle-text-color); opacity: 0.6; margin: 0 2px;} .outcome-cell .number.RED, .outcome-cell .color-name.RED { color: var(--loss-color); } .outcome-cell .number.GREEN, .outcome-cell .color-name.GREEN { color: var(--win-color); } .outcome-cell .number.VIOLET, .outcome-cell .color-name.VIOLET { color: var(--violet-color-alt); } .outcome-cell .type { color: var(--subtle-text-color); font-size: 0.95em; font-weight: 500;}
+        .status-indicator { font-size: 0.85em; margin-left: 4px; display: inline-block; width: 1em; vertical-align: middle; } .status-indicator.win i { color: var(--win-color); } .status-indicator.loss i { color: var(--loss-color); } .status-indicator.pending i { display: none; }
+
+        /* Aviator Predictor Styles */
+        #aviator-view .card { margin-bottom: var(--section-gap); background: rgba(30, 27, 75, 0.6);} /* Use slightly different card bg */
+        #aviator-view .card h2 i { color: var(--aviator-pred-color); } #aviator-view .disclaimer { color: var(--subtle-text-color); font-size: 0.8rem; margin-bottom: 15px; opacity: 0.9; text-align: center;}
+        #aviator-view .input-area { margin: 15px 0; position: relative; background: rgba(0,0,0,0.2); padding: 1rem; border-radius: var(--border-radius); border: 1px solid var(--border-color); }
+        #aviator-view label { font-size: 0.9rem; font-weight: 500; color: var(--aviator-gold-accent); margin-bottom: 8px; display: block; text-align: left; }
+        #aviator-view .input-wrapper { display: flex; gap: 10px; align-items: center; } #aviator-view input[type="number"] { width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--aviator-input-bg); color: var(--text-color); font-size: 0.9rem; transition: border-color 0.3s, box-shadow 0.3s; text-align: center; -moz-appearance: textfield; appearance: textfield; } #aviator-view input[type="number"]::-webkit-outer-spin-button, #aviator-view input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; } #aviator-view input[type="number"]:focus { border-color: var(--aviator-pred-color); box-shadow: 0 0 8px var(--aviator-glow); outline: none; } #aviator-view .submit-btn { background: var(--aviator-pred-color); color: #ffffff; border: none; padding: 9px 16px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s; } #aviator-view .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px var(--aviator-glow); background-color: #dc2626; } #aviator-view .input-hint { font-size: 0.75rem; color: var(--subtle-text-color); margin-top: 6px; text-align: center; } #aviator-view #aviator-input-error { font-size: 0.75rem; color: var(--loss-color); min-height: 18px; text-align: left; margin-top: 6px; }
+        #aviator-view .prediction-main { margin: 15px 0; padding: 15px; background: rgba(30, 27, 75, 0.5); border-radius: var(--border-radius); border: 1px solid var(--border-color); display: none; text-align: center; } #aviator-view .prediction-main .label { font-size: 0.85rem; color: var(--aviator-gold-accent); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; } #aviator-view .prediction-main .value { font-size: 2.8rem; font-weight: 700; color: var(--aviator-pred-color); text-shadow: 0 0 12px var(--aviator-glow); margin: 6px 0 10px; } #aviator-view #aviator-confidence-score { font-size: 0.85rem; color: var(--text-color); opacity: 0.9;}
+        #aviator-view .sub-predictions { display: none; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 15px 0; } #aviator-view .prediction { background: rgba(49, 46, 129, 0.5); padding: 12px; border-radius: var(--border-radius); border: 1px solid var(--border-color); text-align: center; box-shadow: 0 3px 10px var(--shadow-color); transition: transform 0.2s, box-shadow 0.2s; } #aviator-view .prediction:hover { transform: translateY(-3px); box-shadow: 0 5px 15px var(--shadow-color); } #aviator-view .prediction strong { color: var(--aviator-gold-accent); font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 6px; } #aviator-view .prediction span { color: var(--aviator-pred-color); font-size: 1.2rem; font-weight: 600; }
+        #aviator-view .ai-analysis { margin: 15px 0; padding: 15px; background: rgba(30, 27, 75, 0.5); border-radius: var(--border-radius); border: 1px solid var(--border-color); display: none; } #aviator-view .ai-analysis h3 { font-size: 1rem; color: var(--aviator-gold-accent); margin-bottom: 8px; text-align: left; border-bottom: 1px solid var(--border-color); padding-bottom: 5px;} #aviator-view #aviator-ai-analysis-text { font-size: 0.85rem; color: var(--text-color); line-height: 1.5; }
+        #aviator-view .stats-last-10 { background: rgba(30, 27, 75, 0.5); padding: 15px; border-radius: var(--border-radius); margin: 15px 0; border: 1px solid var(--border-color); display: none; } #aviator-view .stats-last-10 h3 { font-size: 1rem; color: var(--aviator-gold-accent); margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; text-align: left;} #aviator-view .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; } #aviator-view .stat-item { background: rgba(49, 46, 129, 0.5); padding: 8px; border-radius: 6px; text-align: center; } #aviator-view .stat-item .label { font-size: 0.7rem; color: var(--subtle-text-color); display: block; margin-bottom: 3px;} #aviator-view .stat-item .value { font-size: 0.95rem; font-weight: 600; color: var(--aviator-pred-color); } #aviator-view .stat-item .value#aviator-high-last-10 { color: var(--win-color); } #aviator-view .stat-item .value#aviator-low-last-10 { color: var(--loss-color); } #aviator-view #aviatorMultiplierChart { max-height: 160px; margin-top: 15px; }
+        #aviator-view .history-section { margin: 15px 0; } #aviator-view .history-section label { font-size: 0.9rem; color: var(--aviator-gold-accent); display: block; margin-bottom: 6px;} #aviator-view #aviatorHistoryDisplay { background: rgba(30, 27, 75, 0.5); padding: 10px 12px; border-radius: 6px; font-size: 0.85rem; color: var(--subtle-text-color); max-height: 100px; overflow-y: auto; border: 1px solid var(--border-color); text-align: left; line-height: 1.6; } #aviator-view .action-buttons { display: flex; gap: 12px; justify-content: center; margin-top: 18px; } #aviator-view .btn { padding: 8px 18px; border: none; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);} #aviator-view .reset-btn { background: var(--loss-color); color: #ffffff; } #aviator-view .reset-btn:hover { background-color: #ef4444; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.4); } #aviator-view .export-btn { background: var(--aviator-gold-accent); color: var(--bg-color); } #aviator-view .export-btn:hover { background-color: #fde047; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(250, 204, 21, 0.4); }
+        #aviator-view #aviator-status { margin-top: 15px; font-size: 0.85rem; text-align: center; min-height: 18px;} #aviator-view .status-active { color: var(--win-color); } #aviator-view .status-inactive { color: var(--subtle-text-color); } #aviator-view .status-error { color: var(--loss-color); }
+
+        /* Footer */
+        footer { padding: 8px; text-align: center; font-size: 0.7rem; color: var(--subtle-text-color); background: rgba(30, 27, 75, 0.8); /* Dark Purple Footer */ border-top: 1px solid var(--border-color); margin-top: auto; }
+        footer a { color: var(--primary-color); text-decoration: none; } footer a:hover { text-decoration: underline; }
+
+        /* Admin Form Styles (Hidden in Login Screen View) */
+        /* No specific admin view styles needed as it's removed */
+
+
+        /* Responsive Adjustments */
+        @media (max-width: 480px) {
+            :root { --base-font-size: 13px; --card-padding: 10px; --section-gap: 10px; --header-height-estimate: 85px; } /* Re-estimate header height */
+             h1 { font-size: 1.3rem; gap: 5px;}
+             .page-header { padding: 8px 10px; } /* Adjust header padding */
+             .top-nav { margin-top: 5px; gap: 4px;}
+             .nav-button { font-size: 0.7rem; padding: 5px 8px; gap: 4px;}
+             #logoutBtn { width: 28px; height: 28px; font-size: 0.8rem; top: 10px; right: 10px; }
+             #app-wrapper { padding-top: var(--section-gap); margin-top: calc(var(--header-height-estimate) + var(--section-gap)); } /* Adjust wrapper margin */
+
+             .current-prediction-table th, .current-prediction-table td { font-size: 0.75rem; padding: 6px 4px; }
+             .stats-line-area { justify-content: space-around; gap: 3px 8px; font-size: 0.7rem;} .stat-item .value { font-size: 1em; } .stat-item:not(:first-child)::before { margin-right: 8px; }
+             .history-header { flex-direction: column; align-items: flex-start; gap: 6px;} .clear-btn { align-self: flex-end; }
+             #home-view .features-grid { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); } #home-view .get-started-list li { font-size: 0.8rem; } #home-view .cta-button { font-size: 0.8rem; padding: 7px 15px;}
+             #aviator-view .input-wrapper { flex-direction: column; } #aviator-view .submit-btn { width: 100%; margin-top: 8px;} #aviator-view .prediction-main .value { font-size: 2.2rem; } #aviator-view .stats-grid { grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); } #aviator-view .btn { padding: 8px 16px; font-size: 0.75rem; } #aviator-view .prediction span { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div id="login-screen">
+        <div id="login-card">
+            <h2><i class="fa-solid fa-lock"></i> Login Required</h2>
+            <p>Please enter your credentials to access VIP Predict King.</p>
+            <form id="initialLoginForm">
+                <div class="login-form-group"> <label for="loginKey">Access Key:</label> <input type="text" id="loginKey" required placeholder="Enter your key"> </div>
+                <div class="login-form-group"> <label for="loginPassword">Password:</label> <input type="password" id="loginPassword" required placeholder="Enter password"> </div>
+                <p id="loginErrorMessage" style="display: none;">Invalid credentials. Please try again.</p> <button type="submit" id="loginButton">Sign In</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="main-app">
+        <header class="page-header">
+            <h1><i class="fa-solid fa-crown"></i> VIP Predict King <small>v8.4</small></h1>
+            <nav class="top-nav">
+                <a href="#" class="nav-button active" data-view="home"><i class="fa-solid fa-house"></i> <span>Home</span></a>
+                <a href="#" class="nav-button" data-view="prediction"><i class="fa-solid fa-dice"></i> <span>1 Min Game</span></a>
+                <a href="#" class="nav-button" data-view="aviator"><i class="fa-solid fa-plane-departure"></i> <span>Aviator</span></a>
+                <a href="#" class="nav-button" data-view="about"><i class="fa-solid fa-circle-info"></i> <span>About</span></a>
+                </nav>
+            <a href="#" class="nav-button" id="logoutBtn" title="Logout" aria-label="Logout"><i class="fa-solid fa-sign-out-alt"></i> <span></span></a>
+        </header>
+
+        <div id="app-wrapper">
+            <main id="app-content">
+                <div id="home-view" class="view view-active">
+                   <div class="welcome-section"> <h2><i class="fa-solid fa-crown" style="color: var(--primary-color);"></i> Welcome to VIP Predict King!</h2> <p class="subtitle">Your assistant for 1 Min Game & Aviator analysis, using patterns & stats to guide you.</p> </div>
+                   <div class="features-section"> <h3 class="features-title"><i class="fa-solid fa-star"></i> Key Features</h3> <div class="features-grid"> <div class="feature-card"> <i class="fa-solid fa-dice"></i> <strong>1 Min Game</strong> <p>Real-time Number, Size, Color predictions with history tracking.</p> </div> <div class="feature-card"> <i class="fa-solid fa-plane-departure"></i> <strong>Aviator Analysis</strong> <p>Statistical multiplier analysis based on the last 10 rounds.</p> </div> <div class="feature-card"> <i class="fa-solid fa-chart-line"></i> <strong>Stats & History</strong> <p>Track prediction accuracy and view past results.</p> </div> <div class="feature-card"> <i class="fa-solid fa-mobile-screen-button"></i> <strong>Responsive UI</strong> <p>Works on desktop and mobile devices.</p> </div> <div class="feature-card"> <i class="fa-solid fa-circle-info"></i> <strong>About & Contact</strong> <p>Learn more about the tool and how to reach us.</p> </div> </div> </div>
+                   <div class="get-started-section"> <h2><i class="fa-solid fa-rocket"></i> Get Started</h2> <div class="get-started-list"> <ul> <li>Navigate to the <strong>1 Min Game</strong> or <strong>Aviator</strong> tab using the header.</li> <li><strong>1 Min Game:</strong> Watch the live predictions and history log update automatically.</li> <li><strong>Aviator:</strong> Enter the multiplier from the last round and click 'Submit' for analysis.</li> <li>Use the <strong>About</strong> tab for more info and contact details.</li> </ul> </div> <button class="cta-button" id="goToPredBtn"><i class="fa-solid fa-dice"></i> Go to 1 Min Game</button> </div>
+                   <div class="disclaimer-section"> <h3><i class="fa-solid fa-triangle-exclamation"></i> Disclaimer</h3> <p>This tool provides predictions based on algorithms and statistical analysis for informational & entertainment purposes only. Past performance does not guarantee future results. Play responsibly and within your means.</p> </div>
+               </div>
+                <div id="prediction-view" class="view">
+                    <div class="card" id="status-card"> <h2><i class="fa-solid fa-dice"></i> 1 Min Game - Current Prediction</h2> <div class="timer-area"> <i class="fa-regular fa-hourglass-half"></i> Next Result In: <span id="period-timer">--</span>s <div id="api-error-message"></div> </div> <div class="current-prediction-table-wrapper"> <table class="current-prediction-table"> <thead> <tr> <th class="th-period">Period</th> <th class="th-number">Predict (Num)</th> <th class="th-size">Predict (Size)</th> <th class="th-color">Predict (Color)</th> </tr> </thead> <tbody> <tr> <td class="td-period"><span id="currentPeriod">-</span></td> <td class="td-number"><span class="value" id="currentPredictionNumber">-</span></td> <td class="td-size"><span class="value" id="currentPredictionSize">-</span></td> <td class="td-color"><span class="value" id="currentPredictionColor">-</span></td> </tr> </tbody> </table> </div> </div>
+                    <div class="card" id="analysis-card"> <div class="stats-line-area"> <div class="stat-item" id="statWins"> <span class="label">Wins:</span> <span class="value">0</span> </div> <div class="stat-item" id="statLoss"> <span class="label">Loss:</span> <span class="value">0</span> </div> <div class="stat-item" id="statAcc"> <span class="label">Acc:</span> <span class="value">0%</span> </div> <div class="stat-item" id="statCLoss"> <span class="label">C.Loss:</span> <span class="value">0</span> </div> </div> </div>
+                    <div class="card" id="history-card"> <div class="history-header"> <h2><i class="fa-solid fa-database"></i> Data Log & History (last 10)</h2> <button id="clearHistoryBtn" class="nav-button clear-btn"><i class="fa-solid fa-trash"></i> Clear</button> </div> <div class="history-table-wrapper"> <table class="history-table"> <thead> <tr> <th>Period</th> <th>Result</th> <th>Predict (Size)</th> <th>Predict (Color)</th> <th>Outcome</th> </tr> </thead> <tbody id="historyTable"> <tr><td colspan="5">Loading history...</td></tr> </tbody> </table> </div> </div>
+                </div>
+                <div id="aviator-view" class="view">
+                     <div class="card"> <h2><i class="fa-solid fa-plane-departure"></i> Aviator Multiplier Analysis</h2> <p class="disclaimer">Statistical analysis based on the last 10 rounds. Not a guarantee of future results.</p> <div class="input-area"> <label for="aviator_round_input"><i class="fa-solid fa-keyboard"></i> Enter Last Round Multiplier:</label> <div class="input-wrapper"> <input type="number" id="aviator_round_input" placeholder="e.g., 2.53" step="0.01" min="1.00" aria-label="Enter multiplier value" required> <button class="submit-btn" id="aviatorSubmitBtn"><i class="fa-solid fa-check"></i> Submit</button> </div> <div class="input-hint">Type value and press Enter or click Submit</div> <div id="aviator-input-error" class="status-error"></div> </div> <div class="prediction-main" id="aviatorPredictionMain"> <div class="label">Predicted Next Multiplier (Statistical)</div> <div class="value" id="aviator-likely-multiplier">--.--x</div> <div id="aviator-confidence-score">Confidence (Historical): Safe - 0%, High - 0%</div> </div> <div class="sub-predictions" id="aviatorSubPredictions"> <div class="prediction"> <strong><i class="fa-solid fa-shield-alt"></i> Safe Range</strong> <span id="aviator_safe_range">1.00x - 2.00x</span> </div> <div class="prediction"> <strong><i class="fa-solid fa-arrow-trend-up"></i> High Range (Calculated)</strong> <span id="aviator_high_range">Calculating...</span> </div> </div> <div class="ai-analysis" id="aviatorAiAnalysisSection"> <h3><i class="fa-solid fa-brain"></i> Statistical Analysis</h3> <p id="aviator-ai-analysis-text">Enter 10 rounds to see statistical insights.</p> </div> <div class="stats-last-10" id="aviatorStatsLast10"> <h3><i class="fa-solid fa-chart-line"></i> Last 10 Rounds Stats</h3> <div class="stats-grid"> <div class="stat-item"><span class="label">Average</span><span class="value" id="aviator-avg-last-10">--</span></div> <div class="stat-item"><span class="label">&lt; 2.0x</span><span class="value" id="aviator-below-2x-last-10">--%</span></div> <div class="stat-item"><span class="label">&gt;= 5.0x</span><span class="value" id="aviator-above-5x-last-10">--%</span></div> <div class="stat-item"><span class="label">Highest</span><span class="value" id="aviator-high-last-10">--</span></div> <div class="stat-item"><span class="label">Lowest</span><span class="value" id="aviator-low-last-10">--</span></div> </div> <canvas id="aviatorMultiplierChart"></canvas> </div> <div class="history-section"> <label><i class="fa-solid fa-clock-rotate-left"></i> Last 10 Input Rounds:</label> <p id="aviatorHistoryDisplay">No data yet. Enter rounds above.</p> </div> <div class="action-buttons"> <button class="btn reset-btn" id="aviatorResetBtn"><i class="fa-solid fa-trash-can"></i> Clear Data</button> <button class="btn export-btn" id="aviatorExportBtn"><i class="fa-solid fa-download"></i> Export Data</button> </div> <p id="aviator-status" class="status-inactive">Enter 10 rounds for full analysis.</p> </div>
+                </div>
+                <div id="about-view" class="view">
+                    <h2><i class="fa-solid fa-circle-info"></i> About</h2>
+                    <p>VIP Predict King V8.4 provides automated analysis for 1-minute games (using public API data and pattern recognition) and statistical analysis for Aviator (based on user input).</p>
+                    <p><strong>Disclaimer:</strong> Intended for informational and entertainment purposes only. Predictions are based on limited historical data and simple algorithms, offering no guarantee of accuracy. Play responsibly.</p>
+                    <p><strong>Contact:</strong> <a href="mailto:vippredictking@zohomail.in">vippredictking@zohomail.in</a>.</p>
+                    <p style="margin-top: 10px; font-size: 0.8em; color: var(--subtle-text-color);">Note: 1 Min Game API data source: api.bdg88zf.com (Subject to change/availability)</p>
+                </div>
+                </main>
+        </div>
+
+        <footer id="app-footer" style="display: none;">
+             <p>Contact: <a href="mailto:vippredictking@zohomail.in">vippredictking@zohomail.in</a></p>
+             <p>© <span id="copyright-year"></span> VIP Predict King. Play Responsibly.</p>
+        </footer>
+
+     <script>
+         // --- Constants ---
+         const API_URL = "https://api.bdg88zf.com/api/webapi/GetNoaverageEmerdList";
+         const API_DEBOUNCE_TIME = 2000; const API_FETCH_INTERVAL = 1000; const COUNTDOWN_START = 60;
+         const HISTORY_MAX_SIZE = 50; const HISTORY_DISPLAY_COUNT = 10;
+         const SIZE_BIG = "BIG"; const SIZE_SMALL = "SMALL"; const COLOR_RED = "RED"; const COLOR_GREEN = "GREEN"; const COLOR_VIOLET = "VIOLET";
+         const STATUS_PENDING = "Pending"; const STATUS_COMPLETED = "Completed"; const OUTCOME_WIN = "WIN"; const OUTCOME_LOSS = "LOSS"; const OUTCOME_NA = "N/A";
+         // Demo Credentials (INSECURE!) - Replace with your actual key/pass
+         const LOGIN_KEY_DEMO = 'admin';
+         const LOGIN_PASS_DEMO = 'admin123';
+         const STORAGE_KEY_PREFIX = 'vipPredictKing_v8.4_'; // Updated prefix
+         const AVIATOR_MAX_HISTORY = 10; const AVIATOR_STORAGE_KEY = STORAGE_KEY_PREFIX + 'aviatorData';
+
+         // --- State Variables ---
+         let historyData = []; let lastFetchedPeriod = null; let countdown = COUNTDOWN_START; let timerIntervalId = null;
+         let aviatorRoundData = []; let aviatorChartInstance = null;
+         let isAdminLoggedIn = false; // Controls access to main app
+         let lastApiTimestamp = 0;
+
+         // --- Element References ---
+         const elements = {
+             loginScreen: document.getElementById('login-screen'), initialLoginForm: document.getElementById('initialLoginForm'), loginKeyInput: document.getElementById('loginKey'), loginPasswordInput: document.getElementById('loginPassword'), loginErrorMessage: document.getElementById('loginErrorMessage'), loginButton: document.getElementById('loginButton'),
+             mainApp: document.getElementById('main-app'), appFooter: document.getElementById('app-footer'), appWrapper: document.getElementById('app-wrapper'), // Ref to content wrapper
+             currentPeriod: document.querySelector("#prediction-view #currentPeriod"), currentPredictionSize: document.querySelector("#prediction-view #currentPredictionSize"), currentPredictionColor: document.querySelector("#prediction-view #currentPredictionColor"), currentPredictionNumber: document.querySelector("#prediction-view #currentPredictionNumber"), periodTimer: document.getElementById("period-timer"), apiErrorMessage: document.getElementById("api-error-message"), statWins: document.querySelector("#analysis-card #statWins .value"), statLoss: document.querySelector("#analysis-card #statLoss .value"), statAcc: document.querySelector("#analysis-card #statAcc .value"), statCLoss: document.querySelector("#analysis-card #statCLoss .value"), historyTableBody: document.getElementById("historyTable"), clearHistoryBtn: document.getElementById("clearHistoryBtn"),
+             aviatorRoundInput: document.getElementById('aviator_round_input'), aviatorSubmitBtn: document.getElementById('aviatorSubmitBtn'), aviatorHistoryEl: document.getElementById('aviatorHistoryDisplay'), aviatorStatusEl: document.getElementById('aviator-status'), aviatorInputErrorEl: document.getElementById('aviator-input-error'), aviatorLikelyMultEl: document.getElementById('aviator-likely-multiplier'), aviatorSafeRangeEl: document.getElementById('aviator_safe_range'), aviatorHighRangeEl: document.getElementById('aviator_high_range'), aviatorConfidenceEl: document.getElementById('aviator-confidence-score'), aviatorAiAnalysisEl: document.getElementById('aviator-ai-analysis-text'), aviatorAvgLast10El: document.getElementById('aviator-avg-last-10'), aviatorBelow2xLast10El: document.getElementById('aviator-below-2x-last-10'), aviatorAbove5xLast10El: document.getElementById('aviator-above-5x-last-10'), aviatorHighLast10El: document.getElementById('aviator-high-last-10'), aviatorLowLast10El: document.getElementById('aviator-low-last-10'), aviatorPredictionMain: document.getElementById('aviatorPredictionMain'), aviatorSubPredictions: document.getElementById('aviatorSubPredictions'), aviatorAiAnalysisSection: document.getElementById('aviatorAiAnalysisSection'), aviatorStatsLast10: document.getElementById('aviatorStatsLast10'), aviatorResetBtn: document.getElementById('aviatorResetBtn'), aviatorExportBtn: document.getElementById('aviatorExportBtn'), aviatorChartCanvas: document.getElementById('aviatorMultiplierChart'),
+             views: document.querySelectorAll(".view"), navButtons: document.querySelectorAll(".nav-button"), logoutBtn: document.getElementById("logoutBtn"), copyrightYear: document.getElementById("copyright-year"), goToPredBtn: document.getElementById("goToPredBtn")
+         };
+
+         // --- Core Functions (Shortened for brevity - Full logic from previous step) ---
+         function showApiError(m){if(elements.periodTimer)elements.periodTimer.textContent='Error';if(elements.apiErrorMessage){elements.apiErrorMessage.textContent=m;elements.apiErrorMessage.style.display='block';}console.error("API Error:",m);}
+         function clearApiError(){if(elements.apiErrorMessage)elements.apiErrorMessage.style.display='none';}
+         async function fetchGameResult(){const n=Date.now();if(n-lastApiTimestamp<API_DEBOUNCE_TIME)return null;lastApiTimestamp=n;clearApiError();try{const r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({pageSize:10,pageNo:1,typeId:1,language:0,random:"4a0522c6ecd8410496260e686be2a57c",signature:"334B5E70A0C9B8918B0B15E517E2069C",timestamp:Math.floor(Date.now()/1000)})});if(!r.ok){showApiError(`API Error: ${r.status}`);return null;}const d=await r.json();const l=d?.data?.list?.[0];if(l?.issueNumber&&l.number!==undefined&&/^[0-9]$/.test(l.number.toString()))return{period:l.issueNumber,result:l.number.toString()};else{console.warn("Invalid API data:",d);showApiError("Invalid API data.");return null;}}catch(e){showApiError(`Workspace Error: ${e.message}`);return null;}}
+         function getResultType(s){const n=parseInt(s,10);return isNaN(n)?null:(n>=5?SIZE_BIG:SIZE_SMALL);}
+         function getResultColor(s){const n=parseInt(s,10);if(isNaN(n))return null;if(n===0||n===5)return COLOR_VIOLET;return(n%2===0)?COLOR_RED:COLOR_GREEN;}
+         function getLastNCompleted(h,k,n){return h.filter(i=>i.status===STATUS_COMPLETED&&i[k]!==null).slice(0,n).map(i=>i[k]).reverse();}
+         function predictSizeByPattern(h){const c=h.filter(i=>i.status===STATUS_COMPLETED&&i.actualType);const f=()=>c.length>0?(c[0].actualType===SIZE_BIG?SIZE_SMALL:SIZE_BIG):(Math.random()<0.5?SIZE_BIG:SIZE_SMALL);if(c.length<4)return f();const m={[SIZE_BIG]:'B',[SIZE_SMALL]:'S'};const p=getLastNCompleted(h,'actualType',4).map(t=>m[t]).join('');if(p==='BSBS')return SIZE_BIG;if(p==='SBSB')return SIZE_SMALL;if(p==='BBSS')return SIZE_SMALL;if(p==='SSBB')return SIZE_BIG;return f();}
+         function predictColorByPattern(h){const c=h.filter(i=>i.status===STATUS_COMPLETED&&i.actualColor);const f=()=>c.length>0?(c[0].actualColor===COLOR_RED?COLOR_GREEN:COLOR_RED):(Math.random()<0.5?COLOR_RED:COLOR_GREEN);if(c.length<4)return f();const l=getLastNCompleted(h,'actualColor',4).filter(c=>c===COLOR_RED||c===COLOR_GREEN);if(l.length<4)return f();const m={[COLOR_RED]:'R',[COLOR_GREEN]:'G'};const p=l.map(c=>m[c]).join('');if(p==='GRGR')return COLOR_GREEN;if(p==='RGRG')return COLOR_RED;if(p==='GGRR')return COLOR_RED;if(p==='RRGG')return COLOR_GREEN;return f();}
+         function predictNumber(pc){const r=['0','2','4','6','8'];const g=['1','3','5','7','9'];if(pc===COLOR_RED)return r[Math.floor(Math.random()*r.length)];if(pc===COLOR_GREEN)return g[Math.floor(Math.random()*g.length)];return Math.floor(Math.random()*10).toString();}
+         function updateGameStats(){ const c=historyData.filter(i=>i.status===STATUS_COMPLETED); const u=(e,v,c=null)=>{if(e){e.textContent=v;e.style.color=c?c:'';}}; if(c.length===0){u(elements.statWins,'0');u(elements.statLoss,'0');u(elements.statAcc,'0%');u(elements.statCLoss,'0');return;} let w=0,l=0,cl=0,pc=true; for(const i of c){if(!pc)break;const sp=i.prediction!==null;const cp=i.colorPrediction!==null;let il=false;if(sp&&i.typeStatus===OUTCOME_LOSS)il=true;if(cp&&i.colorStatus===OUTCOME_LOSS)il=true;if((sp||cp)&&il)cl++;else pc=false;} c.forEach(i=>{const sp=i.prediction!==null;const cp=i.colorPrediction!==null;if(!sp&&!cp)return;let rw=true;if(sp&&i.typeStatus===OUTCOME_LOSS)rw=false;if(cp&&i.colorStatus===OUTCOME_LOSS)rw=false;if(rw)w++;else l++;}); const t=w+l;const a=t>0?(w/t)*100:0; u(elements.statWins,w);u(elements.statLoss,l);u(elements.statAcc,a.toFixed(0)+'%');u(elements.statCLoss,cl,cl>0?'var(--loss-color)':null); }
+         function updateGameHistory() { if(!elements.historyTableBody)return;const h=historyData.slice(0,HISTORY_DISPLAY_COUNT).map(i=>{const ti=(i.status===STATUS_PENDING||i.prediction===null)?'':`<span class="status-indicator ${i.typeStatus===OUTCOME_WIN?'win':'loss'}"><i class="fas ${i.typeStatus===OUTCOME_WIN?'fa-check':'fa-times'}"></i></span>`;const ci=(i.status===STATUS_PENDING||i.colorPrediction===null)?'':`<span class="status-indicator ${i.colorStatus===OUTCOME_WIN?'win':'loss'}"><i class="fas ${i.colorStatus===OUTCOME_WIN?'fa-check':'fa-times'}"></i></span>`;const ps=i.prediction??'-';const pc=i.colorPrediction??'-';let ot='-';if(i.status===STATUS_COMPLETED&&i.result!==null){const occ=i.actualColor?i.actualColor:'';const ons=`<span class="number ${occ}">${i.result}</span>`;const ocs=`<span class="color-name ${occ}">(${i.actualColor||'?'})</span>`;const ots=`<span class="type">${i.actualType||'?'}</span>`;ot=`${ons}${ocs} <span class="separator">/</span> ${ots}`;}else if(i.status===STATUS_PENDING){ot='<span style="color: var(--pending-color); font-style: italic;">Pending...</span>';} return `<tr><td>${i.period}</td><td>${i.result??'-'}</td><td>${ps} ${ti}</td><td>${pc} ${ci}</td><td class="outcome-cell">${ot}</td></tr>`;}).join(''); elements.historyTableBody.innerHTML=h||`<tr><td colspan="5">No history available.</td></tr>`; }
+         function updateCurrentPredictionUI(p,n,s,c){ if(elements.currentPeriod)elements.currentPeriod.textContent=p??'-';if(elements.currentPredictionSize)elements.currentPredictionSize.textContent=s??'-';if(elements.currentPredictionColor){elements.currentPredictionColor.textContent=c??'-';elements.currentPredictionColor.className=`value ${c||''}`;} if(elements.currentPredictionNumber){elements.currentPredictionNumber.textContent=n??'-';elements.currentPredictionNumber.className=`value ${c||''}`;}}
+         async function fetchAndProcessData(){ const a=await fetchGameResult(); if(!a) return; if(a.period!==lastFetchedPeriod){ const cp=a.period; const ar=a.result; const pi=historyData.findIndex(i=>i.period===cp&&i.status===STATUS_PENDING); const at=getResultType(ar); const ac=getResultColor(ar); if(pi>-1){ const i=historyData[pi]; i.result=ar;i.actualType=at;i.actualColor=ac;i.status=STATUS_COMPLETED; i.typeStatus=(i.prediction===null)?OUTCOME_NA:(i.prediction===i.actualType?OUTCOME_WIN:OUTCOME_LOSS); i.colorStatus=(i.colorPrediction===null)?OUTCOME_NA:((i.colorPrediction===i.actualColor||(i.actualColor===COLOR_VIOLET&&(i.colorPrediction===(parseInt(ar,10)%2===0?COLOR_RED:COLOR_GREEN))))?OUTCOME_WIN:OUTCOME_LOSS); console.log(`Result ${cp}: ${ar}(${at}/${ac}). Predict: Size ${i.prediction}(${i.typeStatus}), Color ${i.colorPrediction}(${i.colorStatus})`); }else{ historyData.unshift({period:cp,prediction:null,colorPrediction:null,numberPrediction:null,result:ar,actualType:at,actualColor:ac,typeStatus:OUTCOME_NA,colorStatus:OUTCOME_NA,status:STATUS_COMPLETED}); console.log(`Received result ${cp} (${at}/${ac}), no prior prediction.`); } let np; try{np=(BigInt(cp)+1n).toString();}catch(e){console.error("Period err:",e);np="Error";} const ps=predictSizeByPattern(historyData); const pc=predictColorByPattern(historyData); const pn=predictNumber(pc); updateCurrentPredictionUI(np,pn,ps,pc); if(!historyData.some(i=>i.period===np)){historyData.unshift({period:np,prediction:ps,colorPrediction:pc,numberPrediction:pn,result:null,actualType:null,actualColor:null,typeStatus:STATUS_PENDING,colorStatus:STATUS_PENDING,status:STATUS_PENDING});} if(historyData.length>HISTORY_MAX_SIZE)historyData.pop(); lastFetchedPeriod=cp;countdown=COUNTDOWN_START; updateGameStats();updateGameHistory(); }}
+         function tick(){ countdown--; if(elements.periodTimer) elements.periodTimer.textContent=countdown>=0?countdown:'0'; const F=3; if(countdown===F) fetchAndProcessData(); if(countdown<0){ countdown=COUNTDOWN_START; if(elements.periodTimer) elements.periodTimer.textContent=countdown; fetchAndProcessData(); }}
+         function saveAviatorData(){try{localStorage.setItem(AVIATOR_STORAGE_KEY,JSON.stringify({aviatorRoundData}));}catch(e){console.error('Aviator save failed',e);updateAviatorStatus('Error saving data.','error');}}
+         function loadAviatorData(){try{const s=localStorage.getItem(AVIATOR_STORAGE_KEY);if(s){const p=JSON.parse(s);aviatorRoundData=Array.isArray(p.aviatorRoundData)?p.aviatorRoundData:[];if(elements.aviatorHistoryEl)elements.aviatorHistoryEl.innerText=aviatorRoundData.length?aviatorRoundData.join(', '):'No data yet.';predictAviator(aviatorRoundData);}else{predictAviator([]);updateAviatorStatus('Enter 10 rounds for analysis.','inactive');}}catch(e){console.error('Aviator load failed',e);updateAviatorStatus('Error loading data.','error');aviatorRoundData=[];predictAviator([]);}}
+         function processAviatorInput(){if(!elements.aviatorRoundInput||!elements.aviatorInputErrorEl)return;const v=elements.aviatorRoundInput.value.trim();elements.aviatorInputErrorEl.innerText='';if(!v){elements.aviatorInputErrorEl.innerText='Enter multiplier.';return;}const n=parseFloat(v);if(isNaN(n)||n<1.00){elements.aviatorInputErrorEl.innerText='Enter number >= 1.00.';return;}addAviatorRoundData(n);elements.aviatorRoundInput.value='';elements.aviatorRoundInput.focus();if(navigator.vibrate)navigator.vibrate(50);}
+         function handleAviatorInputKeyDown(e){if(e.key==='Enter'){e.preventDefault();processAviatorInput();}}
+         function addAviatorRoundData(v){if(!elements.aviatorHistoryEl)return;aviatorRoundData.push(v);if(aviatorRoundData.length>AVIATOR_MAX_HISTORY)aviatorRoundData.shift();elements.aviatorHistoryEl.innerText=aviatorRoundData.length?aviatorRoundData.join(', '):'No data yet.';predictAviator(aviatorRoundData);saveAviatorData();}
+         function standardDeviation(v){if(v.length<2)return 0;const m=v.reduce((s,v)=>s+v,0)/v.length;const vr=v.reduce((s,v)=>s+Math.pow(v-m,2),0)/(v.length-1);return Math.sqrt(vr);}
+         function predictAviator(d){if(!elements.aviatorPredictionMain||!elements.aviatorSubPredictions||!elements.aviatorAiAnalysisSection||!elements.aviatorStatsLast10)return;const elsExist=elements.aviatorLikelyMultEl&&elements.aviatorSafeRangeEl&&elements.aviatorHighRangeEl&&elements.aviatorConfidenceEl&&elements.aviatorAiAnalysisEl;if(!elsExist){console.error("Aviator child DOM missing.");return;}elements.aviatorPredictionMain.style.display='none';elements.aviatorSubPredictions.style.display='none';elements.aviatorAiAnalysisSection.style.display='none';elements.aviatorStatsLast10.style.display='none';if(d.length<AVIATOR_MAX_HISTORY){const r=AVIATOR_MAX_HISTORY-d.length;elements.aviatorLikelyMultEl.innerText='--.--x';elements.aviatorSafeRangeEl.innerText='1.00x - 2.00x';elements.aviatorHighRangeEl.innerText=`Need ${r} more`;elements.aviatorConfidenceEl.innerText='Confidence (Hist): Safe - 0%, High - 0%';elements.aviatorAiAnalysisEl.innerText=`Enter ${r} more rounds for insights.`;updateAviatorStats([]);if(aviatorChartInstance){aviatorChartInstance.destroy();aviatorChartInstance=null;}updateAviatorStatus(`Enter ${r} more round${r>1?'s':''}.`,'inactive');}else if(d.length===AVIATOR_MAX_HISTORY){elements.aviatorPredictionMain.style.display='block';elements.aviatorSubPredictions.style.display='grid';elements.aviatorAiAnalysisSection.style.display='block';elements.aviatorStatsLast10.style.display='block';const a=d.reduce((s,v)=>s+v,0)/d.length;const s=standardDeviation(d);const wa=(d.slice(-3).reduce((s,v)=>s+v,0)/3)*0.6+a*0.4;const sl=1.00,su=2.00;const hl=Math.max(2.01,wa+0.5*s);const hu=Math.max(hl+0.5,wa+1.5*s);const sc=d.filter(x=>x>=sl&&x<=su).length;const hc=d.filter(x=>x>=hl).length;const sConf=(sc/d.length)*100;const hConf=(hc/d.length)*100;let lm=Math.max(1.01,Math.min(50.00,wa+(s*0.2)));elements.aviatorSafeRangeEl.innerText=`${sl.toFixed(2)}x - ${su.toFixed(2)}x`;elements.aviatorHighRangeEl.innerText=`${hl.toFixed(2)}x - ${hu.toFixed(2)}x`;elements.aviatorConfidenceEl.innerText=`Confidence (Hist): Safe - ${sConf.toFixed(0)}%, High - ${hConf.toFixed(0)}%`;elements.aviatorLikelyMultEl.innerText=`${lm.toFixed(2)}x`;const t=d.slice(-3).every((v,i,a)=>i===0||v>=a[i-1])?'increasing':d.slice(-3).every((v,i,a)=>i===0||v<=a[i-1])?'decreasing':'stable';const at=`Stats predict ${lm.toFixed(2)}x. Recent trend: ${t}. Safe range (1-2x) confidence: ${sConf.toFixed(0)}%. High range (${hl.toFixed(2)}x+) confidence: ${hConf.toFixed(0)}%. Volatility (StdDev): ${s.toFixed(2)} (${s>1?'higher':'lower'} risk).`;elements.aviatorAiAnalysisEl.innerText=at;updateAviatorStatus('Analysis complete.','active');updateAviatorStats(d);updateAviatorChart();}}
+         function updateAviatorStats(d){const elsExist=elements.aviatorAvgLast10El&&elements.aviatorBelow2xLast10El&&elements.aviatorAbove5xLast10El&&elements.aviatorHighLast10El&&elements.aviatorLowLast10El;if(!elsExist)return;if(d.length===AVIATOR_MAX_HISTORY){const a=d.reduce((s,v)=>s+v,0)/d.length;const b2=d.filter(x=>x<2.0).length;const a5=d.filter(x=>x>=5.0).length;const h=Math.max(...d);const l=Math.min(...d);const pb2=(b2/d.length*100).toFixed(0);const pa5=(a5/d.length*100).toFixed(0);elements.aviatorAvgLast10El.innerText=a.toFixed(2)+'x';elements.aviatorBelow2xLast10El.innerText=pb2+'%';elements.aviatorAbove5xLast10El.innerText=pa5+'%';elements.aviatorHighLast10El.innerText=h.toFixed(2)+'x';elements.aviatorLowLast10El.innerText=l.toFixed(2)+'x';}else{elements.aviatorAvgLast10El.innerText='--';elements.aviatorBelow2xLast10El.innerText='--%';elements.aviatorAbove5xLast10El.innerText='--%';elements.aviatorHighLast10El.innerText='--';elements.aviatorLowLast10El.innerText='--';}}
+         function updateAviatorChart(){if(!elements.aviatorChartCanvas)return;if(aviatorRoundData.length!==AVIATOR_MAX_HISTORY){if(aviatorChartInstance){aviatorChartInstance.destroy();aviatorChartInstance=null;}return;}if(aviatorChartInstance){aviatorChartInstance.destroy();aviatorChartInstance=null;}if(typeof Chart==='undefined'){console.error("Chart.js not loaded.");return;}const ctx=elements.aviatorChartCanvas.getContext('2d');if(!ctx)return;try{aviatorChartInstance=new Chart(ctx,{type:'line',data:{labels:aviatorRoundData.map((_,i)=>`R${i+1}`),datasets:[{label:'Multiplier',data:aviatorRoundData,borderColor:'var(--aviator-pred-color)',backgroundColor:'var(--aviator-glow)',fill:true,tension:0.4}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:false,min:1,ticks:{color:'var(--text-color)'},grid:{color:'rgba(255,255,255,0.1)'}},x:{display:false}},plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(0,0,0,0.8)',titleColor:'var(--aviator-gold-accent)',bodyColor:'var(--text-color)'}}}});}catch(e){console.error("Error creating Aviator chart:",e);}}
+         function resetAviatorData(){if(confirm('Clear Aviator data?')){aviatorRoundData=[];if(elements.aviatorHistoryEl)elements.aviatorHistoryEl.innerText='No data yet.';if(elements.aviatorInputErrorEl)elements.aviatorInputErrorEl.innerText='';if(elements.aviatorRoundInput)elements.aviatorRoundInput.value='';predictAviator([]);if(aviatorChartInstance){aviatorChartInstance.destroy();aviatorChartInstance=null;}localStorage.removeItem(AVIATOR_STORAGE_KEY);updateAviatorStatus('Enter 10 rounds for analysis.','inactive');}}
+         function exportAviatorData(){if(aviatorRoundData.length===0){updateAviatorStatus('No Aviator data.','error');return;}const c='Round,Multiplier\n'+aviatorRoundData.map((v,i)=>`${i+1},${v}`).join('\n');const b=new Blob([c],{type:'text/csv'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='aviator_rounds_vip_king.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);}
+         function updateAviatorStatus(m,t){if(elements.aviatorStatusEl){elements.aviatorStatusEl.innerText=m;elements.aviatorStatusEl.className=`status-${t}`;}}
+
+        // --- Shared Functions ---
+        function switchView(viewId) {
+             if(!elements.views || !elements.navButtons || !isAdminLoggedIn) return; // Prevent switching if not logged in
+
+             elements.views.forEach(v => v.classList.remove('view-active'));
+             elements.navButtons.forEach(b => b.classList.remove('active'));
+             const activeView = document.getElementById(viewId + '-view');
+             const activeButton = document.querySelector(`.nav-button[data-view="${viewId}"]`);
+
+             if(activeView) { activeView.classList.add('view-active'); }
+             else { console.warn(`View ${viewId}-view not found.`); const homeView = document.getElementById('home-view'); if(homeView) homeView.classList.add('view-active'); const homeButton = document.querySelector('.nav-button[data-view="home"]'); if(homeButton) homeButton.classList.add('active'); return; } // Fallback safely
+
+             if(activeButton) activeButton.classList.add('active');
+
+             // Refresh content if needed when switching
+             if(viewId === 'aviator') predictAviator(aviatorRoundData);
+             if(viewId === 'prediction') { updateGameHistory(); updateGameStats(); }
+         }
+
+         function updateLogoutButtonVisibility() {
+              if(elements.logoutBtn) {
+                  elements.logoutBtn.style.display = isAdminLoggedIn ? 'inline-flex' : 'none'; // Use flex for button layout
+              }
+          }
+
+        // --- Login/Logout ---
+        function handleLogin(event) {
+            event.preventDefault();
+            if (!elements.loginKeyInput || !elements.loginPasswordInput || !elements.loginErrorMessage) return;
+            const key = elements.loginKeyInput.value; const pass = elements.loginPasswordInput.value;
+
+            // *** Replace with actual secure validation ***
+            if (key === LOGIN_KEY_DEMO && pass === LOGIN_PASS_DEMO) {
+                isAdminLoggedIn = true; console.log("Login Successful.");
+                elements.loginErrorMessage.style.display = 'none';
+                elements.loginScreen.style.display = 'none';
+                elements.mainApp.style.display = 'flex';
+                elements.appFooter.style.display = 'block';
+                updateLogoutButtonVisibility();
+                startAppAfterLogin();
+            } else {
+                isAdminLoggedIn = false; elements.loginErrorMessage.style.display = 'block';
+                console.warn("Login Failed.");
+            }
+        }
+        function handleLogout() {
+            isAdminLoggedIn = false; console.log("Logged Out.");
+            if(timerIntervalId) clearInterval(timerIntervalId); timerIntervalId = null; lastApiTimestamp = 0;
+            // Optional: Clear data on logout
+            // historyData = []; aviatorRoundData = []; predictAviator([]); updateGameHistory(); updateGameStats();
+            if(elements.mainApp) elements.mainApp.style.display = 'none';
+            if(elements.appFooter) elements.appFooter.style.display = 'none';
+            if(elements.loginScreen) elements.loginScreen.style.display = 'flex';
+            if(elements.loginKeyInput) elements.loginKeyInput.value = '';
+            if(elements.loginPasswordInput) elements.loginPasswordInput.value = '';
+            if(elements.loginErrorMessage) elements.loginErrorMessage.style.display = 'none';
+            updateLogoutButtonVisibility();
+        }
+
+        // --- Event Listeners ---
+        function setupEventListeners() {
+            // Login Form
+            if(elements.initialLoginForm) elements.initialLoginForm.addEventListener('submit', handleLogin);
+            // App Navigation (Main Tabs)
+            elements.navButtons.forEach(btn => { const vId = btn.dataset.view; if(vId) btn.addEventListener('click', (e) => { e.preventDefault(); if(isAdminLoggedIn) switchView(vId); }); });
+            // Logout Button
+            if(elements.logoutBtn) elements.logoutBtn.addEventListener('click', (e) => { e.preventDefault(); handleLogout(); });
+            // 1 Min Game Clear History
+            if(elements.clearHistoryBtn) elements.clearHistoryBtn.addEventListener('click', () => { if(isAdminLoggedIn && confirm('Clear 1 Min Game history?')){ historyData=[]; lastFetchedPeriod=null; console.log("1 Min Game History Cleared."); updateCurrentPredictionUI('-','-','-','-'); updateGameHistory(); updateGameStats(); clearApiError(); } });
+            // Homepage CTA Button
+            if (elements.goToPredBtn) elements.goToPredBtn.addEventListener('click', () => { if(isAdminLoggedIn) switchView('prediction'); });
+            // Aviator Listeners
+            if(elements.aviatorSubmitBtn) elements.aviatorSubmitBtn.addEventListener('click', processAviatorInput);
+            if(elements.aviatorRoundInput) elements.aviatorRoundInput.addEventListener('keydown', handleAviatorInputKeyDown);
+            if(elements.aviatorResetBtn) elements.aviatorResetBtn.addEventListener('click', resetAviatorData);
+            if(elements.aviatorExportBtn) elements.aviatorExportBtn.addEventListener('click', exportAviatorData);
+        }
+
+        // --- Initialization ---
+        function initializePageLoad() {
+            console.log("Initializing VIP Predict King v8.4 Login...");
+            if (elements.copyrightYear) elements.copyrightYear.textContent = new Date().getFullYear();
+            if (elements.mainApp) elements.mainApp.style.display = 'none';
+            if (elements.appFooter) elements.appFooter.style.display = 'none';
+            if (elements.loginScreen) elements.loginScreen.style.display = 'flex';
+            setupEventListeners();
+            updateLogoutButtonVisibility();
+        }
+
+        function startAppAfterLogin() {
+            console.log("Starting main application UI and data fetch...");
+            loadAviatorData(); // Load stored Aviator data
+            updateCurrentPredictionUI('-', '-', '-', '-'); // Reset 1 Min Game UI
+            updateGameStats(); updateGameHistory();
+            switchView('home'); // Start on home view after login
+            updateLogoutButtonVisibility();
+            console.log("Performing initial 1 Min Game data fetch post-login...");
+            fetchAndProcessData().then(() => { console.log("Initial fetch complete. Starting timer."); if (timerIntervalId) clearInterval(timerIntervalId); timerIntervalId = setInterval(tick, API_FETCH_INTERVAL); }).catch(e => { console.error("Post-login fetch failed:", e); showApiError('Initial data load failed.'); });
+        }
+
+        // --- Start App ---
+        document.addEventListener('DOMContentLoaded', initializePageLoad);
+
+     </script>
+</body>
+</html>

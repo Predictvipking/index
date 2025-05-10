@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Tool</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- Base & Resets --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Montserrat', sans-serif; background-color: #1a1a2e;
+            color: #e0e0e0; line-height: 1.6; padding-top: 80px; /* Default fallback */
+            overflow-x: hidden;
+        }
+
+        /* --- Particles.js Background --- */
+        #particles-js { position: fixed; width: 100%; height: 100%; background-color: #1a1a2e; z-index: -1; }
+
+        /* --- Navigation Bar --- */
+        .navbar {
+            background-color: rgba(26, 26, 46, 0.90); backdrop-filter: blur(5px); padding: 0.5rem 1rem;
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; display: flex;
+             justify-content: center; /* Center nav links */
+            align-items: center; flex-wrap: wrap;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); min-height: 50px;
+        }
+        .nav-links { list-style: none; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0.5rem 1rem; padding: 0.3rem 0; }
+        .nav-link {
+            color: #e0e0e0; text-decoration: none; font-weight: 500; font-size: 0.9rem; padding: 0.4rem 0.6rem;
+            position: relative; transition: color 0.3s ease, background-color 0.3s ease; white-space: nowrap; border-radius: 4px;
+        }
+        .nav-link::after { display: none; }
+        .nav-link:hover, .nav-link.active { color: #1a1a2e; background-color: #00bcd4; }
+        .nav-link.external:hover { color: #1a1a2e; background-color: #ffeb3b; }
+        .nav-toggle { display: none !important; }
+
+        /* --- Main Content & Views --- */
+        .main-content { padding: 1rem 1rem 2rem 1rem; max-width: 1200px; margin: 0 auto; }
+        .view { display: none; padding-top: 1rem; animation: fadeIn 0.5s ease-in-out; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- Card, Headings, Text --- */
+        .card { background-color: rgba(40, 40, 68, 0.8); padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); }
+        h1 { color: #00bcd4; margin-bottom: 1.5rem; text-align: center; font-size: 1.8rem; }
+        h2 { color: #00bcd4; margin-bottom: 1rem; text-align: center; font-size: 1.4rem; }
+        p { margin-bottom: 1rem; }
+        .disclaimer { font-size: 0.9em; color: #ffeb3b; font-weight: bold; text-align: center; border: 1px dashed #ffeb3b; padding: 0.5rem; margin-top: 1rem; border-radius: 5px;}
+        .warning-text { color: #f44336; font-weight: bold; }
+        .info-text { color: #00bcd4; font-size: 0.9em; margin-top: 0.5rem; text-align: center; flex-basis: 100%; } /* Adjusted info text */
+
+        /* --- Input & Buttons --- */
+        label { display: block; margin-bottom: 0.3rem; font-weight: 500; color: #bdbdbd; font-size: 0.85em; }
+        input[type="number"], input[type="text"] {
+            padding: 0.7rem 0.8rem; background-color: rgba(26, 26, 46, 0.7); border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px; color: #e0e0e0; font-family: 'Montserrat', sans-serif; font-size: 0.95rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease; min-width: 70px; width: 100%;
+        }
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+        input[type="number"]:focus, input[type="text"]:focus { outline: none; border-color: #00bcd4; box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.3); }
+
+        .btn { display: inline-block; padding: 0.7rem 1.2rem; border: none; border-radius: 6px; font-family: 'Montserrat', sans-serif; font-size: 0.95rem; font-weight: 500; cursor: pointer; text-align: center; transition: background-color 0.3s ease, transform 0.2s ease; margin: 0; white-space: nowrap; }
+        .btn:hover { transform: translateY(-2px); } .btn:active { transform: translateY(0); }
+        .btn-predict { background-color: #00bcd4; color: #1a1a2e; } .btn-predict:hover { background-color: #0097a7; }
+        .btn-win { background-color: #4CAF50; color: white; padding: 0.4rem 0.8rem; font-size: 0.9rem; } .btn-win:hover { background-color: #388E3C; }
+        .btn-loss { background-color: #f44336; color: white; padding: 0.4rem 0.8rem; font-size: 0.9rem; } .btn-loss:hover { background-color: #d32f2f; }
+        .btn-danger { background-color: #e53935; color: white; } .btn-danger:hover { background-color: #c62828; }
+        .btn-set { background-color: #ff9800; color: #1a1a2e; font-size: 0.9em; padding: 0.6rem 1rem; } .btn-set:hover { background-color: #f57c00; }
+
+
+        /* --- Initial Bet Setup Area (Inline) --- */
+        .initial-bet-setup {
+            display: flex;
+            flex-wrap: wrap; /* Allow wrapping on small screens */
+            gap: 1rem;
+            align-items: flex-end; /* Align items like input and button vertically */
+            justify-content: center; /* Center items */
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border: 1px solid rgba(255, 152, 0, 0.3);
+            border-radius: 8px;
+            background-color: rgba(40, 40, 68, 0.5);
+        }
+        .initial-bet-setup .input-group {
+            flex: 1 1 auto; /* Allow growing but base on content */
+             max-width: 200px; /* Limit width of input group */
+             margin-bottom: 0; /* Remove margin for flex alignment */
+        }
+        .initial-bet-setup .btn-set {
+             margin-bottom: 0; /* Remove margin for flex alignment */
+             flex-shrink: 0; /* Prevent button from shrinking too much */
+        }
+        /* Info text spans full width below */
+        .initial-bet-setup .info-text {
+            flex-basis: 100%;
+            margin-top: 0.8rem; /* Space above info text */
+            padding-bottom: 0;
+             margin-bottom: 0;
+        }
+
+
+        /* --- Prediction Input Area (Inline) --- */
+        .prediction-input-controls {
+            display: flex;
+            align-items: flex-end; /* Align items to bottom edge */
+            justify-content: center; /* Center items */
+            gap: 0.8rem; /* Space between items */
+            flex-wrap: wrap; /* Allow wrapping */
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: rgba(26, 26, 46, 0.5);
+            border-radius: 8px;
+        }
+        .prediction-input-controls > * { /* Target direct children */
+            margin-bottom: 0; /* Remove bottom margin for flex items */
+             flex-shrink: 0; /* Prevent items from shrinking too much */
+        }
+        .prediction-input-controls .date-prefix-display {
+             font-size: 0.9em;
+             color: #bdbdbd;
+             white-space: nowrap;
+             padding-bottom: 0.7rem; /* Align baseline */
+        }
+        .prediction-input-controls .input-group {
+             max-width: 150px; /* Limit width of period input */
+             flex-grow: 1; /* Allow input to grow slightly */
+        }
+        .prediction-input-controls .input-group input {
+            width: 100%;
+        }
+
+        /* --- Current Status Display Area --- */
+        .current-status-area { text-align: center; margin-bottom: 1rem; padding: 0.8rem; background-color: rgba(0, 188, 212, 0.1); border-radius: 8px; }
+        .current-status-area p { margin-bottom: 0.5rem; font-size: 1.05em; }
+        .current-status-area strong { color: #ffeb3b; font-size: 1.1em; }
+        .current-prediction-area p { font-size: 1.1rem; text-align: center; margin-bottom: 0.3rem;}
+        .current-prediction-area strong { font-size: 1.3rem; margin: 0 0.5rem; }
+
+        /* --- Stats Display (Inline Layout) --- */
+        .stats-display { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 0.5rem 1rem; text-align: center; margin-bottom: 1.5rem; font-size: 0.9em; color: #bdbdbd; padding: 0.6rem 0; border-top: 1px solid rgba(255, 255, 255, 0.1); border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .stats-display span { margin: 0; padding: 0 0.5rem; white-space: nowrap; }
+        .stats-display strong { color: #00bcd4; }
+
+        /* --- Table Styles --- */
+        .table-container { overflow-x: auto; }
+        #historyTable, #levelChartTable { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.9rem; }
+        #historyTable th, #historyTable td, #levelChartTable th, #levelChartTable td { padding: 0.6rem 0.8rem; text-align: center; border: 1px solid rgba(255, 255, 255, 0.15); white-space: nowrap; }
+        #historyTable th, #levelChartTable th { background-color: rgba(0, 188, 212, 0.2); color: #00bcd4; font-weight: 700; }
+        #historyTable tbody tr:nth-child(even), #levelChartTable tbody tr:nth-child(even) { background-color: rgba(255, 255, 255, 0.05); }
+        #historyTable td .btn { margin: 0.1rem; padding: 0.3rem 0.6rem; font-size: 0.8rem; }
+        #levelChartTable td:first-child { font-weight: bold; color: #00bcd4; }
+        #levelChartTable .total-row td { font-weight: bold; background-color: rgba(0, 188, 212, 0.1); }
+
+        /* --- Color & Size Styling --- */
+        .color-red { color: #f44336; font-weight: bold; } .color-green { color: #4CAF50; font-weight: bold; } .color-violet { color: #9c27b0; font-weight: bold; }
+        .size-big { color: #2196F3; font-weight: bold; } .size-small { color: #ffeb3b; font-weight: bold; }
+
+        /* --- Responsive --- */
+        @media (max-width: 768px) {
+             .nav-link { font-size: 0.8rem; padding: 0.3rem 0.5rem; }
+             h1 { font-size: 1.6rem; } h2 { font-size: 1.2rem; }
+            /* Prediction controls already wrap, adjust gap maybe */
+             .prediction-input-controls { gap: 0.6rem; }
+             .prediction-input-controls .input-group { max-width: 120px; }
+             /* Initial Bet controls already wrap */
+             .initial-bet-setup { gap: 0.8rem; }
+             .initial-bet-setup .input-group { max-width: 180px; }
+
+             .stats-display { font-size: 0.85em; gap: 0.4rem 0.8rem; }
+             #historyTable, #levelChartTable { font-size: 0.85rem; }
+             #historyTable th, #historyTable td, #levelChartTable th, #levelChartTable td { padding: 0.5rem 0.4rem; }
+             #historyTable td .btn { padding: 0.2rem 0.4rem; font-size: 0.75rem; }
+             .btn { padding: 0.6rem 1rem; font-size: 0.9rem; }
+             .btn-danger { display: block; width: 80%; margin: 1rem auto 0 auto; }
+        }
+         @media (max-width: 480px) {
+              /* body padding handled by JS */
+              .navbar { justify-content: center; }
+              h1 { font-size: 1.4rem; }
+              /* Keep prediction controls wrapping but maybe adjust gaps */
+              .prediction-input-controls { gap: 0.5rem; justify-content: center; }
+              .prediction-input-controls .input-group { max-width: 130px; flex-grow: 0;} /* Prevent input taking too much space */
+              /* Keep initial bet controls wrapping */
+              .initial-bet-setup { gap: 0.8rem; align-items: center; /* Center items when wrapped */ }
+              .initial-bet-setup .input-group { width: 70%; } /* Adjust width */
+              .initial-bet-setup .btn-set { width: auto; /* Let button size naturally */ }
+
+              .stats-display { gap: 0.3rem 0.6rem; }
+         }
+
+    </style>
+
+</head>
+<body>
+    <div id="particles-js"></div>
+
+    <nav class="navbar">
+        <ul class="nav-links">
+            <li><a href="#simulation" class="nav-link active" data-view="simulation">Simulation</a></li>
+            <li><a href="#level-chart" class="nav-link" data-view="level-chart">Level Chart</a></li>
+            <li><a href="#how-to-use" class="nav-link" data-view="how-to-use">How to Use</a></li>
+            <li><a href="https://chat.google.com/room/AAQA95Euqo8?cls=7" target="_blank" class="nav-link external">Google Chat</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <section id="simulation" class="view active">
+            <h1 id="mainHeadline">Prediction Learning Simulation</h1> <div class="card initial-bet-setup">
+                 <div class="input-group">
+                     <label for="initialBet">Initial Bet Amount (₹):</label>
+                     <input type="number" id="initialBet" placeholder="e.g., 10" min="1" step="any">
+                 </div>
+                 <button id="setInitialBetButton" class="btn btn-set">Set Initial Bet / Reset Sim</button>
+                 <p class="info-text">Sets starting bet & resets simulation with ₹10,000 fund.</p>
+             </div>
+
+
+            <div class="card prediction-input-area">
+                <div class="prediction-input-controls">
+                    <div class="date-prefix-display"> Date: <strong id="datePrefix">YYYYMMDD</strong> </div>
+                    <div class="input-group">
+                        <label for="lastFourDigits">Period (Last 4):</label>
+                        <input type="number" id="lastFourDigits" placeholder="1234" min="0" max="9999">
+                    </div>
+                    <button id="predictInitialButton" class="btn btn-predict">Predict</button>
+                </div>
+            </div>
+
+            <div class="card current-status-area">
+                 <p>Simulation Fund: <strong id="currentBankrollDisplay">₹ 10000.00</strong></p>
+                 <p>Current Bet: <strong id="currentBetDisplay">₹ --</strong></p>
+                 <hr style="border-color: rgba(255,255,255,0.1); margin: 0.8rem 0;">
+                 <div id="currentPrediction">
+                     <p>Set initial bet and predict the first period to start simulation.</p>
+                 </div>
+             </div>
+
+
+            <div class="card history-area">
+                <h2>History & Stats</h2>
+                <div id="stats" class="stats-display">
+                    <span>Wins: <strong id="statWins">0</strong></span>
+                    <span>Losses: <strong id="statLosses">0</strong></span>
+                    <span>Accuracy: <strong id="statAccuracy">N/A</strong></span>
+                    <span>C. Loss: <strong id="statConsecutiveLoss">0</strong></span>
+                </div>
+                <div class="table-container">
+                    <table id="historyTable">
+                        <thead> <tr><th>Period</th><th>Prediction</th><th>Bet (₹)</th><th>Status</th><th>Action</th></tr> </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                 <button id="clearHistoryButton" class="btn btn-danger">Clear History Only</button>
+                 <p class="disclaimer">Disclaimer: SIMULATION ONLY. Uses basic prediction & Martingale. High risk involved in real scenarios.</p>
+            </div>
+        </section>
+
+        <section id="level-chart" class="view">
+             <h1>Level Chart</h1>
+             <div class="card">
+                  <div class="table-container">
+                     <table id="levelChartTable">
+                          <thead><tr><th>Level</th><th>Opt 1 (₹)</th><th>Opt 2 (₹)</th><th>Opt 3 (₹)</th><th>Opt 4 (₹)</th></tr></thead>
+                          <tbody>
+                             <tr class="level-row"><td>Lv 1</td><td>₹1</td><td>₹5</td><td>₹10</td><td>₹50</td></tr>
+                             <tr class="level-row"><td>Lv 2</td><td>₹2</td><td>₹10</td><td>₹20</td><td>₹100</td></tr>
+                             <tr class="level-row"><td>Lv 3</td><td>₹4</td><td>₹20</td><td>₹40</td><td>₹200</td></tr>
+                             <tr class="level-row"><td>Lv 4</td><td>₹10</td><td>₹40</td><td>₹90</td><td>₹400</td></tr>
+                             <tr class="level-row"><td>Lv 5</td><td>₹20</td><td>₹90</td><td>₹200</td><td>₹800</td></tr>
+                             <tr class="level-row"><td>Lv 6</td><td>₹40</td><td>₹200</td><td>₹400</td><td>₹1700</td></tr>
+                             <tr class="level-row"><td>Lv 7</td><td>₹80</td><td>₹400</td><td>₹800</td><td>₹3500</td></tr>
+                             <tr class="level-row"><td>Lv 8</td><td>₹170</td><td>₹800</td><td>₹1700</td><td>₹7100</td></tr>
+                             <tr class="level-row"><td>Lv 9</td><td>₹350</td><td>₹1600</td><td>₹3500</td><td>₹14500</td></tr>
+                             <tr class="total-row"><td>Lv.8 TOTAL</td><td>₹327</td><td>₹1565</td><td>₹3260</td><td>₹13850</td></tr>
+                             <tr class="total-row"><td>Lv.9 TOTAL</td><td>₹677</td><td>₹3165</td><td>₹6760</td><td>₹28350</td></tr>
+                          </tbody>
+                     </table>
+                  </div>
+                  <p style="text-align: center; font-size: 0.9em; margin-top: 1rem;">* Values represent suggested amounts based on level.</p>
+             </div>
+        </section>
+
+        <section id="how-to-use" class="view">
+             <h1>How to Use</h1>
+             <div class="card">
+                 <h2>Simulation Instructions:</h2>
+                 <ol>
+                     <li>Go to the "Simulation" tab.</li>
+                     <li>Set your desired "Initial Bet Amount" (e.g., 10). Click "Set Initial Bet / Reset Sim". This starts the simulation with a ₹10,000 fund.</li>
+                     <li>Enter the last 4 digits of the first period you want to simulate. Click "Predict".</li>
+                     <li>The tool shows the prediction and the "Current Bet" amount (starts with your initial bet).</li>
+                     <li>Observe the actual result (imagine it or use historical data if available).</li>
+                     <li>In the History table, click "Win" or "Loss" for that period.</li>
+                     <li>The Simulation Fund updates (Simplified: Win adds bet, Loss subtracts bet).</li>
+                     <li>The "Current Bet" for the *next* prediction updates automatically using Martingale (doubles on loss, resets to initial bet on win).</li>
+                     <li>The tool predicts the next period.</li>
+                     <li>**Warning:** If the Fund becomes too low for the next calculated bet, the simulation stops. Click "Set Initial Bet / Reset Sim" to start over.</li>
+                     <li>Repeat steps 5-9 to see how the strategy plays out in simulation. Use "Clear History Only" to clear results without resetting the fund/bet.</li>
+                 </ol>
+                  <p class="disclaimer">REMEMBER: This is a simplified simulation. Real game payouts differ. Martingale is extremely risky and can deplete funds quickly. Learn the concepts, don't rely on this for real money.</p>
+             </div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+
+    <script>
+        // --- Script Title (Can be edited if needed) ---
+        const SCRIPT_TITLE = "Prediction Learning Simulation";
+        const DEFAULT_BANKROLL = 10000;
+        // -------------------------------------------------------------
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const mainHeadlineEl = document.getElementById('mainHeadline');
+            const datePrefixEl = document.getElementById('datePrefix');
+            const lastFourInput = document.getElementById('lastFourDigits');
+            const predictInitialButton = document.getElementById('predictInitialButton');
+            const currentPredictionEl = document.getElementById('currentPrediction');
+            const historyTableBody = document.getElementById('historyTable')?.getElementsByTagName('tbody')[0];
+            const clearHistoryButton = document.getElementById('clearHistoryButton');
+            // Stats
+            const statsWinsEl = document.getElementById('statWins');
+            const statsLossesEl = document.getElementById('statLosses');
+            const statsAccuracyEl = document.getElementById('statAccuracy');
+            const statsConsecutiveLossEl = document.getElementById('statConsecutiveLoss');
+            // Betting Controls
+            const initialBetInput = document.getElementById('initialBet');
+            const setInitialBetButton = document.getElementById('setInitialBetButton');
+            // Display
+            const currentBankrollDisplay = document.getElementById('currentBankrollDisplay');
+            const currentBetDisplay = document.getElementById('currentBetDisplay');
+            // Navigation & Views
+            const navLinks = document.querySelectorAll('.nav-link');
+            const views = document.querySelectorAll('.view');
+            const navbar = document.querySelector('.navbar');
+
+            // --- State ---
+            let history = [];
+            let currentDatePrefix = '';
+            let bankroll = DEFAULT_BANKROLL;
+            let initialBet = 10; // Default initial bet
+            let currentBet = 10;
+            let consecutiveLossCount = 0;
+            let simulationOK = false; // Start as not OK until initial bet is set
+
+            // --- Initialization ---
+            function init() {
+                console.log("Initializing Simulation Tool...");
+                if(mainHeadlineEl) mainHeadlineEl.textContent = SCRIPT_TITLE;
+                currentDatePrefix = getCurrentDatePrefix();
+                if(datePrefixEl) datePrefixEl.textContent = currentDatePrefix;
+                loadAppState(); // Load previous state if exists
+                renderHistoryTable();
+                updateStats();
+                updateBettingDisplays(); // Update display based on loaded/default state
+                setupEventListeners();
+                initializeParticles();
+                adjustBodyPadding();
+                // Check status based on loaded state, might not be OK initially
+                checkSimulationStatus(false); // Check without alerting on load
+                console.log("Initialization Complete. Sim Ready:", simulationOK);
+            }
+
+            // --- Date Handling ---
+            function getCurrentDatePrefix() { /* ... */ const now = new Date(); const year = now.getFullYear(); const month = String(now.getMonth() + 1).padStart(2, '0'); const day = String(now.getDate()).padStart(2, '0'); return `${year}${month}${day}`; }
+
+            // --- Prediction Logic (PLACEHOLDER) ---
+            function generatePrediction(periodNumber) { /* ... same placeholder ... */
+                console.log(`Generating placeholder prediction for period: ${periodNumber}`); const lastDigit = periodNumber % 10; const secondLastDigit = Math.floor(periodNumber / 10) % 10; const thirdLastDigit = Math.floor(periodNumber / 100) % 10; const calcValue = (lastDigit * 5 + secondLastDigit * 3 + thirdLastDigit * 2 + 1) % 10; let color; let size; if (calcValue === 0 || calcValue === 5) { color = Math.random() < 0.6 ? (calcValue === 0 ? 'Violet+Red' : 'Violet+Green') : 'Violet'; } else if (calcValue % 2 !== 0) { color = 'Green'; } else { color = 'Red'; } size = calcValue >= 5 ? 'Big' : 'Small';
+                const prediction = { period: periodNumber, number: calcValue, color: color, size: size, status: 'Pending', actualResult: null, betAmount: currentBet }; console.log("Generated Prediction:", prediction); return prediction;
+            }
+
+            // --- Display Functions ---
+            function displayPrediction(prediction, container) { /* ... */
+                 if (!container) return; if (!prediction) { container.innerHTML = `<p>Set initial bet and predict the first period.</p>`; return; }
+                 let displayColorClass = `color-${prediction.color.toLowerCase().split('+')[0]}`;
+                 container.innerHTML = `<p>Period: <strong>${prediction.period}</strong></p><p>Prediction: <strong class="${displayColorClass}">${prediction.color}</strong> & <strong class="size-${prediction.size.toLowerCase()}">${prediction.size}</strong></p>`;
+            }
+            function renderHistoryTable() { /* ... Updated ... */
+                 if (!historyTableBody) { console.error("History table body not found!"); return; }
+                 historyTableBody.innerHTML = '';
+                [...history].reverse().forEach(pred => {
+                    const row = historyTableBody.insertRow(); let predictedColorClass = `color-${pred.color.toLowerCase().split('+')[0]}`; let predictedSizeClass = `size-${pred.size.toLowerCase()}`; let statusClass = ''; if (pred.status === 'Win') statusClass = 'color-green'; if (pred.status === 'Loss') statusClass = 'color-red';
+                    row.insertCell().textContent = pred.period; row.insertCell().innerHTML = `<span class="${predictedColorClass}">${pred.color}</span> / <span class="${predictedSizeClass}">${pred.size}</span>`; row.insertCell().textContent = `₹${pred.betAmount?.toFixed(2) ?? '--'}`; row.insertCell().innerHTML = `<span class="${statusClass}">${pred.status}</span>`;
+                    const actionCell = row.insertCell();
+                    if (pred.status === 'Pending') {
+                        const winButton = document.createElement('button'); winButton.textContent = 'Win'; winButton.classList.add('btn', 'btn-win'); winButton.dataset.period = pred.period; winButton.dataset.action = 'Win'; actionCell.appendChild(winButton);
+                        const lossButton = document.createElement('button'); lossButton.textContent = 'Loss'; lossButton.classList.add('btn', 'btn-loss'); lossButton.dataset.period = pred.period; lossButton.dataset.action = 'Loss'; actionCell.appendChild(lossButton);
+                    } else { actionCell.textContent = '-'; }
+                });
+            }
+            function updateStats() { /* ... */
+                const wins = history.filter(p => p.status === 'Win').length; const losses = history.filter(p => p.status === 'Loss').length; const completed = wins + losses; const accuracy = completed > 0 ? ((wins / completed) * 100).toFixed(1) : 'N/A'; if(statsWinsEl) statsWinsEl.textContent = wins; if(statsLossesEl) statsLossesEl.textContent = losses; if(statsAccuracyEl) statsAccuracyEl.textContent = completed > 0 ? `${accuracy}%` : 'N/A'; if(statsConsecutiveLossEl) statsConsecutiveLossEl.textContent = consecutiveLossCount;
+            }
+             function updateBettingDisplays() {
+                 if(currentBankrollDisplay) currentBankrollDisplay.textContent = `₹ ${bankroll?.toFixed(2) ?? '--'}`;
+                 if(currentBetDisplay) currentBetDisplay.textContent = simulationOK ? `₹ ${currentBet?.toFixed(2)}` : '₹ --';
+                 if(initialBetInput && !initialBetInput.matches(':focus')) initialBetInput.value = initialBet > 0 ? initialBet.toFixed(2) : '';
+                 const statusArea = document.querySelector('.current-status-area'); if (statusArea) { statusArea.style.border = simulationOK ? 'none' : '2px solid #f44336'; }
+             }
+
+            // --- State Management ---
+            function saveAppState() { /* ... */ try { const appState = { history, bankroll, initialBet, currentBet, consecutiveLossCount }; localStorage.setItem('predictionSimState_v2', JSON.stringify(appState)); console.log("Sim state saved."); } catch (e) { console.error("Failed to save sim state:", e); } }
+            function loadAppState() { /* ... */ try { const storedState = localStorage.getItem('predictionSimState_v2'); if (storedState) { const state = JSON.parse(storedState); history = (state.history || []).map(item => ({...item, period: Number(item.period) })); bankroll = Number(state.bankroll) || DEFAULT_BANKROLL; initialBet = Number(state.initialBet) || 10; currentBet = Number(state.currentBet) || initialBet; consecutiveLossCount = Number(state.consecutiveLossCount) || 0; console.log("Sim state loaded."); } else { console.log("No saved state found. Using defaults."); resetSimulationState(false, false); } } catch (e) { console.error("Failed to load sim state:", e); resetSimulationState(false, false); } }
+
+            function resetSimulationState(clearHistoryFlag = true, alertUser = true) { // Added alertUser flag
+                 bankroll = DEFAULT_BANKROLL;
+                 let inputBet = parseFloat(initialBetInput.value);
+                 initialBet = (!isNaN(inputBet) && inputBet > 0) ? inputBet : 10; // Use input value if valid, else default
+                 if (initialBet > DEFAULT_BANKROLL) { // Check against default bankroll
+                     if (alertUser) alert(`Initial bet (₹${initialBet.toFixed(2)}) cannot be greater than the starting fund (₹${DEFAULT_BANKROLL.toFixed(2)}). Setting to ₹10.`);
+                     initialBet = 10;
+                 }
+                 currentBet = initialBet;
+                 consecutiveLossCount = 0;
+                 simulationOK = true; // Assume OK after reset
+                 if(initialBetInput) initialBetInput.value = initialBet.toFixed(2);
+                 if(clearHistoryFlag) history = [];
+                 console.log("Simulation state reset. Initial Bet:", initialBet);
+                 saveAppState(); updateBettingDisplays(); updateStats();
+                 if (clearHistoryFlag) renderHistoryTable();
+                 if (currentPredictionEl) currentPredictionEl.innerHTML = '<p>Predict the first period to start simulation.</p>';
+                 checkSimulationStatus(false); // Update status display without alert
+                 if (alertUser) alert(`Simulation Reset. Initial Bet: ₹${initialBet.toFixed(2)}. Fund: ₹${bankroll.toFixed(2)}.`);
+             }
+            function clearHistoryOnly() { /* ... */ if (confirm("Clear prediction history only? Simulation fund and bets remain.")) { history = []; saveAppState(); renderHistoryTable(); updateStats(); console.log("History cleared."); } }
+
+             function checkSimulationStatus(showAlert = true) { // Added showAlert flag
+                 simulationOK = bankroll >= currentBet && bankroll > 0;
+                 updateBettingDisplays();
+                 if (!simulationOK && showAlert) {
+                     if (bankroll <= 0) {
+                          console.error(`Bankrupt! Fund is zero or negative. Simulation stopped.`);
+                          alert(`Simulation fund depleted! Reset simulation.`);
+                          if (currentPredictionEl) currentPredictionEl.innerHTML = `<p class="warning-text">Simulation fund depleted! Reset simulation.</p>`;
+                     } else { // bankroll > 0 but < currentBet
+                          console.warn(`Bankroll ${bankroll} too low for current bet ${currentBet}. Simulation paused.`);
+                          alert(`Warning: Fund (₹${bankroll.toFixed(2)}) too low for the current bet (₹${currentBet.toFixed(2)}). Simulation stopped. Reset simulation or initial bet.`);
+                          if (currentPredictionEl) currentPredictionEl.innerHTML = `<p class="warning-text">Fund (₹${bankroll.toFixed(2)}) too low for the current bet (₹${currentBet.toFixed(2)}). Reset simulation or initial bet.</p>`;
+                     }
+                 }
+                 return simulationOK;
+            }
+
+             // --- UI Adjustment ---
+             function adjustBodyPadding() { /* ... */ if (navbar) { requestAnimationFrame(() => { const navHeight = navbar.offsetHeight; document.body.style.paddingTop = `${navHeight + 15}px`; }); } }
+
+            // --- Event Handlers ---
+             function handleSetInitialBet() { // Acts as Reset button now
+                 const initB = parseFloat(initialBetInput.value);
+                 if (isNaN(initB) || initB <= 0) { alert("Please enter a valid initial bet (> 0)."); return; }
+                 if (initB > DEFAULT_BANKROLL) { alert(`Initial bet (₹${initB.toFixed(2)}) cannot be greater than the starting fund (₹${DEFAULT_BANKROLL.toFixed(2)}).`); return; }
+
+                 if (confirm(`This will reset the simulation:\n- Fund: ₹${DEFAULT_BANKROLL.toFixed(2)}\n- Initial Bet: ₹${initB.toFixed(2)}\n- History will be CLEARED.\n\nProceed?`)) {
+                    resetSimulationState(true, false); // Reset including history, suppress alert
+                    alert(`Simulation Reset. Initial Bet set to ₹${initialBet.toFixed(2)}. Fund is ₹${bankroll.toFixed(2)}.`);
+                 }
+             }
+
+            function handleInitialPrediction() {
+                if (!simulationOK) { checkSimulationStatus(true); return; } // Check status and alert if not ok
+
+                const lastFour = lastFourInput.value;
+                if (!lastFour || lastFour.length > 4 || isNaN(lastFour) || Number(lastFour) < 0) { alert("Please enter valid last 4 digits (0000 - 9999)."); return; }
+                const paddedLastFour = lastFour.padStart(4, '0');
+                const initialPeriodNumber = parseInt(`${currentDatePrefix}${paddedLastFour}`, 10);
+                if (isNaN(initialPeriodNumber)) { alert("Failed to construct period number."); return; }
+
+                const existingPrediction = history.find(p => p.period === initialPeriodNumber);
+                if (existingPrediction) { alert(`Period ${initialPeriodNumber} already processed or pending.`); return; }
+
+                // Ensure bankroll sufficient for the *current* bet before predicting
+                if (currentBet > bankroll) {
+                     alert(`Cannot predict: Fund (₹${bankroll.toFixed(2)}) is less than the current bet (₹${currentBet.toFixed(2)}). Reset simulation.`);
+                     checkSimulationStatus(true); // Update UI state
+                     return;
+                }
+
+                const prediction = generatePrediction(initialPeriodNumber);
+                history.push(prediction);
+                displayPrediction(prediction, currentPredictionEl);
+                saveAppState(); renderHistoryTable(); updateStats(); updateBettingDisplays();
+                lastFourInput.value = '';
+            }
+
+            function handleHistoryAction(event) {
+                // Allow processing even if paused, but check if bankrupt
+                if (bankroll <= 0) {
+                    alert("Simulation stopped due to zero/negative fund. Please Reset."); return;
+                }
+
+                 const target = event.target;
+                 if (target.tagName === 'BUTTON' && target.dataset.period && target.dataset.action) {
+                     const period = parseInt(target.dataset.period, 10);
+                     const action = target.dataset.action;
+                     const predictionIndex = history.findIndex(p => p.period === period);
+
+                     if (predictionIndex > -1 && history[predictionIndex].status === 'Pending') {
+                         const prediction = history[predictionIndex];
+                         const betAmount = prediction.betAmount;
+
+                         // Update Status & Bankroll
+                         prediction.status = action; prediction.actualResult = action;
+                         if (action === 'Win') {
+                             bankroll += betAmount; consecutiveLossCount = 0; currentBet = initialBet;
+                         } else { // Loss
+                             bankroll -= betAmount; consecutiveLossCount++; currentBet = currentBet * 2;
+                         }
+                         console.log(`P${period} ${action}. Bet: ${betAmount}. Bankroll: ${bankroll}. NextBet: ${currentBet}`);
+
+                         // Save state immediately
+                         saveAppState();
+                         // Update UI (incl. stats, betting displays, table)
+                         updateBettingDisplays(); updateStats(); renderHistoryTable();
+
+                         // Check status *after* processing and updating UI
+                         if (checkSimulationStatus(true)) { // Check and alert if needed
+                              predictAndDisplayNext(period); // Auto-Predict if OK
+                         }
+                     }
+                 }
+            }
+
+            function predictAndDisplayNext(basePeriodNumber) { // Auto-prediction step
+                 if (!checkSimulationStatus(false)) { console.log("Stopping auto-prediction."); return; } // Don't alert again, just stop
+                 if (isNaN(basePeriodNumber)) { console.error("Invalid base period number."); return; }
+                 const nextPeriodNumber = basePeriodNumber + 1;
+                 const existingNext = history.find(p => p.period === nextPeriodNumber);
+                 if (existingNext) { displayPrediction(existingNext, currentPredictionEl); return; }
+
+                 const nextPrediction = generatePrediction(nextPeriodNumber); // Includes the *new* currentBet
+                 history.push(nextPrediction);
+                 displayPrediction(nextPrediction, currentPredictionEl);
+                 saveAppState(); renderHistoryTable(); updateStats();
+            }
+
+            // --- Navigation Handling ---
+            function handleNavClick(event) { /* ... */ const link = event.target.closest('.nav-link'); if (link && !link.classList.contains('external')) { event.preventDefault(); const targetViewId = link.dataset.view; views.forEach(view => view.classList.remove('active')); navLinks.forEach(navLink => navLink.classList.remove('active')); const targetView = document.getElementById(targetViewId); if (targetView) targetView.classList.add('active'); link.classList.add('active'); setTimeout(adjustBodyPadding, 50); } }
+
+            // --- Event Listeners Setup ---
+            function setupEventListeners() {
+                if(setInitialBetButton) setInitialBetButton.addEventListener('click', handleSetInitialBet); // Changed listener
+                if(predictInitialButton) predictInitialButton.addEventListener('click', handleInitialPrediction);
+                if(clearHistoryButton) clearHistoryButton.addEventListener('click', clearHistoryOnly); // Changed function
+                if(historyTableBody) historyTableBody.addEventListener('click', handleHistoryAction);
+                 const navContainer = document.querySelector('.navbar'); if(navContainer) navContainer.addEventListener('click', handleNavClick);
+                window.addEventListener('resize', adjustBodyPadding);
+            }
+
+            // --- Particles.js Initialization ---
+            function initializeParticles() { /* ... */ if (typeof particlesJS !== 'undefined') { particlesJS('particles-js', { /* --- Standard Particles.js Config --- */ "particles": { "number": { "value": 50, "density": { "enable": true, "value_area": 800 } }, "color": { "value": "#00bcd4" }, "shape": { "type": "circle" }, "opacity": { "value": 0.4, "random": true, "anim": { "enable": true, "speed": 0.8, "opacity_min": 0.1, "sync": false } }, "size": { "value": 3, "random": true }, "line_linked": { "enable": true, "distance": 150, "color": "#ffffff", "opacity": 0.2, "width": 1 }, "move": { "enable": true, "speed": 2, "direction": "none", "out_mode": "out" } }, "interactivity": { "detect_on": "canvas", "events": { "onhover": { "enable": true, "mode": "repulse" }, "onclick": { "enable": true, "mode": "push" }, "resize": true }, "modes": { "repulse": { "distance": 100, "duration": 0.4 }, "push": { "particles_nb": 4 } } }, "retina_detect": true }); } else { console.warn("particles.js library not found."); } }
+
+            // --- Run Initialization ---
+            init();
+        });
+    </script>
+
+</body>
+</html>

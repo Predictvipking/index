@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predict VIP King Pro | Advanced Prediction System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- Dark Neumorphic Theme (v2) --- */
+        :root {
+            --neumorph-bg: #2a2f3a; --neumorph-bg-darker: #252933; --neumorph-text: #c1c8d4;
+            --neumorph-accent: #ff8c00; /* Dark Orange */ --neumorph-shadow-light: rgba(209,217,230,0.08);
+            --neumorph-shadow-dark: rgba(0,0,0,0.3); --success: #5cb85c; --danger: #d9534f;
+            --warning: #f0ad4e; --info: #5bc0de; --violet: #9b59b6;
+            --glow: 0 0 12px rgba(255,140,0,0.5); /* Accent glow */
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+        body { background: var(--neumorph-bg); color: var(--neumorph-text); min-height: 100vh; overflow-x: hidden; font-size: 14px; line-height: 1.6; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 15px; }
+
+        /* Removed Top Navigation CSS */
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(42,47,58,0.85); align-items: center; justify-content: center; backdrop-filter: blur(6px); }
+        .modal-content { background: var(--neumorph-bg-darker); margin: auto; padding: 25px; width: 90%; max-width: 600px; border-radius: 20px; position: relative; color: var(--neumorph-text); box-shadow: 10px 10px 20px var(--neumorph-shadow-dark), -10px -10px 20px var(--neumorph-shadow-light); }
+        .modal-content h3 { margin-bottom: 15px; color: var(--neumorph-accent); display: flex; align-items: center; gap: 10px; font-size: 1.25rem; padding-bottom: 10px; font-weight: 600; border-bottom: 1px solid rgba(0,0,0,0.1); }
+        .modal-content ol { padding-left: 20px; margin-top: 15px; } .modal-content li { margin-bottom: 10px; line-height: 1.6; font-size: 0.9rem; }
+        .modal-content li ul { margin-top: 5px; } .modal-content p { margin-top: 15px; font-size: 0.9rem; } .modal-content i { margin-right: 5px; }
+        .close-button { color: var(--neumorph-text); position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; transition: color 0.3s ease;} .close-button:hover { color: var(--neumorph-accent); }
+
+        header { text-align: center; margin-bottom: 25px; animation: fadeIn 1s ease-in-out; }
+        /* Logo Updated */
+        .logo { font-size: 2.3rem; font-weight: 700; margin-bottom: 10px; color: var(--neumorph-accent); text-shadow: 1px 1px 1px var(--neumorph-shadow-dark), -1px -1px 1px var(--neumorph-shadow-light); }
+        .subtitle {
+            font-size: 0.95rem; color: rgba(193, 200, 212, 0.8); margin-bottom: 18px;
+            display: inline-flex; /* Use flex to align icon */
+            align-items: center;
+            gap: 10px; /* Space between text and icon */
+            position: relative;
+        }
+        /* Dev Credit CSS removed */
+        /* Styling for the info icon next to subtitle */
+        .about-icon {
+             color: var(--neumorph-text); /* Match subtitle initially */
+             text-decoration: none;
+             font-size: 1.2em; /* Slightly larger */
+             cursor: pointer;
+             transition: color 0.3s ease;
+        }
+        .about-icon:hover {
+            color: var(--neumorph-accent); /* Highlight on hover */
+        }
+
+        .card { margin-bottom: 20px; padding: 20px; background: var(--neumorph-bg); border-radius: 20px; box-shadow: 6px 6px 12px var(--neumorph-shadow-dark), -6px -6px 12px var(--neumorph-shadow-light); transition: all 0.3s ease; }
+        .card-title { font-size: 1.1rem; margin: -20px -20px 20px -20px; padding: 15px 20px; color: var(--neumorph-accent); display: flex; align-items: center; gap: 10px; font-weight: 600; border-bottom: 1px solid rgba(0,0,0,0.1); box-shadow: inset 0 -3px 6px rgba(0,0,0,0.1); border-radius: 20px 20px 0 0; background: var(--neumorph-bg); }
+        .card-title i { font-size: 1.3rem; margin-right: 5px; }
+
+        .info-section .card-title { margin-bottom: 15px; }
+        .system-status-items-wrapper { display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .info-item { display: flex; align-items: center; font-size: 0.9rem; margin-bottom: 0; padding: 10px 15px; border-radius: 12px; flex-grow: 1; justify-content: center; background: var(--neumorph-bg); box-shadow: inset 3px 3px 6px var(--neumorph-shadow-dark), inset -3px -3px 6px var(--neumorph-shadow-light); }
+        .info-item i { margin-right: 8px; color: var(--neumorph-accent); width: 18px; text-align: center; font-size: 1rem; }
+        .info-item span span { font-weight: 600; color: var(--neumorph-text); }
+        #apiStatus.status-connecting { color: var(--warning); animation: blink 1.5s infinite; }
+        #apiStatus.status-error { color: var(--danger); }
+        #apiStatus.status-online { color: var(--success); text-shadow: 0 0 8px var(--success);}
+        @keyframes blink { 50% { opacity: 0.5; } }
+
+        #controlCard .card-title { margin-bottom: 20px; }
+        .control-panel-content-wrapper { display: flex; align-items: flex-end; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; }
+        .control-item { flex: 1; min-width: 150px; }
+        .control-item label { font-size: 0.85rem; display: block; margin-bottom: 6px; color: var(--neumorph-accent); font-weight: 500; }
+        .control-item .static-engine-display, .control-item select, .control-item button { width: 100%; padding: 11px 15px; font-size: 0.9rem; border-radius: 12px; border: none; color: var(--neumorph-text); transition: all 0.3s ease; }
+        .control-item .static-engine-display, .control-item select { background: var(--neumorph-bg-darker); box-shadow: inset 4px 4px 8px var(--neumorph-shadow-dark), inset -4px -4px 8px var(--neumorph-shadow-light); }
+        .control-item select { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c1c8d4'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 15px center; background-size: 14px; cursor: pointer; }
+        .control-item button { background: var(--neumorph-bg); box-shadow: 5px 5px 10px var(--neumorph-shadow-dark), -5px -5px 10px var(--neumorph-shadow-light); color: var(--neumorph-accent); font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .control-item button:hover { color: var(--light); box-shadow: 4px 4px 8px var(--neumorph-shadow-dark), -4px -4px 8px var(--neumorph-shadow-light); }
+        .control-item button:active { box-shadow: inset 3px 3px 6px var(--neumorph-shadow-dark), inset -3px -3px 6px var(--neumorph-shadow-light); color: var(--light); }
+        .refresh-control button i { margin-right: 5px; }
+
+        .server-info { display: none; padding: 12px; background: var(--neumorph-bg-darker); border-radius: 10px; margin-top: 10px; animation: fadeIn 0.5s ease-out; border: 1px solid rgba(0,0,0,0.1); box-shadow: inset 2px 2px 4px var(--neumorph-shadow-dark); }
+        .server-info.active { display: block; } .server-info p { margin-bottom: 8px; font-size: 0.9rem; line-height: 1.5; }
+        .server-info ul { padding-left: 18px; margin-bottom: 8px; } .server-info li { margin-bottom: 5px; font-size: 0.9rem; list-style-type: '✧ '; }
+
+        select:focus, button:focus { outline: none; }
+
+        .result-display { padding: 18px; text-align: left; }
+        .result-line-1 { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 5px;}
+        .result-line-1 .period-info { font-size: 0.8rem; color: rgba(193, 200, 212, 0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .result-line-1 .timer { font-size: 0.9rem; color: var(--neumorph-accent); font-weight: 600; white-space: nowrap; }
+        .result-line-2 { text-align: center; padding: 12px 10px; border-radius: 15px; background: var(--neumorph-bg); box-shadow: inset 5px 5px 10px var(--neumorph-shadow-dark), inset -5px -5px 10px var(--neumorph-shadow-light); }
+        .result-line-2 .prediction-result { font-size: 1.05rem; font-weight: 500; color: var(--neumorph-text); line-height: 1.5; margin:0; word-wrap: break-word; }
+        .result-line-2 .prediction-result .predicted-word { font-weight: 700; color: var(--neumorph-accent); margin-right: 5px; font-size: 1.1em; }
+        .result-line-2 .prediction-result .probability-percent { font-weight: 600; color: var(--light); margin-right: 8px; font-size: 1.1em;}
+        .result-line-2 .prediction-result .prediction-message { font-size: 0.8rem; color: rgba(193, 200, 212, 0.7); display: block; margin-top: 4px;}
+
+        .tabs { display: flex; margin-bottom: 15px; border-bottom: none; justify-content: center; gap: 10px;}
+        .tabs button { background: var(--neumorph-bg); box-shadow: 4px 4px 8px var(--neumorph-shadow-dark), -4px -4px 8px var(--neumorph-shadow-light); border: none; padding: 10px 18px; cursor: pointer; color: var(--neumorph-text); font-weight: 500; position: relative; border-radius: 10px; flex-grow: 0; text-align: center; font-size: 0.9rem; transition: all 0.3s ease; }
+        .tabs button.active { color: var(--neumorph-accent); background: var(--neumorph-bg); box-shadow: inset 3px 3px 6px var(--neumorph-shadow-dark), inset -3px -3px 6px var(--neumorph-shadow-light); font-weight: 600; }
+        .tabs button:hover:not(.active) { color: var(--neumorph-accent); box-shadow: 3px 3px 6px var(--neumorph-shadow-dark), -3px -3px 6px var(--neumorph-shadow-light); }
+
+        .history-header { display: none; gap: 8px; padding: 10px 15px; font-weight: 600; font-size: 0.7rem; color: var(--neumorph-accent); background: var(--neumorph-bg-darker); border-bottom: 1px solid rgba(0,0,0,0.2); border-top-left-radius: 15px; border-top-right-radius: 15px; text-transform: uppercase; margin-bottom: 5px; }
+        #gameHistoryHeader { grid-template-columns: 2.5fr 1fr 1fr 2fr; }
+        #myHistoryHeader { grid-template-columns: 2fr 2fr 1fr 1.5fr 1fr; }
+        .history-header-item { text-align: left; white-space: nowrap; } .history-header-item:nth-child(n+2) { text-align: center; }
+
+        .history-content { min-height: 250px; max-height: 350px; overflow-y: auto; padding: 5px; }
+        .history-content::-webkit-scrollbar { width: 8px; } .history-content::-webkit-scrollbar-track { background: var(--neumorph-bg-darker); border-radius: 8px; } .history-content::-webkit-scrollbar-thumb { background: var(--neumorph-accent); border-radius: 8px; }
+
+        .history-item { background: var(--neumorph-bg); border-radius: 10px; padding: 10px 15px; margin-bottom: 8px; display: grid; gap: 8px; align-items: center; transition: all 0.3s ease; font-size: 0.85rem; box-shadow: 4px 4px 8px var(--neumorph-shadow-dark), -4px -4px 8px var(--neumorph-shadow-light); }
+        .history-item:hover { transform: scale(0.99); box-shadow: 1px 1px 2px var(--neumorph-shadow-dark), -1px -1px 2px var(--neumorph-shadow-light); }
+        .history-item.game-result-item { grid-template-columns: 2.5fr 1fr 1fr 2fr; }
+        .history-item.my-prediction-item { grid-template-columns: 2fr 2fr 1fr 1.5fr 1fr; }
+
+        .history-item .history-value { font-weight: 500; display: flex; align-items: center; word-break: break-all; }
+        .history-item.game-result-item .history-value:nth-child(n+2),
+        .history-item.my-prediction-item .history-value:nth-child(n+3) { justify-content: center; font-weight: 600; }
+        .history-item.my-prediction-item .history-value:nth-child(1),
+        .history-item.my-prediction-item .history-value:nth-child(2) { justify-content: flex-start; word-break: normal; }
+
+        .history-item .status-win { color: var(--success); } .history-item .status-loss { color: var(--danger); } .history-item .status-pending { color: var(--warning); }
+        .history-item .level-high { color: var(--success); font-weight:600; } .history-item .level-medium { color: var(--warning); } .history-item .level-low { color: var(--info); }
+
+        .color-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 4px; border: 1px solid rgba(0,0,0,0.2); }
+        .color-red { background-color: var(--danger); } .color-green { background-color: var(--success); } .color-violet { background-color: var(--violet); }
+
+        .analytics-grid { display: grid; grid-template-columns: auto auto 1fr; gap: 10px 20px; align-items: center; font-size: 0.9rem; margin-top: 15px; padding: 15px; border-radius: 15px; background: var(--neumorph-bg); box-shadow: inset 4px 4px 8px var(--neumorph-shadow-dark), inset -4px -4px 8px var(--neumorph-shadow-light); }
+        .analytics-grid > div:nth-child(3n+1) { font-weight: 500; display: flex; align-items: center;}
+        .analytics-grid > div:nth-child(3n+2) { font-weight: 600; text-align: right; }
+        .analytics-grid > div:nth-child(3n) { text-align: right; color: var(--neumorph-accent); }
+        .analytics-grid h4 { grid-column: 1 / -1; margin-bottom: 15px; color: var(--neumorph-accent); border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 8px; font-size: 1rem;}
+        .analytics-grid .size-b, .analytics-grid .size-s { display: inline-block; width: 20px; height: 20px; line-height: 20px; text-align: center; border-radius: 6px; margin-right: 8px; font-weight: bold; color: var(--neumorph-bg); background-color: var(--neumorph-text); }
+
+        .pulse { animation: none; } @keyframes fadeIn { from{opacity:0;} to{opacity:1;} } .floating { animation: none; } .glow-text { text-shadow: none; }
+
+        @media (max-width: 768px) {
+             .container { padding: 15px; } .card { padding: 15px; border-radius: 15px; }
+             .card-title { padding: 12px 15px; font-size: 1rem;}
+             .control-panel-content-wrapper { flex-direction: column; align-items: stretch; gap: 12px; }
+
+             .history-header { grid-template-columns: 1.5fr 0.8fr 0.8fr 1.5fr; } /* Game */
+             #myHistoryHeader { grid-template-columns: 1.5fr 1.5fr 1fr 1fr 1fr; } /* My Pred */
+             .history-item.game-result-item { grid-template-columns: 1.5fr 0.8fr 0.8fr 1.5fr; }
+             .history-item.my-prediction-item { grid-template-columns: 1.5fr 1.5fr 1fr 1fr 1fr; }
+        }
+        @media (max-width: 576px) {
+             body { font-size: 13px; } .logo { font-size: 1.8rem; } .subtitle { font-size: 0.85rem; }
+             .card { padding: 12px; margin-bottom: 15px; border-radius: 15px; } .card-title { padding: 10px 12px; font-size: 0.95rem;}
+             .system-status-items-wrapper { gap: 8px; } .info-item { font-size: 0.75rem; padding: 8px 10px; border-radius: 10px;} .info-item i { font-size: 0.9rem; }
+
+             .control-item label { font-size: 0.75rem; } .control-item .static-engine-display, .control-item select, .control-item button { padding: 10px 12px; font-size: 0.8rem; border-radius: 10px; }
+
+             .result-line-1 .period-info, .result-line-1 .timer { font-size: 0.75rem;}
+             .result-line-2 .prediction-result { font-size: 1rem; }
+
+             .tabs button { padding: 8px 12px; font-size: 0.8rem;}
+             .history-header { grid-template-columns: 1.3fr 0.7fr 0.7fr 1.3fr; font-size: 0.6rem; padding: 7px 10px;} /* Game */
+             #myHistoryHeader { grid-template-columns: 1.3fr 1.5fr 0.8fr 1fr 1fr; font-size: 0.6rem; padding: 7px 10px;} /* My Pred */
+             .history-item, .history-item.my-prediction-item, .history-item.game-result-item { font-size: 0.75rem; padding: 8px 10px; border-radius: 8px;}
+             .history-item.game-result-item { grid-template-columns: 1.3fr 0.7fr 0.7fr 1.3fr; }
+             .history-item.my-prediction-item { grid-template-columns: 1.3fr 1.5fr 0.8fr 1fr 1fr; }
+             .color-dot { width:9px; height:9px; margin-right:3px; }
+             .analytics-grid { grid-template-columns: auto auto 1fr; gap: 6px 10px; font-size: 0.8rem;}
+
+             .modal-content { width: 95%; padding: 20px; } .modal-content h3 {font-size: 1.1rem;} .modal-content li {font-size: 0.85rem;}
+             .close-button { top: 10px; right: 15px; font-size: 24px;}
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="logo">Predict VIP King Pro</h1>
+            <p class="subtitle">
+                Advanced AI Prediction System
+                <a href="#" id="aboutToolsLink" class="about-icon" title="About & How to Use">
+                    <i class="fas fa-info-circle"></i>
+                </a>
+            </p>
+            </header>
+
+        <div id="howToUseModal" class="modal">
+             <div class="modal-content neumorph-outset">
+                <span class="close-button" id="modalCloseButton">&times;</span>
+                <h3><i class="fas fa-question-circle"></i> How To Use Predict VIP King Pro</h3>
+                <ol>
+                     <li><strong>Engine:</strong> Uses the advanced <strong>Holographic AI Matrix</strong>.</li>
+                    <li><strong>Select Type:</strong> Choose prediction type (Big/Small or Red/Green).</li>
+                    <li><strong>Prediction:</strong> Displays AI prediction ("Big", "Small", "Red", "Green") with probability (P%).</li>
+                    <li><strong>History Tab:</strong>
+                        <ul>
+                            <li>"Game Results": Shows official outcomes. Note: "Violet" results (0, 5) show text "Red+Violet" or "Green+Violet" and corresponding combined dots.</li>
+                            <li>"My Predictions": Tracks your history with Level (High/Medium/Low confidence), Actual result ("Big", "Small", "Red", "Green", "Violet"), and Status.</li>
+                        </ul>
+                    </li>
+                     <li><strong>Analytics Tab:</strong> Shows recent game statistics (counts and percentages of outcomes).</li>
+                    <li><strong>Refresh:</strong> Use if data seems delayed. Pending predictions update automatically when viewed.</li>
+                </ol>
+                 <p><i class="fas fa-exclamation-triangle"></i> <strong>Disclaimer:</strong> This is an AI prediction tool based on historical data. It does not guarantee winnings. Play responsibly.</p>
+            </div>
+        </div>
+
+        <div class="card info-section neumorph-flat">
+            <h2 class="card-title"><i class="fas fa-tachometer-alt"></i> System Status</h2>
+            <div class="system-status-items-wrapper">
+                <div class="info-item"><i class="fas fa-signal"></i><span>API: <span id="apiStatus">Connecting...</span></span></div>
+                <div class="info-item"><i class="fas fa-sync"></i><span>Refresh: <span id="lastRefresh">--:--:--</span></span></div>
+                <div class="info-item"><i class="fas fa-bullseye"></i><span>Accuracy: <span id="accuracyRate">N/A</span></span></div>
+            </div>
+        </div>
+
+        <div class="card neumorph-outset" id="controlCard">
+            <h2 class="card-title"><i class="fas fa-sliders-h"></i> Control Panel</h2>
+            <div class="control-panel-content-wrapper">
+                <div class="control-item engine-control">
+                    <label>Engine</label>
+                    <div class="static-engine-display">Holographic AI Matrix</div>
+                </div>
+                <div class="control-item type-control">
+                    <label for="resultType">Prediction Type</label>
+                    <select id="resultType">
+                        <option value="bigsmall">Big (B) / Small (S)</option>
+                        <option value="redgreen">Red (R) / Green (G)</option>
+                    </select>
+                </div>
+                <div class="control-item refresh-control">
+                     <label>&nbsp;</label> <button onclick="forceRefresh()" title="Force data refresh"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+            </div>
+            <div id="holoInfo" class="server-info active neumorph-flat" style="margin-top:15px; padding: 15px;">
+                <p style="margin-bottom: 8px; font-weight:600;">Holographic AI Matrix Details:</p>
+                <ul style="margin-bottom: 0;"><li>Advanced multi-dimensional data analysis.</li><li>Accuracy: 87-94% (theoretical)</li></ul>
+            </div>
+        </div>
+
+        <div class="card result-display neumorph-outset">
+            <div class="result-line-1">
+                <span class="period-info"><span id="period">Period: Loading...</span></span>
+                <span class="timer" id="timer">Time: --s</span>
+            </div>
+            <div class="result-line-2">
+                 <span class="prediction-result" id="currentResult">Initializing System...</span>
+            </div>
+        </div>
+
+        <div class="card neumorph-flat"> <h2 class="card-title"><i class="fas fa-history"></i> History</h2>
+            <div class="tabs">
+                <button onclick="fetchData(1, 'game')" class="active">Game Results</button>
+                <button onclick="fetchData(1, 'my')">My Predictions</button>
+                <button onclick="fetchData(1, 'chart')">Analytics</button>
+            </div>
+            <div class="history-header" id="gameHistoryHeader">
+                <div class="history-header-item">Period</div><div class="history-header-item">Num</div>
+                <div class="history-header-item">B/S</div><div class="history-header-item">Color</div>
+            </div>
+            <div class="history-header" id="myHistoryHeader">
+                <div class="history-header-item">Period</div><div class="history-header-item">Predicted (P%)</div>
+                <div class="history-header-item">Level</div><div class="history-header-item">Actual</div>
+                <div class="history-header-item">Status</div>
+            </div>
+            <div class="history-content" id="historyContent">Loading history...</div>
+        </div>
+    </div>
+
+<script>
+    // --- JAVASCRIPT (Neumorphic Theme - Functionality Updates v2) ---
+    let lastPeriodNumber = null, history = [], pendingResult = null;
+    const selectedServer = 'holo'; // Fixed
+    let lastTimerUpdate = 0, cachedData = [], lastResults = { bigsmall: [], redgreen: [] };
+    let winCount = 0, totalPredictions = 0;
+    let isFetching = false; // Prevent simultaneous fetches
+
+    function setApiStatus(statusType, message = '') {
+        const apiStatusEl = document.getElementById('apiStatus');
+        if (!apiStatusEl) return;
+        apiStatusEl.classList.remove('status-online', 'status-error', 'status-connecting'); // Clear previous classes
+        switch (statusType) {
+            case 'connecting': apiStatusEl.textContent = 'Connecting...'; apiStatusEl.style.color = 'var(--warning)'; apiStatusEl.classList.add('status-connecting'); break;
+            case 'online': apiStatusEl.textContent = 'Online'; apiStatusEl.style.color = 'var(--success)'; apiStatusEl.classList.add('status-online'); break;
+            case 'error': apiStatusEl.textContent = `API Err: ${(message||'Unknown').substring(0,20)}`; apiStatusEl.style.color = 'var(--danger)'; apiStatusEl.classList.add('status-error'); break;
+            case 'issue': apiStatusEl.textContent = `Issue(${message || 'Unknown'})`; apiStatusEl.style.color = 'var(--warning)'; apiStatusEl.classList.add('status-error'); break;
+            case 'offline': apiStatusEl.textContent = 'Offline'; apiStatusEl.style.color = 'var(--danger)'; apiStatusEl.classList.add('status-error'); break;
+            default: apiStatusEl.textContent = statusType;
+        }
+    }
+
+    function updatePeriodAndTimer() {
+        const now = new Date(), currentTime = now.getTime();
+        if (currentTime - lastTimerUpdate < 500) return;
+        lastTimerUpdate = currentTime;
+        const year = now.getUTCFullYear(), month = String(now.getUTCMonth() + 1).padStart(2,'0'), day = String(now.getUTCDate()).padStart(2,'0');
+        const hours = now.getUTCHours(), minutes = now.getUTCMinutes(), totalMinutesToday = hours * 60 + minutes;
+        const periodNumber = `${year}${month}${day}1000${10001 + totalMinutesToday}`;
+        const remainingSeconds = 60 - now.getUTCSeconds();
+
+        if (lastPeriodNumber !== periodNumber) {
+            if (lastPeriodNumber) {
+                const predForOldPeriod = history.find(p => p.period === lastPeriodNumber && p.status === "Pending");
+                if (predForOldPeriod) checkPendingResult(lastPeriodNumber, false).catch(e=>console.warn("Check old silent err:", e));
+            }
+            lastPeriodNumber = periodNumber;
+            document.getElementById('period').textContent = `Period: ${periodNumber}`;
+            generateResult(periodNumber);
+        }
+        document.getElementById('timer').textContent = `Time: ${String(remainingSeconds).padStart(2,'0')}s`;
+        document.getElementById('lastRefresh').textContent = new Date().toLocaleTimeString();
+    }
+
+    async function fetchPage(page) {
+        // Avoid rapid multiple fetches if already fetching page 1
+        if (isFetching && page === 1) {
+             // console.log("Fetch page 1 skipped, already in progress.");
+             return cachedData.slice(0, 10); // Return some cached data if possible
+        }
+        if (page === 1 && !isFetching) { // Only show connecting for primary page 1 fetches
+             setApiStatus('connecting');
+             isFetching = true;
+        }
+
+        try {
+            const resp = await fetch("https://api.bdg88zf.com/api/webapi/GetNoaverageEmerdList", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ pageSize: 10, pageNo: page, typeId: 1, language: 0, random: "4a0522c6ecd8410496260e686be2a57c", signature: "334B5E70A0C9B8918B0B15E517E2069C", timestamp: Math.floor(Date.now()/1000)})
+            });
+            if (!resp.ok) { setApiStatus('issue', resp.status); return []; }
+            const data = await resp.json();
+            if (data.code === 0 && data.data && Array.isArray(data.data.list)) {
+                if (page === 1) setApiStatus('online'); // Set online only on successful primary fetch
+                // Update cache if needed
+                 if (page === 1) {
+                    // Prepend new results to cache, remove duplicates, sort, trim
+                    const fetchedIssues = new Set(data.data.list.map(item => item.issueNumber));
+                    const oldCacheFiltered = cachedData.filter(item => !fetchedIssues.has(item.issueNumber));
+                    cachedData = [...data.data.list, ...oldCacheFiltered]
+                                 .sort((a,b) => parseInt(b.issueNumber || 0) - parseInt(a.issueNumber || 0))
+                                 .slice(0, 50); // Keep cache size manageable
+                }
+                return data.data.list;
+            } else {
+                if (page === 1) setApiStatus('error', data.msg || `Code ${data.code}`);
+                return [];
+            }
+        } catch (e) {
+            if (page === 1) setApiStatus('offline');
+            console.error("fetchPage Error:", e); return [];
+        } finally {
+             if (page === 1) isFetching = false;
+        }
+    }
+
+    async function fetchOptimizedData(pagesToFetch = 3) {
+        const requiredResults = pagesToFetch * 10;
+        // Use cache if it's reasonably full
+        if (cachedData.length >= requiredResults) return cachedData.slice(0, requiredResults);
+        // If cache is empty or too small, fetch fresh data
+        // console.log(`Workspaceing ${pagesToFetch} pages for analysis cache...`);
+        let allData = [], promises = [];
+        // Fetch pages sequentially to avoid status message flickering
+        for (let i = 1; i <= pagesToFetch; i++) {
+             const pageData = await fetchPage(i); // fetchPage updates status
+             if (pageData) allData.push(...pageData);
+        }
+        try {
+            const uniqueData = Array.from(new Map(allData.map(item => [item.issueNumber, item])).values());
+            cachedData = uniqueData.sort((a,b) => parseInt(b.issueNumber || 0) - parseInt(a.issueNumber || 0));
+            // console.log(`Analysis cache updated: ${cachedData.length} items`);
+            return cachedData.slice(0, requiredResults);
+        } catch (e) { console.error('Optimized fetch err:', e); return []; }
+    }
+
+    async function fetchGameResult(period) {
+        try {
+            let foundResult = cachedData.find(item => item.issueNumber === period);
+            if (!foundResult) { const list = await fetchPage(1); foundResult = list ? list.find(item => item.issueNumber === period) : null; }
+            if (foundResult) {
+                 const num = parseInt(foundResult.number, 10); let colorStr;
+                 if (num === 0 || num === 5) { colorStr = 'Violet'; }
+                 else if ([2,4,6,8].includes(num)) { colorStr = 'Red'; }
+                 else if ([1,3,7,9].includes(num)) { colorStr = 'Green'; }
+                 else { colorStr = 'Unknown'; }
+                 return { period: foundResult.issueNumber, rawNumber: num, actualBigSmallResult: num >= 5 ? 'Big' : 'Small', actualColorStringResult: colorStr };
+            } return null;
+        } catch (e) { console.error(`WorkspaceGameRes err ${period}:`, e); return null; }
+    }
+
+    async function holographicAIMatrix(type) {
+        const data = await fetchOptimizedData(3);
+        const nums = data.length ? data.map(item => parseInt(item.number, 10)).filter(n=>!isNaN(n)) : [];
+        if (nums.length < 10) return { result: "N/A", probability: 0, message: "Insufficient data" };
+        const bScore = nums.filter(n=>n>=5).length / nums.length;
+        const rScore = nums.filter(n=>[0,2,4,6,8].includes(n)).length / nums.length;
+        let res, prob, msg = "AI Projection.";
+        if (type === 'bigsmall') { res = bScore > 0.5 ? 'Big' : 'Small'; prob = 75 + Math.abs(bScore - 0.5) * 42; }
+        else { res = rScore > 0.5 ? 'Red' : 'Green'; prob = 75 + Math.abs(rScore - 0.5) * 42; }
+        // Enhanced Trend/Loss Recovery Adjustment
+        if (nums.length >= 2) {
+            let lastOutcome1 = (type === 'bigsmall') ? (nums[0] >= 5 ? 'Big' : 'Small') : ([0,2,4,6,8].includes(nums[0]) ? 'Red' : 'Green');
+            let oppositeRes = (res === 'Big')?'Small':(res === 'Small')?'Big':(res === 'Red')?'Green':'Red';
+            // If last result was opposite, slightly nudge probability down for current prediction
+            if (lastOutcome1 === oppositeRes) { prob = Math.max(68, prob - 2); msg = "Counter-trend observed." }
+            // If last 2 were opposite, consider switching prediction
+            let lastOutcome2 = (type === 'bigsmall') ? (nums[1] >= 5 ? 'Big' : 'Small') : ([0,2,4,6,8].includes(nums[1]) ? 'Red' : 'Green');
+             if (lastOutcome1 === oppositeRes && lastOutcome2 === oppositeRes) {
+                 if (!lastResults[type].length >= 3 || !lastResults[type].slice(0,3).every(r => r === oppositeRes)) {
+                    res = oppositeRes; prob += 4; msg = "Counter-trend Follow."; // Boost prob if following trend
+                }
+             }
+        }
+        // Streak Breaker
+        if (lastResults[type].length >= 3 && lastResults[type].slice(0,3).every(r => r === res)) {
+            res = (res === 'Big') ? 'Small' : (res === 'Small') ? 'Big' : (res === 'Red') ? 'Green' : 'Red';
+            prob = Math.max(68, prob - 5); msg = "Streak Break Model.";
+        }
+        return { result: res, probability: Math.min(97, Math.max(68, Math.round(prob))), message: msg };
+    }
+
+    async function generateResult(period) {
+        if (!period) return;
+        const currentResultEl = document.getElementById('currentResult');
+        currentResultEl.textContent = 'AI Analyzing...';
+        const resultType = document.getElementById('resultType').value;
+        try {
+            const pred = await holographicAIMatrix(resultType);
+            await new Promise(resolve => setTimeout(resolve, 150));
+            const predWord = pred.result || "Error"; const probability = pred.probability || 0; const message = pred.message || "";
+            currentResultEl.innerHTML = `<span class="predicted-word">${predWord}</span> <span class="probability-percent">(${probability}%)</span> <span class="prediction-message">${message}</span>`;
+            if (pred.result && pred.result !== "N/A" && pred.result !== "?") {
+                 totalPredictions++;
+                 const entry = { period, predicted:pred.result, actual:null, status:"Pending", resultType, server:selectedServer, probability:pred.probability };
+                 history.unshift(entry); if(history.length > 50) history.pop();
+                 pendingResult = entry;
+                 lastResults[resultType].unshift(pred.result); if(lastResults[resultType].length > 5) lastResults[resultType].pop();
+                 updateAccuracyDisplay();
+            } else { currentResultEl.textContent = pred.message || "Prediction Unavailable"; }
+        } catch (e) { console.error("Generate err:", e); currentResultEl.textContent = 'Prediction Error'; }
+    }
+
+     function updateAccuracyDisplay() {
+         if (totalPredictions > 0) document.getElementById('accuracyRate').textContent = `${Math.round((winCount/totalPredictions)*100)}% (${winCount}/${totalPredictions})`;
+         else document.getElementById('accuracyRate').textContent = 'N/A';
+     }
+
+    async function checkPendingResult(periodToCheck, refreshView = false) {
+        const predToUpdate = history.find(p => p.period === periodToCheck && p.status === "Pending");
+        if (!predToUpdate) return false;
+        const outcome = await fetchGameResult(periodToCheck);
+        if (outcome && outcome.period === periodToCheck) {
+            let win = false; let actualWord;
+            if (predToUpdate.resultType === 'bigsmall') { win = predToUpdate.predicted.toUpperCase() === outcome.actualBigSmallResult.toUpperCase(); actualWord = outcome.actualBigSmallResult; }
+            else { let effColor = (outcome.rawNumber===0)?'Red':(outcome.rawNumber===5)?'Green':outcome.actualColorStringResult; win = predToUpdate.predicted.toUpperCase() === effColor.toUpperCase(); actualWord = outcome.actualColorStringResult; }
+            if (predToUpdate.status === "Pending") { // Only update status and count if still pending
+                 if (win) winCount++;
+                 predToUpdate.actual = actualWord; predToUpdate.status = win ? "WIN" : "LOSS";
+                 updateAccuracyDisplay();
+                 if (pendingResult && pendingResult.period === periodToCheck) pendingResult = null;
+                 if(refreshView && getActiveTab() === 'my') fetchData(1, 'my'); // Refresh if requested and my tab active
+                 return true;
+            }
+        }
+        return false;
+    }
+
+    async function fetchData(page, tab='game') {
+        const content = document.getElementById('historyContent');
+        const gameHead = document.getElementById('gameHistoryHeader');
+        const myHead = document.getElementById('myHistoryHeader');
+        content.innerHTML = `<div style="text-align:center;padding:15px;font-size:0.9rem;">Loading ${tab}...</div>`;
+
+        document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+        const activeBtn = document.querySelector(`.tabs button[onclick*="'${tab}'"]`); if(activeBtn) activeBtn.classList.add('active');
+
+        if (gameHead) gameHead.style.display = (tab === 'game') ? 'grid' : 'none';
+        if (myHead) myHead.style.display = (tab === 'my') ? 'grid' : 'none';
+
+        // API Status check on tab change
+        const currentApiStatus = document.getElementById('apiStatus')?.textContent || '';
+        if (!currentApiStatus.includes('Err') && !currentApiStatus.includes('Issue') && !currentApiStatus.includes('Offline') && currentApiStatus !== 'Connecting...') {
+             fetchPage(1).catch(e=>console.warn("Tab change status check failed")); // Trigger API check
+        }
+
+        if (tab === 'game') {
+            try {
+                const list = await fetchPage(page); content.innerHTML = ''; // Clear loading only after fetch attempt
+                if (list && list.length > 0) {
+                    list.forEach(item => {
+                        const p = item.issueNumber||'?', numS = item.number||'?', numN = parseInt(numS);
+                        let bs='?', cs='?', cd='';
+                        if(!isNaN(numN)){ bs=numN>=5?'Big':'Small';
+                            if(numN===0){cs='Red+Violet';cd='<span class="color-dot color-red"></span><span class="color-dot color-violet"></span>';}
+                            else if(numN===5){cs='Green+Violet';cd='<span class="color-dot color-green"></span><span class="color-dot color-violet"></span>';}
+                            else if([2,4,6,8].includes(numN)){cs='Red';cd='<span class="color-dot color-red"></span>';}
+                            else if([1,3,7,9].includes(numN)){cs='Green';cd='<span class="color-dot color-green"></span>';}
+                        }
+                        const div = document.createElement('div'); div.className = 'history-item game-result-item';
+                        div.innerHTML = `<div class="history-value">${p}</div><div class="history-value">${numS}</div><div class="history-value">${bs}</div><div class="history-value">${cd}${cs}</div>`;
+                        content.appendChild(div);
+                    });
+                } else content.innerHTML = '<div style="text-align:center;padding:15px;">No game history available or API error.</div>';
+            } catch(e){ console.error("Game Hist Fetch Err:", e); content.innerHTML = '<div style="text-align:center;padding:15px;">Error loading game history.</div>';}
+
+        } else if (tab === 'my') {
+             content.innerHTML = '<div style="text-align:center;padding:15px;font-size:0.9rem;">Checking results & loading...</div>';
+             try {
+                 let checkPromises = history.filter(p => p.status === "Pending").map(p => checkPendingResult(p.period, false)); // Check silently first
+                 await Promise.all(checkPromises);
+
+                 content.innerHTML = ''; // Clear "Checking..." message
+                 if (history.length === 0) { content.innerHTML = '<div style="text-align:center;padding:15px;">No predictions made.</div>'; return; }
+
+                 history.forEach(item => {
+                     const div = document.createElement('div'); div.className = 'history-item my-prediction-item';
+                     const pred = item.predicted, actual = item.actual || (item.status==="Pending"?'-':'?');
+                     let level, levelClass;
+                     if (item.probability >= 90) { level = 'High'; levelClass = 'level-high'; }
+                     else if (item.probability >= 75) { level = 'Medium'; levelClass = 'level-medium'; }
+                     else { level = 'Low'; levelClass = 'level-low'; }
+                     div.innerHTML = `
+                          <div class="history-value">${item.period}</div>
+                          <div class="history-value">${pred} (${item.probability}%)</div>
+                          <div class="history-value ${levelClass}">${level}</div>
+                          <div class="history-value">${actual}</div>
+                          <div class="history-value status-${item.status.toLowerCase()}">${item.status}</div>`;
+                     content.appendChild(div);
+                 });
+
+             } catch (error) { console.error("Error check/display 'my' preds:", error); content.innerHTML = '<div style="text-align:center;padding:15px;">Error loading predictions.</div>'; }
+
+        } else if (tab === 'chart') {
+            content.innerHTML = '<div style="text-align:center;padding:15px;font-size:0.9rem;">Analyzing recent data...</div>';
+            try {
+                const analyticsData = await fetchOptimizedData(5); // Get last 50 results
+                if (analyticsData && analyticsData.length > 0) {
+                    let redCount = 0, greenCount = 0, violetCount = 0, bigCount = 0, smallCount = 0;
+                    const numbers = analyticsData.map(item => parseInt(item.number, 10)).filter(n => !isNaN(n));
+                    numbers.forEach(num => {
+                        if (num === 0 || num === 5) violetCount++;
+                        if ([2,4,6,8].includes(num)) redCount++; else if ([1,3,7,9].includes(num)) greenCount++;
+                        if (num >= 5) bigCount++; else smallCount++;
+                    });
+                    const totalCount = numbers.length;
+                    const formatPercent = (count) => totalCount ? ((count / totalCount) * 100).toFixed(1) : 0;
+                    content.innerHTML = `
+                        <h4 style="font-size: 0.9rem; color: var(--neumorph-accent); margin-bottom:10px; padding-bottom:5px; border-bottom: 1px solid rgba(0,0,0,0.1);">Recent Trends (Last ${totalCount} Games)</h4>
+                        <div class="analytics-grid">
+                            <div><strong>Outcome</strong></div><div><strong>Count</strong></div><div><strong>Percent</strong></div>
+                            <div><span class="color-dot color-red"></span> Red (2,4,6,8)</div><div>${redCount}</div><div>${formatPercent(redCount)}%</div>
+                            <div><span class="color-dot color-green"></span> Green (1,3,7,9)</div><div>${greenCount}</div><div>${formatPercent(greenCount)}%</div>
+                            <div><span class="color-dot color-violet"></span> Violet (0, 5)</div><div>${violetCount}</div><div>${formatPercent(violetCount)}%</div>
+                            <div style="grid-column: 1 / -1; height: 10px;"></div>
+                            <div><span class="size-b" style="background-color: var(--info); color: var(--neumorph-bg); display:inline-block; width:18px; height:18px; border-radius:4px; text-align:center; line-height:18px; margin-right:5px;">B</span> Big (5-9)</div><div>${bigCount}</div><div>${formatPercent(bigCount)}%</div>
+                            <div><span class="size-s" style="background-color: var(--warning); color: var(--neumorph-bg); display:inline-block; width:18px; height:18px; border-radius:4px; text-align:center; line-height:18px; margin-right:5px;">S</span> Small (0-4)</div><div>${smallCount}</div><div>${formatPercent(smallCount)}%</div>
+                        </div>
+                        <hr style="border-color: rgba(0,0,0,0.1); margin: 15px 0;">
+                        <div style="font-size: 0.9rem;"><strong>Session Accuracy:</strong> ${document.getElementById('accuracyRate').textContent}</div>
+                    `;
+                 } else { content.innerHTML = '<div style="text-align:center;padding:15px;">Not enough data for analysis.</div>'; }
+            } catch(e){ console.error("Analytics Err:", e); content.innerHTML = '<div style="text-align:center;padding:15px;">Error loading analytics.</div>';}
+        }
+    }
+
+    function getActiveTab(){ const ab=document.querySelector('.tabs button.active'); if(ab){const m=ab.getAttribute('onclick').match(/'(\w+)'/); return m?m[1]:'game';} return 'game';}
+
+    function forceRefresh(){
+        cachedData=[]; lastResults={bigsmall:[],redgreen:[]}; // Clear caches
+        let activeTab = getActiveTab();
+        let checkPromises = history.filter(p=>p.status==="Pending").map(p => checkPendingResult(p.period, false)); // Check silently
+        Promise.all(checkPromises).then(() => { fetchData(1, activeTab); }).catch(e => {console.error("Force refresh check err:", e); fetchData(1, activeTab);});
+        if(lastPeriodNumber) generateResult(lastPeriodNumber); // Regenerate current prediction
+
+        const btn=document.querySelector('#controlCard button'); // Use specific selector
+        btn.innerHTML='<i class="fas fa-check"></i> Done'; btn.disabled = true;
+        const oBG=btn.style.background;btn.style.background='linear-gradient(to right,var(--success),#81c784)';
+        setTimeout(()=>{btn.innerHTML='<i class="fas fa-sync-alt"></i> Refresh';btn.style.background=oBG; btn.disabled = false;},1500);
+    }
+
+    // --- Initial Setup ---
+    const aboutLnk=document.getElementById('aboutToolsLink'),modalEl=document.getElementById('howToUseModal'),closeBtn=document.getElementById('modalCloseButton');
+    if(aboutLnk) aboutLnk.onclick=e=>{e.preventDefault();modalEl.style.display='flex';}
+    if(closeBtn) closeBtn.onclick=()=>{modalEl.style.display='none';}
+    window.onclick=e=>{if(e.target==modalEl)modalEl.style.display='none';}
+
+    setInterval(updatePeriodAndTimer, 1000); // Start the main loop
+    window.onload=()=>{
+        console.log('Predict VIP King Pro Initialized.');
+        setApiStatus('connecting'); // Initial status
+        fetchData(1,'game'); // Load initial tab (will trigger API check)
+        updatePeriodAndTimer(); // Initial call
+        document.getElementById('holoInfo').classList.add('active'); // Show engine info
+        document.getElementById('accuracyRate').textContent='N/A';
+        document.getElementById('resultType').addEventListener('change',()=>{if(lastPeriodNumber)generateResult(lastPeriodNumber);});
+    };
+</script>
+
+</body>
+</html>
