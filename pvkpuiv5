@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predict VIP King Pro - UI & AI Enhancements v5 Rev 7</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- Base Styles & Variables --- */
+        :root {
+            --primary: #00e5ff; --secondary: #ffab00; --success: #00c853; --danger: #f50057;
+            --warning: #ffd600; --info: #2979ff; --violet-accent: #d500f9;
+            --bg-main: #0a0f14; --bg-card: #1c232b; --bg-header-footer: #283038;
+            --bg-interactive: #323c47; --bg-hover: #404c59;
+            --text-primary: #e0e0e0; --text-secondary: #9e9e9e; --text-disabled: #616161;
+            --text-win: var(--success); --text-loss: var(--danger); --text-partial: #ffab00;
+            --text-error: var(--warning); --text-num-red: var(--danger); --text-num-green: var(--success);
+            --partial-bg: rgba(255, 171, 0, 0.08); --win-bg: rgba(0, 200, 83, 0.08);
+            --loss-bg: rgba(245, 0, 87, 0.08); --error-bg: rgba(255, 214, 0, 0.08);
+            --border-color: #37474f; --shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+            --tick-color: var(--success); --cross-color: var(--danger);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: linear-gradient(135deg, var(--bg-main) 0%, #1a2027 100%); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; font-size: 14px; line-height: 1.4; }
+        .container { max-width: 1080px; width: 100%; margin: 0 auto; padding: 4px; }
+        header { text-align: center; margin-bottom: 0.4rem; position: relative; padding: 0.4rem; background-color: var(--bg-card); border-radius: 5px; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        h1 { font-size: 1.75rem; margin-bottom: 0.1rem; color: var(--secondary); font-weight: 700; }
+        .header-subtitle-container { display: flex; align-items: center; justify-content: center; gap: 0.3rem; font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.05rem; font-weight: 400; }
+        .about-icon-header { color: var(--text-secondary); text-decoration: none; font-size: 1em; cursor: pointer; transition: color 0.3s ease, transform 0.2s ease; }
+        .about-icon-header:hover { color: var(--primary); transform: scale(1.1); }
+        .info-modal { display: none; position: fixed; z-index: 1050; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
+        .info-modal-content { background: var(--bg-card); color: var(--text-primary); margin: auto; padding: 10px; border: 1px solid var(--border-color); width: 90%; max-width: 420px; border-radius: 5px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); position: relative; }
+        .info-modal-content h3 { color: var(--primary); margin-top: 0; margin-bottom: 7px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; font-size: 0.9rem; font-weight: 500; }
+        .info-modal-content p { margin-bottom: 4px; line-height: 1.25; font-size: 0.72rem;}
+        .info-modal-content ul { list-style-position: inside; padding-left: 0; margin-bottom: 4px;}
+        .info-modal-content li { margin-bottom: 2.5px; font-size: 0.72rem;}
+        .info-modal-content .disclaimer-icon { color: var(--warning); }
+        .info-modal-content .disclaimer-text { font-weight: bold; }
+        .info-modal-close-button { color: #999; position: absolute; top: 3px; right: 7px; font-size: 20px; font-weight: bold; cursor: pointer; }
+        .info-modal-close-button:hover { color: var(--primary); }
+        .top-info-line { display: flex; justify-content: space-around; align-items: center; flex-wrap: nowrap; gap: 0.5rem; padding: 0.3rem 0.5rem; margin-bottom: 0.4rem; border-bottom: 1px solid var(--border-color); background-color: var(--bg-header-footer); border-radius: 4px; overflow-x: auto; }
+        .top-info-line::-webkit-scrollbar { height: 2.5px; }
+        .top-info-line::-webkit-scrollbar-track { background: var(--bg-header-footer); }
+        .top-info-line::-webkit-scrollbar-thumb { background-color: var(--primary); border-radius: 1.5px;}
+        .top-info-item { display: flex; align-items: center; gap: 0.25rem; font-size: 0.85rem; color: var(--text-primary); white-space: nowrap; flex-shrink: 0; }
+        .top-info-item .value { font-weight: 600; color: var(--text-primary); min-width: auto; padding-left: 0.1em; font-size:0.9rem; }
+        .top-info-item i { color: var(--primary); font-size: 0.95rem; margin-right: 0.15em; }
+        #apiStatus.status-connecting { color: var(--warning); animation: blinkStatus 1.5s infinite ease-in-out; }
+        #apiStatus.status-online { color: var(--success); font-weight: 600; }
+        #apiStatus.status-offline { color: var(--danger); font-weight: 600; }
+        @keyframes blinkStatus { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .card { margin-bottom: 4px; padding: 6px; background-color: var(--bg-card); border-radius: 6px; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        .prediction-card { margin-bottom: 3px; }
+        .card-title { font-size: 0.95rem; margin: -6px -6px 4px -6px; padding: 6px 8px; color: var(--primary); display: flex; align-items: center; justify-content: space-between; gap: 4px; font-weight: 600; border-bottom: 1px solid var(--border-color); border-radius: 6px 6px 0 0; background-color: var(--bg-header-footer); }
+        .card-title > div { display: flex; align-items: center; gap: 4px; }
+        .card-title i { font-size: 1rem; margin-right: 2.5px; }
+        .clear-btn { background: var(--danger); color: var(--text-primary); border: none; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 500; transition: background-color 0.2s; }
+        .clear-btn i { margin-right: 3px; }
+        .clear-btn:hover { background-color: #c40044; }
+        .main-interactive-area { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; padding: 0.15rem 0; }
+        .output-area { flex-grow: 1; width: 100%; max-width: 100%; min-width: 250px; padding: 0; border: none; }
+        #currentResult { font-size: 0.95rem; line-height: 1.4; text-align: center; white-space: nowrap; overflow-x: auto; overflow-y: hidden; padding: 0.4rem 0.3rem; background-color: var(--bg-card); border-radius: 4px; color: var(--text-primary); }
+        #currentResult::-webkit-scrollbar { height: 2.5px; }
+        #currentResult::-webkit-scrollbar-track { background: var(--bg-interactive); }
+        #currentResult::-webkit-scrollbar-thumb { background-color: var(--secondary); border-radius: 1.5px; }
+        .prediction-output-item { display: inline-block; margin: 0 3px; vertical-align: middle; font-size: 1em; }
+        .prediction-output-label { color: var(--text-secondary); margin-right: 2px; font-size: 0.9em; }
+        .prediction-output-value { font-weight: 500; color: var(--text-primary); font-size: 1em; }
+        .prediction-output-item.p-bs .prediction-output-value,
+        .prediction-output-item.p-color .prediction-output-value { color: var(--primary); font-weight: 600; font-size: 1.15em; }
+        .prediction-output-item.p-perc .prediction-output-value { color: var(--info); font-weight: 500; }
+        .prediction-output-item.p-rev .prediction-output-value { color: var(--warning); font-weight: 500; }
+        .prediction-output-item.p-color .color-dot { vertical-align: middle; }
+        .prediction-output-item.p-strat .prediction-output-value { color: var(--text-secondary); font-size: 0.9em; font-style: italic; max-width: 75px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+        .tabs { display: flex; margin-bottom: 0rem; border-bottom: 1px solid var(--border-color); gap: 1.5px; background-color: var(--bg-header-footer); border-radius: 4px 4px 0 0; }
+        .tabs button { flex: 1; padding: 0.35rem; background: none; border: none; color: var(--text-secondary); font-weight: 500; cursor: pointer; position: relative; transition: background-color 0.2s, color 0.2s, border-bottom-color 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.2rem; border-bottom: 2px solid transparent; font-size: 0.9rem; }
+        .tabs button.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; background-color: var(--bg-interactive); }
+        .tabs button:hover:not(.active) { color: var(--primary); background-color: var(--bg-hover); }
+        .my-history-controls { padding: 4px 8px; background-color: var(--bg-header-footer); display: flex; gap: 8px; align-items: center; font-size: 0.8rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1px; }
+        .my-history-controls label { color: var(--text-secondary); }
+        .my-history-controls select { background-color: var(--bg-interactive); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 3px; padding: 2px 4px; font-size: 0.8rem; }
+        .history-header { display: none; gap: 1px 2px; padding: 3px 4px; font-weight: 500; border-bottom: 1px solid var(--border-color); font-size: 0.65rem; color: var(--text-secondary); background: var(--bg-header-footer); text-transform: uppercase; margin-bottom: 1px; }
+        #gameHistoryHeader, #myHistoryHeader { border-top-left-radius: 0; border-top-right-radius: 0; }
+        #gameHistoryHeader { grid-template-columns: 2.2fr 0.8fr 1.2fr 2.8fr; }
+        .history-item.game-result-item { grid-template-columns: 2.2fr 0.8fr 1.2fr 2.8fr; }
+        #gameHistoryHeader .history-header-item, .history-item.game-result-item .history-value { text-align: center; justify-content: center; }
+        #gameHistoryHeader .history-header-item:first-child, .history-item.game-result-item .history-value:first-child { text-align: left; justify-content: flex-start; word-break:keep-all; }
+        .history-item.game-result-item .gh-num { font-weight: 600; }
+        .history-item.game-result-item .gh-num-red { color: var(--text-num-red); }
+        .history-item.game-result-item .gh-num-green { color: var(--text-num-green); }
+        .history-item.game-result-item .gh-bs { font-weight: 600; }
+        .history-item.game-result-item .gh-bs-big { color: var(--warning); } /* Yellow for "Big" */
+        .history-item.game-result-item .gh-bs-small { color: var(--info); }    /* Blue for "Small" */
+        .history-item.game-result-item .gh-color { display: flex; align-items: center; justify-content: center; gap: 3px; }
+        .history-item.game-result-item .gh-color .color-dot { margin-right: 0; }
+        #myHistoryHeader { grid-template-columns: 1.8fr 1.5fr 1.8fr 2.2fr 0.8fr; }
+        .history-item.my-prediction-item { grid-template-columns: 1.8fr 1.5fr 1.8fr 2.2fr 0.8fr; line-height: 1.2; }
+        #myHistoryHeader .history-header-item { text-align: center; white-space: nowrap; }
+        #myHistoryHeader .history-header-item:first-child { text-align: left; }
+        #myHistoryHeader .history-header-item:nth-child(4) { text-align: center; }
+        .history-content { background: var(--bg-main); border-radius: 0 0 5px 5px; padding: 0.15rem 0; min-height: 170px; max-height: 260px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--primary) var(--bg-main); }
+        .history-content::-webkit-scrollbar { width: 3px; }
+        .history-content::-webkit-scrollbar-track { background: var(--bg-main); border-radius: 3px; }
+        .history-content::-webkit-scrollbar-thumb { background-color: var(--primary); border-radius: 3px; }
+        .history-item { background: var(--bg-interactive); border: 1px solid var(--border-color); border-radius: 3px; padding: 2.5px 3.5px; margin: 0 0.1rem 1.5px 0.1rem; display: grid; gap: 1px 2px; align-items: center; transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease; font-size: 0.8rem; box-shadow: 0 0.5px 0.5px rgba(0,0,0,0.05); }
+        .history-item:hover { border-color: var(--primary); background-color: var(--bg-hover); }
+        .history-item.my-prediction-item.row-win { background-color: var(--win-bg); border-color: rgba(0, 200, 83, 0.2); }
+        .history-item.my-prediction-item.row-loss { background-color: var(--loss-bg); border-color: rgba(245, 0, 87, 0.2); }
+        .history-item.my-prediction-item.row-error { background-color: var(--error-bg); border-color: rgba(255, 214, 0, 0.2); }
+        .history-item .history-value { font-weight: 400; display: flex; align-items: center; word-break: break-word; color: var(--text-primary); text-align: center; justify-content: center; padding: 0.5px 1.5px; line-height: 1.15; }
+        .history-item.my-prediction-item .history-value:first-child { text-align: left; justify-content: flex-start; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .history-item.my-prediction-item .history-value { font-size: 1em; }
+        .history-item.my-prediction-item .history-value.predicted-bs-value, .history-item.my-prediction-item .history-value.predicted-color-value, .history-item.my-prediction-item .history-value.result-value, .history-item.my-prediction-item .history-value.status-value { text-align: center; justify-content: center; }
+        .history-item.my-prediction-item .history-value.result-value { gap: 2.5px; }
+        .history-item.my-prediction-item .result-bs-big { color: var(--warning); font-weight: 500; } /* Yellow for "Big" */
+        .history-item.my-prediction-item .result-bs-small { color: var(--info); font-weight: 500; } /* Blue for "Small" */
+        .history-item .status-win { color: var(--text-win); font-weight: bold; }
+        .history-item .status-loss { color: var(--text-loss); font-weight: bold; }
+        .history-item .status-error { color: var(--text-error); font-style: italic; }
+        .tick-mark { color: var(--tick-color); margin-left: 1.5px; font-weight: bold; font-size: 0.85em; }
+        .cross-mark { color: var(--cross-color); margin-left: 1.5px; font-weight: bold; font-size: 0.85em; }
+        .color-dot { display: inline-block; width: 6.5px; height: 6.5px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
+        .color-red { background-color: var(--danger); } .color-green { background-color: var(--success); } .color-violet { background-color: var(--violet-accent); } /* Violet color for dot */
+        .stats-bar { background-color: var(--bg-header-footer); padding: 5.5px 8.5px; margin-top: 0; margin-bottom: 3.5px; border-radius: 0 0 4px 4px; border: 1px solid var(--border-color); border-top: none; box-shadow: var(--shadow); display: flex; justify-content: space-around; align-items: center; flex-wrap: nowrap; overflow-x: auto; gap: 6.5px 10.5px; font-size: 0.85rem; }
+        .stats-bar-item { display: flex; align-items: center; gap: 3.5px; color: var(--text-secondary); flex-shrink: 0; }
+        .stats-bar-item strong { color: var(--text-primary); font-weight: 500; }
+        .stats-bar-item .value { font-weight: 500; } .stats-bar-item .win { color: var(--success); } .stats-bar-item .loss { color: var(--danger); } .stats-bar-item .acc { color: var(--primary); } .stats-bar-item .rev { color: var(--warning); } .stats-bar-item .level { color: var(--info); } .stats-bar-item .partial { color: var(--text-partial); } /* Color for Partial text */
+        .analytics-grid { display: grid; grid-template-columns: auto auto 1fr; gap: 3px 6px; align-items: center; font-size: 0.75rem; margin-top: 3.5px; padding: 8px; background: var(--bg-interactive); border-radius: 4px; }
+        .analytics-grid > div { padding: 2px 0; }
+        .analytics-grid > div:nth-child(3n+1) { font-weight: 500; display: flex; align-items: center; color:var(--text-secondary); }
+        .analytics-grid > div:nth-child(3n+1) strong {color: var(--text-primary);}
+        .analytics-grid > div:nth-child(3n+2) { font-weight: 600; text-align: right; color:var(--text-primary); }
+        .analytics-grid > div:nth-child(3n) { text-align: right; color: var(--secondary); }
+        .analytics-grid h4 { grid-column: 1 / -1; margin-bottom: 6px; color: var(--primary); border-bottom: 1px solid var(--border-color); padding-bottom: 3px; font-size: 0.85rem; }
+        .analytics-grid .outcome-icon { display: inline-block; width: 10.5px; height: 10.5px; line-height: 10.5px; text-align: center; border-radius: 2px; margin-right: 3.5px; font-weight: bold; color: var(--bg-card); font-size: 0.55rem;}
+        .analytics-grid .outcome-icon.big { background-color: var(--warning); } /* Yellow for Big icon */
+        .analytics-grid .outcome-icon.small { background-color: var(--info); }    /* Blue for Small icon */
+        .analytics-grid .session-accuracy-footer { grid-column: 1 / -1; text-align: center; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border-color); color: var(--primary); font-weight: 500; font-size: 0.8rem;}
+        .pagination { display: flex; justify-content: center; gap: 0.25rem; margin-top: 0.4rem; }
+        .pagination button { padding: 0.25rem 0.4rem; background: var(--bg-interactive); border: 1px solid var(--border-color); border-radius: 3.5px; color: var(--primary); cursor: pointer; transition: background-color 0.3s, border-color 0.3s; font-size: 0.85rem; }
+        .pagination button:hover:not(:disabled) { background-color: var(--bg-hover); border-color: var(--secondary); }
+        .pagination button.active { background-color: var(--primary); color: var(--bg-card); border-color: var(--primary); }
+        .pagination button:disabled { opacity: 0.4; cursor: not-allowed; background-color: var(--bg-interactive); color: var(--text-disabled); }
+        .floating-notification { position: fixed; bottom: 8px; right: 8px; color: var(--text-primary); padding: 0.4rem 0.6rem; border-radius: 4px; box-shadow: 0 1.5px 5px rgba(0,0,0,0.2); transform: translateY(70px); opacity: 0; transition: all 0.4s ease-out; z-index: 1050; display: flex; align-items: center; gap: 0.2rem; font-size: 0.75rem; background-color: var(--bg-header-footer); }
+        .floating-notification.show { transform: translateY(0); opacity: 1; }
+        .floating-notification i { margin-right: 0.2rem; }
+        .floating-notification.success-bg { background-color: var(--success); } .floating-notification.error-bg { background-color: var(--danger); } .floating-notification.info-bg { background-color: var(--info); }
+        @media (max-width: 768px) {
+            .main-interactive-area { flex-direction: column; align-items: stretch; } .output-area { max-width: 100%; margin-top: 0.5rem; }
+            #currentResult { white-space: normal; overflow-x: hidden; font-size: 0.9rem; }
+            #myHistoryHeader { grid-template-columns: 1.6fr 1.4fr 1.6fr 1.8fr 0.8fr; font-size: 0.7rem; }
+            .history-item.my-prediction-item { grid-template-columns: 1.6fr 1.4fr 1.6fr 1.8fr 0.8fr; font-size: 0.75rem; }
+            #gameHistoryHeader { grid-template-columns: 2fr 0.8fr 1.2fr 2.5fr; font-size: 0.7rem; }
+            .history-item.game-result-item { grid-template-columns: 2fr 0.8fr 1.2fr 2.5fr; font-size: 0.75rem; }
+            .stats-bar { font-size: 0.8rem; padding: 5.5px 8.5px; gap: 6.5px 10.5px;}
+            .analytics-grid { font-size: 0.7rem; }
+        }
+        @media (max-width: 576px) {
+            body { font-size: 16px; } h1 { font-size: 1.5rem; } .header-subtitle-container { font-size: 0.9rem; }
+            .top-info-item { font-size: 0.9rem; gap: 0.3rem; margin-right: 0.4rem;} .top-info-item .value { font-size: 0.95rem;} .top-info-item i { font-size: 1rem;}
+            #currentResult { font-size: 1rem; padding: 3px; } .prediction-output-item { margin: 0 1.5px;}
+            .prediction-output-item.p-bs .prediction-output-value, .prediction-output-item.p-color .prediction-output-value { font-size: 1.1em; }
+            .tabs button { padding: 0.25rem; font-size: 1rem;}
+            #gameHistoryHeader {grid-template-columns: 1.8fr 0.6fr 1fr 2.2fr; font-size: 0.7rem;}
+            .history-item.game-result-item {grid-template-columns: 1.8fr 0.6fr 1fr 2.2fr; font-size: 0.85rem;}
+            #myHistoryHeader { grid-template-columns: 1.5fr 1.2fr 1.5fr 1.8fr 0.8fr; font-size: 0.7rem; gap: 1.5px 2px; }
+            .history-item.my-prediction-item { grid-template-columns: 1.5fr 1.2fr 1.5fr 1.8fr 0.8fr; font-size: 0.9rem; padding: 2px 3px; gap: 1.5px 2px; }
+            .history-item.my-prediction-item .history-value { line-height: 1.1; }
+            .analytics-grid {font-size: 0.9rem;} .pagination button {font-size: 0.95rem;} .floating-notification {font-size: 0.9rem;}
+            .stats-bar { font-size: 0.95rem; padding: 5px 8px; gap: 5px 10px; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; }
+            .stats-bar-item { flex-shrink: 0; }
+            .my-history-controls { font-size: 0.9rem; } .my-history-controls select { font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Predict VIP King Pro</h1>
+            <div class="header-subtitle-container">
+                <span>ADVANCED PREDICTION SYSTEM (UI & Logic v5 Rev 7)</span>
+                <a href="#" id="aboutModalLink" class="about-icon-header" title="About & How to Use">
+                    <i class="fas fa-info-circle"></i>
+                </a>
+            </div>
+        </header>
+
+        <div id="aboutModal" class="info-modal">
+            <div class="info-modal-content">
+                <span class="info-modal-close-button" id="aboutModalCloseButton">&times;</span>
+                <h3><i class="fas fa-info-circle"></i> How to Use Predict VIP King Pro</h3>
+                <p>The system automatically analyzes game history to predict Big/Small and Color status.</p>
+                <ul>
+                    <li><strong>Automatic Prediction:</strong> Predictions are generated automatically for each new period.</li>
+                    <li><strong>Prediction Output:</strong> Shows predicted B/S, Color, Confidence (Per), Reversal Chance (Rev), and Strategy (Stgy).</li>
+                    <li><strong>History Tabs:</strong>
+                        <ul>
+                            <li><em>Game History:</em> Official results from the game.</li>
+                            <li><em>My Predictions:</em> Your prediction results (Win/Loss). Data is saved in your browser. Use dropdown to change entries per page.</li>
+                            <li><em>Analytics:</em> Recent game statistics.</li>
+                        </ul>
+                    </li>
+                    <li><strong>AI Engine:</strong> Uses trend analysis of the last 10 game results. Reversal logic is applied by the AI after 1 or more consecutive losses.</li>
+                    <li><strong>Clear Predictions:</strong> Use the "Clear" button next to "History & Analytics" title to remove your saved prediction log.</li>
+                </ul>
+                <p><i class="fas fa-exclamation-triangle disclaimer-icon"></i> <span class="disclaimer-text">Disclaimer:</span> AI predictions are for analysis and educational purposes only, not guaranteed financial advice. Use responsibly.</p>
+            </div>
+        </div>
+
+        <div class="top-info-line">
+            <div class="top-info-item"> <i class="fas fa-clock"></i><span class="value" id="timer">00s</span> </div>
+            <div class="top-info-item"> <i class="fas fa-hashtag"></i><span class="value" id="period">N/A</span> </div>
+            <div class="top-info-item"> <i class="fas fa-bolt"></i><span class="value" id="status">Active</span> </div>
+            <div class="top-info-item"> <i class="fas fa-server"></i><span class="value" id="apiStatus">Connecting...</span> </div>
+        </div>
+
+        <div class="prediction-section">
+            <div class="prediction-card card">
+                <div class="card-title">
+                    <div><i class="fas fa-brain"></i> AI Prediction Output</div>
+                </div>
+                <div class="main-interactive-area">
+                    <div class="output-area">
+                        <div class="result-display" style="margin-top:0; padding: 0.3rem;">
+                            <div id="currentResult">
+                                <i class="fas fa-hourglass-half fa-spin"></i> Waiting for next prediction...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">
+                <div><i class="fas fa-history"></i> History & Analytics</div>
+                <button id="clearMyPredictionsBtn" class="clear-btn" title="Clear My Predictions Log">
+                    <i class="fas fa-trash-alt"></i> Clear
+                </button>
+            </h2>
+            <div class="stats-bar" id="sessionStatsBar">
+                <div class="stats-bar-item">Wins: <strong id="statsWins" class="win">0</strong></div>
+                <div class="stats-bar-item">Losses: <strong id="statsLosses" class="loss">0</strong></div>
+                <div class="stats-bar-item">Partial: <strong id="statsPartials" class="partial">0</strong></div> <div class="stats-bar-item">Accuracy: <strong id="statsAccuracy" class="acc">0%</strong></div>
+                <div class="stats-bar-item">AI Rev: <strong id="statsAiRev" class="rev">0%</strong></div>
+                <div class="stats-bar-item">Level: <strong id="statsLevel" class="level">Normal</strong></div>
+            </div>
+            <div class="tabs">
+                <button class="active" onclick="fetchData(1, 'game')"> <i class="fas fa-gamepad"></i> Game History </button>
+                <button onclick="fetchData(1, 'my')"> <i class="fas fa-user-clock"></i> My Predictions </button>
+                <button onclick="fetchData(1, 'chart')"> <i class="fas fa-chart-line"></i> Analytics </button>
+            </div>
+            <div class="my-history-controls" id="myHistoryControls" style="display: none;">
+                <label for="entriesPerPage">Show:</label>
+                <select id="entriesPerPage" onchange="changeMyHistoryEntriesPerPage(this.value)">
+                    <option value="10">10 entries</option>
+                    <option value="25">25 entries</option>
+                    <option value="50">50 entries</option>
+                </select>
+            </div>
+            <div class="history-header" id="gameHistoryHeader">
+                <div class="history-header-item">Period</div><div class="history-header-item">Num</div>
+                <div class="history-header-item">B/S</div><div class="history-header-item">Color</div>
+            </div>
+            <div class="history-header" id="myHistoryHeader">
+                <div class="history-header-item">Period</div>
+                <div class="history-header-item">Pred B/S</div>
+                <div class="history-header-item">Pred Color</div>
+                <div class="history-header-item">Result</div> <div class="history-header-item">Status</div>
+            </div>
+            <div class="history-content" id="historyContent">
+                <div style="text-align: center; padding: 2rem;"> <i class="fas fa-spinner fa-spin fa-lg" style="color: var(--primary);"></i> Loading data... </div>
+            </div>
+            <div class="pagination">
+                <button id="prevPageBtn" onclick="changePage(-1)" disabled><i class="fas fa-chevron-left"></i></button>
+                <button id="currentPageBtn" class="active">1</button>
+                <button id="nextPageBtn" onclick="changePage(1)"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="floating-notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notificationText">Notification Text</span>
+    </div>
+
+<script>
+    // --- Global Variables ---
+    let lastCompletedPeriodNumber = null;
+    let history = [];
+    let cachedData = [];
+    let currentPredictionData = {};
+    let currentPage = 1;
+    let currentTab = 'game';
+    let isFetchingPage = false;
+    let isWaitingForResult = false;
+    let consecutiveLosses = 0;
+    let consecutiveWins = 0;
+    let sessionStats = { wins: 0, losses: 0, partials: 0 };
+    let lastAiReversalChance = 0;
+    let currentStrategyLevel = "Normal";
+    let lastTimerUpdate = 0;
+    const POLLING_INTERVAL = 750;
+    const POLLING_TIMEOUT = 10000;
+    const fixedSelectedServerName = 'AutoAnalysisEngine';
+    let myHistoryItemsPerPage = 10;
+
+    const STORAGE_KEY_MY_HISTORY = 'predictVIPKingPro_myHistory_v2';
+    const STORAGE_KEY_SESSION_STATS = 'predictVIPKingPro_sessionStats_v2';
+    const STORAGE_KEY_CONSECUTIVE_WINS = 'predictVIPKingPro_consecutiveWins_v2';
+    const STORAGE_KEY_CONSECUTIVE_LOSSES = 'predictVIPKingPro_consecutiveLosses_v2';
+    const STORAGE_KEY_MY_HISTORY_ITEMS_PER_PAGE = 'predictVIPKingPro_myHistoryItemsPerPage_v2';
+
+    // --- Robust localStorage Helpers ---
+    function robustJsonParse(key, defaultValue) {
+        try {
+            const storedValue = localStorage.getItem(key);
+            if (storedValue === null) return defaultValue;
+            return JSON.parse(storedValue) || defaultValue;
+        } catch (e) { console.warn(`Error parsing localStorage key "${key}":`, e); return defaultValue; }
+    }
+    function robustLocalStorageGetItem(key, defaultValue, isNumeric = false) {
+        try {
+            const storedValue = localStorage.getItem(key);
+            if (storedValue === null) return defaultValue;
+            if (isNumeric) { const num = parseInt(storedValue); return isNaN(num) ? defaultValue : num; }
+            return storedValue;
+        } catch(e) { console.warn(`Error reading localStorage key "${key}":`, e); return defaultValue; }
+    }
+    function robustLocalStorageSetItem(key, value) {
+        try { localStorage.setItem(key, value); }
+        catch (e) { console.warn(`Error setting localStorage key "${key}":`, e); showNotification('Could not save data. Storage may be full.', 'error');}
+    }
+
+    // --- Storage Management ---
+    function saveMyHistoryToStorage() { robustLocalStorageSetItem(STORAGE_KEY_MY_HISTORY, JSON.stringify(history)); }
+    function loadMyHistoryFromStorage() { history = robustJsonParse(STORAGE_KEY_MY_HISTORY, []); }
+    function saveSessionStateToStorage() {
+        robustLocalStorageSetItem(STORAGE_KEY_SESSION_STATS, JSON.stringify(sessionStats));
+        robustLocalStorageSetItem(STORAGE_KEY_CONSECUTIVE_WINS, consecutiveWins.toString());
+        robustLocalStorageSetItem(STORAGE_KEY_CONSECUTIVE_LOSSES, consecutiveLosses.toString());
+    }
+    function loadSessionStateFromStorage() {
+        sessionStats = robustJsonParse(STORAGE_KEY_SESSION_STATS, { wins: 0, losses: 0, partials: 0 });
+        consecutiveWins = robustLocalStorageGetItem(STORAGE_KEY_CONSECUTIVE_WINS, 0, true);
+        consecutiveLosses = robustLocalStorageGetItem(STORAGE_KEY_CONSECUTIVE_LOSSES, 0, true);
+    }
+    function saveMyHistoryItemsPerPageToStorage() { robustLocalStorageSetItem(STORAGE_KEY_MY_HISTORY_ITEMS_PER_PAGE, myHistoryItemsPerPage.toString()); }
+    function loadMyHistoryItemsPerPageFromStorage() {
+        myHistoryItemsPerPage = robustLocalStorageGetItem(STORAGE_KEY_MY_HISTORY_ITEMS_PER_PAGE, 10, true);
+        const selectEl = document.getElementById('entriesPerPage');
+        if (selectEl) selectEl.value = myHistoryItemsPerPage;
+    }
+
+    // --- API & Status Functions ---
+    function setApiStatus(statusType, message = '') { /* ... Same as Rev 5 ... */
+        const el = document.getElementById('apiStatus'); if (!el) return;
+        const iconEl = el.previousElementSibling;
+        el.classList.remove('status-online', 'status-error', 'status-connecting', 'status-issue', 'status-offline');
+        let statusText = el.textContent; let statusClass = '';
+        let colorVar = el.style.color || 'var(--text-secondary)';
+        let newIconClass = iconEl ? iconEl.className : 'fas fa-server';
+        switch (statusType) {
+            case 'connecting_start': statusText = 'Connecting...'; statusClass = 'status-connecting'; colorVar = 'var(--warning)'; newIconClass = 'fas fa-spinner fa-spin'; break;
+            case 'online': statusText = 'Online'; statusClass = 'status-online'; colorVar = 'var(--success)'; newIconClass = 'fas fa-signal'; break;
+            case 'offline_error': statusText = 'Offline'; statusClass = 'status-offline'; colorVar = 'var(--danger)'; newIconClass = 'fas fa-times-circle'; break;
+            default: statusText = 'Offline'; statusClass = 'status-offline'; colorVar = 'var(--danger)'; newIconClass = 'fas fa-times-circle'; break;
+        }
+        el.textContent = statusText; if (statusClass) el.classList.add(statusClass); el.style.color = colorVar;
+        if (iconEl && iconEl.tagName === 'I') { iconEl.className = newIconClass; }
+    }
+    async function fetchPage(page, isPriority = false) { /* ... Same as Rev 5 ... */
+        if (!isPriority && isFetchingPage && page === 1 && cachedData.length > 0) { return cachedData.slice(0, 10); }
+        if (page === 1 && (!isFetchingPage || isPriority)) { setApiStatus('connecting_start'); isFetchingPage = true; }
+        try {
+            const resp = await fetch("https://api.bdg88zf.com/api/webapi/GetNoaverageEmerdList", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ pageSize:10, pageNo:page, typeId:1, language:0, random:"4a0522c6ecd8410496260e686be2a57c", signature:"334B5E70A0C9B8918B0B15E517E2069C", timestamp:Math.floor(Date.now()/1000) }) });
+            if (!resp.ok) { setApiStatus('offline_error'); if(page===1 && isFetchingPage) isFetchingPage = false; return []; }
+            const data = await resp.json();
+            if (data.code === 0 && data.data && Array.isArray(data.data.list)) {
+                if (page === 1) setApiStatus('online');
+                const fetchedMap = new Map(data.data.list.map(item => [item.issueNumber, item]));
+                const cachedMap = new Map(cachedData.map(item => [item.issueNumber, item]));
+                const combinedMap = new Map([...cachedMap, ...fetchedMap]);
+                cachedData = Array.from(combinedMap.values()).sort((a,b) => parseInt(b.issueNumber||0) - parseInt(a.issueNumber||0)).slice(0, 100);
+                if (isPriority && getActiveTab() === 'game') { fetchData(currentPage, 'game', true); }
+                return data.data.list;
+            } else { if (page === 1) setApiStatus('offline_error'); return []; }
+        } catch (e) { if (page === 1) setApiStatus('offline_error'); return []; }
+        finally { if (page === 1) isFetchingPage = false; }
+    }
+    async function fetchOptimizedData(pagesToFetch = 5) { /* ... Same as Rev 5 ... */
+        const requiredUniqueResults = pagesToFetch * 10;
+        if (cachedData.length >= requiredUniqueResults) { return cachedData.slice(0, requiredUniqueResults); }
+        for (let i = 1; i <= pagesToFetch; i++) {
+            const expectedLatestIssueForPage = cachedData[0] ? (parseInt(cachedData[0].issueNumber) - (i-1)*10) : 0;
+            const likelyMissing = !cachedData.find(item => parseInt(item.issueNumber) <= expectedLatestIssueForPage && parseInt(item.issueNumber) > expectedLatestIssueForPage - 10);
+            if (cachedData.length < i * 10 || likelyMissing) { await fetchPage(i); }
+        }
+        return cachedData.slice(0, Math.min(cachedData.length, requiredUniqueResults) );
+    }
+    function getNumberDetails(numStr) { /* ... Same as Rev 5 ... */
+        const num = parseInt(numStr, 10);
+        if (isNaN(num) || num === null || num < 0 || num > 9) { return { numberVal: '?', bigSmall: '?', colorDisplayHTML: '?', colorForHistory: '?', rawColor: 'Unknown', isViolet: false, numberClass: '', bsClass: '', bsResultClass: '' }; }
+        const bigSmall = num >= 5 ? 'Big' : 'Small'; let colorDisplayHTML = '', colorForHistory = '', rawColor = 'Unknown', isViolet = false, numberClass = '', bsClass = '', bsResultClass = '';
+        bsClass = bigSmall === 'Big' ? 'gh-bs-big' : 'gh-bs-small'; bsResultClass = bigSmall === 'Big' ? 'result-bs-big' : 'result-bs-small';
+        if (num === 0) { rawColor = 'Red'; isViolet = true; numberClass = 'gh-num-red'; colorDisplayHTML = '<span class="color-dot color-red"></span><span class="color-dot color-violet"></span>Red+Violet'; colorForHistory = '<span class="color-dot color-red"></span><span class="color-dot color-violet"></span> Red+Violet'; }
+        else if (num === 5) { rawColor = 'Green'; isViolet = true; numberClass = 'gh-num-green'; colorDisplayHTML = '<span class="color-dot color-green"></span><span class="color-dot color-violet"></span>Green+Violet'; colorForHistory = '<span class="color-dot color-green"></span><span class="color-dot color-violet"></span> Green+Violet'; }
+        else if ([2,4,6,8].includes(num)) { rawColor = 'Red'; numberClass = 'gh-num-red'; colorDisplayHTML = '<span class="color-dot color-red"></span>Red'; colorForHistory = '<span class="color-dot color-red"></span> Red'; }
+        else if ([1,3,7,9].includes(num)) { rawColor = 'Green'; numberClass = 'gh-num-green'; colorDisplayHTML = '<span class="color-dot color-green"></span>Green'; colorForHistory = '<span class="color-dot color-green"></span> Green'; }
+        else { colorDisplayHTML = '?'; colorForHistory = '?'; }
+        return { numberVal: num, bigSmall, colorDisplayHTML, colorForHistory, rawColor, isViolet, numberClass, bsClass, bsResultClass };
+    }
+    async function fetchGameResult(period) { /* ... Same as Rev 5 ... */
+        try { let found = cachedData.find(item => item.issueNumber === period); if (found && typeof found.number !== 'undefined' && found.number !== null) return getNumberDetails(found.number); await fetchPage(1, true); found = cachedData.find(item => item.issueNumber === period); if (found && typeof found.number !== 'undefined' && found.number !== null) return getNumberDetails(found.number); return null;} catch (e) { return null; }
+    }
+    function analyzeForTypeInternal(type, gameHistory, gamesToConsider) { /* ... Same as Rev 5 ... */
+        const recentGames = gameHistory.slice(0, gamesToConsider).filter(item => typeof item.number !== 'undefined' && item.number !== null); if(recentGames.length === 0) return { trend: null, probability: 0, count: 0, total: 0, streak: 0 }; let outcomes = [];
+        if (type === 'bigsmall') { outcomes = recentGames.map(item => getNumberDetails(item.number).bigSmall); } else { outcomes = recentGames.map(item => getNumberDetails(item.number).rawColor); }
+        outcomes = outcomes.filter(o => o !== '?' && o !== 'Unknown'); if (outcomes.length < Math.min(3, gamesToConsider)) return { trend: null, probability: 0, count: 0, total: outcomes.length, streak: 0 };
+        const counts = outcomes.reduce((acc, value) => { acc[value] = (acc[value] || 0) + 1; return acc; }, {}); let trend = null; let maxCount = 0;
+        for (const outcome in counts) { if (counts[outcome] > maxCount) { maxCount = counts[outcome]; trend = outcome; } else if (counts[outcome] === maxCount) { if(outcomes[0] === outcome) trend = outcome; }}
+        const probability = outcomes.length > 0 ? (maxCount / outcomes.length) * 100 : 0; let currentStreak = 0;
+        if (trend && outcomes.length > 0) { for (let i = 0; i < outcomes.length; i++) { if (outcomes[i] === trend) currentStreak++; else break; } }
+        return { trend, probability: parseFloat(probability.toFixed(1)), count: maxCount, total: outcomes.length, streak: currentStreak };
+    }
+    function predictNumberForTrend(trend, type, gameHistory, gamesToConsider = 10) { /* ... Same as Rev 5 ... */
+        const recentValidGames = gameHistory.filter(item => typeof item.number !== 'undefined' && item.number !== null).slice(0, gamesToConsider); let candidateNumbers = [];
+        for (let item of recentValidGames) { const details = getNumberDetails(item.number); if (type === 'bigsmall' && details.bigSmall === trend) { candidateNumbers.push(details.numberVal); } else if (type === 'redgreen' && details.rawColor === trend) { candidateNumbers.push(details.numberVal); } }
+        if (candidateNumbers.length === 0) { const allNumbers = [0,1,2,3,4,5,6,7,8,9]; const fallbackCandidates = allNumbers.filter(n => { const d = getNumberDetails(n); return (type === 'bigsmall' && d.bigSmall === trend) || (type === 'redgreen' && d.rawColor === trend); }); if (fallbackCandidates.length > 0) return fallbackCandidates[Math.floor(Math.random() * fallbackCandidates.length)]; return Math.floor(Math.random() * 10); }
+        const numCounts = candidateNumbers.reduce((acc, value) => { acc[value] = (acc[value] || 0) + 1; return acc; }, {}); let predictedNum = candidateNumbers[0]; let maxNumCount = 0;
+        for (let i = candidateNumbers.length - 1; i >= 0; i--) { const num = candidateNumbers[i]; if (numCounts[num] >= maxNumCount) { maxNumCount = numCounts[num]; predictedNum = num; } } return predictedNum;
+    }
+
+    // MODIFIED: intelligentPredictionEngine for tiered reversal
+    async function intelligentPredictionEngine(gameHistoryCache) {
+        currentStrategyLevel = "Auto";
+        const gamesToAnalyze = 10;
+        let applyReverseLogic = false;
+        let reversalStrength = 0; // 0: no reversal, 1: mild (L1), 2: strong (L2+)
+
+        if (consecutiveLosses === 1) {
+            applyReverseLogic = true;
+            reversalStrength = 1;
+            currentStrategyLevel = `Auto (Rev L1)`;
+            console.log(`Applying mild reversal logic (1 loss)`);
+        } else if (consecutiveLosses >= 2) {
+            applyReverseLogic = true;
+            reversalStrength = 2;
+            currentStrategyLevel = `Auto (Rev L${consecutiveLosses})`;
+            console.log(`Applying strong reversal logic (Losses >= 2)`);
+        }
+
+        if (!gameHistoryCache || gameHistoryCache.length < 3) {
+            const randNum = Math.floor(Math.random() * 10); const randDetails = getNumberDetails(randNum);
+            return { predictedBS: randDetails.bigSmall, predictedRawColor: randDetails.rawColor, predictedNumber: randNum, reversalChance: 10 + Math.random() * 10, probability: 20 + Math.random()*10, message: "LowData", determinedPredictionType: 'bigsmall' };
+        }
+        let bsAnalysis = analyzeForTypeInternal('bigsmall', gameHistoryCache, gamesToAnalyze);
+        let rgAnalysis = analyzeForTypeInternal('redgreen', gameHistoryCache, gamesToAnalyze);
+        let chosenAnalysis, determinedType, primaryCategoryResult;
+        let messageNote = "";
+        if (applyReverseLogic) {
+            messageNote = reversalStrength === 1 ? `(Rev L1)` : `(Rev L${consecutiveLosses})`;
+        }
+
+
+        if (applyReverseLogic) {
+            let trendToReverse, typeToReverse, originalAnalysis;
+            if (bsAnalysis.probability > rgAnalysis.probability) { originalAnalysis = bsAnalysis; typeToReverse = 'bigsmall'; }
+            else if (rgAnalysis.probability > bsAnalysis.probability) { originalAnalysis = rgAnalysis; typeToReverse = 'redgreen'; }
+            else { originalAnalysis = bsAnalysis.streak >= rgAnalysis.streak ? bsAnalysis : rgAnalysis; typeToReverse = bsAnalysis.streak >= rgAnalysis.streak ? 'bigsmall' : 'redgreen'; }
+            trendToReverse = originalAnalysis.trend;
+            if (!trendToReverse) { typeToReverse = Math.random() < 0.5 ? 'bigsmall' : 'redgreen'; trendToReverse = typeToReverse === 'bigsmall' ? (Math.random() < 0.5 ? 'Big' : 'Small') : (Math.random() < 0.5 ? 'Red' : 'Green'); }
+            determinedType = typeToReverse;
+            if (determinedType === 'bigsmall') { primaryCategoryResult = trendToReverse === 'Big' ? 'Small' : 'Big'; } else { primaryCategoryResult = trendToReverse === 'Red' ? 'Green' : 'Red'; }
+
+            let reversedProbFactor = reversalStrength === 1 ? 0.75 : 0.65; // L1 reversal is slightly less drastic on probability
+            chosenAnalysis = { ...originalAnalysis, trend: primaryCategoryResult, probability: Math.max(40, originalAnalysis.probability * reversedProbFactor) };
+            reversalChance = reversalStrength === 1 ? (50 + Math.random() * 15) : (65 + Math.random() * 20); // L1 has moderate reversal chance
+        } else {
+            // Standard trend determination (no reversal)
+            if (bsAnalysis.trend && rgAnalysis.trend) {
+                if (Math.abs(bsAnalysis.probability - rgAnalysis.probability) > 10) { chosenAnalysis = bsAnalysis.probability > rgAnalysis.probability ? bsAnalysis : rgAnalysis; determinedType = bsAnalysis.probability > rgAnalysis.probability ? 'bigsmall' : 'redgreen'; }
+                else if (bsAnalysis.streak >= 2 && bsAnalysis.streak >= rgAnalysis.streak && bsAnalysis.streak > 0) { chosenAnalysis = bsAnalysis; determinedType = 'bigsmall'; messageNote = `(B/S Strk ${bsAnalysis.streak})`; }
+                else if (rgAnalysis.streak >= 2 && rgAnalysis.streak > bsAnalysis.streak && rgAnalysis.streak > 0) { chosenAnalysis = rgAnalysis; determinedType = 'redgreen'; messageNote = `(R/G Strk ${rgAnalysis.streak})`; }
+                else { if (bsAnalysis.probability >= rgAnalysis.probability) { chosenAnalysis = bsAnalysis; determinedType = 'bigsmall';} else { chosenAnalysis = rgAnalysis; determinedType = 'redgreen'; } messageNote = "(Close)"; }
+                primaryCategoryResult = chosenAnalysis.trend;
+            } else if (bsAnalysis.trend) { chosenAnalysis = bsAnalysis; determinedType = 'bigsmall'; primaryCategoryResult = bsAnalysis.trend; }
+            else if (rgAnalysis.trend) { chosenAnalysis = rgAnalysis; determinedType = 'redgreen'; primaryCategoryResult = rgAnalysis.trend; }
+            else { determinedType = Math.random() < 0.5 ? 'bigsmall' : 'redgreen'; primaryCategoryResult = determinedType === 'bigsmall' ? (Math.random() < 0.5 ? 'Big' : 'Small') : (Math.random() < 0.5 ? 'Red' : 'Green'); chosenAnalysis = { probability: 30 + Math.random()*10, total: gamesToAnalyze, streak:0 }; messageNote = "(Weak)"; }
+
+            if (chosenAnalysis.streak >= 3) { reversalChance = 55 + (chosenAnalysis.streak - 3) * 10; if (reversalChance > 85) reversalChance = 85; }
+            else if (chosenAnalysis.streak === 2) { reversalChance = 35 + Math.random() * 10; } else { reversalChance = 15 + Math.random() * 10; }
+        }
+        const predictedNumber = predictNumberForTrend(primaryCategoryResult, determinedType, gameHistoryCache, gamesToAnalyze);
+        const numDetails = getNumberDetails(predictedNumber);
+        let finalMessage = `Auto ${messageNote}`; // currentStrategyLevel is set globally based on losses
+        return { predictedBS: numDetails.bigSmall, predictedRawColor: numDetails.rawColor, predictedNumber, reversalChance: parseFloat(reversalChance.toFixed(1)), probability: chosenAnalysis.probability, message: finalMessage.trim(), determinedPredictionType: determinedType };
+    }
+    async function generateAndStorePrediction(period) { /* ... Same as Rev 5 ... */
+        const currentResultEl = document.getElementById('currentResult'); if(currentResultEl) currentResultEl.innerHTML = '<i class="fas fa-cog fa-spin fa-lg" style="color: var(--primary);"></i> AI thinking...'; let predictionInputData;
+        try {
+            const startTime = Date.now(); let enginePrediction; if (cachedData.length < 10) await fetchOptimizedData(2); enginePrediction = await intelligentPredictionEngine(cachedData);
+            const tempDetails = getNumberDetails(enginePrediction.predictedNumber); const displayableColorHTML = tempDetails.colorDisplayHTML;
+            predictionInputData = { period, predictedBS: enginePrediction.predictedBS, predictedRawColor: enginePrediction.predictedRawColor, predictedColorHTML: displayableColorHTML, predictedNumber: enginePrediction.predictedNumber, reversalChance: enginePrediction.reversalChance, probability: enginePrediction.probability, message: enginePrediction.message, resultType: enginePrediction.determinedPredictionType || 'auto', server: fixedSelectedServerName };
+            lastAiReversalChance = enginePrediction.reversalChance || 0; const elapsed = Date.now() - startTime; await new Promise(resolve => setTimeout(resolve, Math.max(0, 300 - elapsed)));
+            const prob = predictionInputData.probability || 0; const revChance = predictionInputData.reversalChance || 0; const msg = predictionInputData.message || "?";
+            const bsPart = `<span class="prediction-output-item p-bs"><span class="prediction-output-label">Big/Small:</span><span class="prediction-output-value">${predictionInputData.predictedBS || '?'}</span></span>`;
+            const colorPart = `<span class="prediction-output-item p-color"><span class="prediction-output-label">Color:</span><span class="prediction-output-value">${predictionInputData.predictedColorHTML || '?'}</span></span>`;
+            const percentPart = `<span class="prediction-output-item p-perc"><span class="prediction-output-label">Per:</span><span class="prediction-output-value">(${prob > 0 ? prob.toFixed(1) : 'N/A'}%)</span></span>`;
+            const revPart = `<span class="prediction-output-item p-rev"><span class="prediction-output-label">Rev:</span><span class="prediction-output-value">(${revChance > 0 ? revChance.toFixed(1) : 'N/A'}%)</span></span>`;
+            const strategyPart = `<span class="prediction-output-item p-strat"><span class="prediction-output-label">Stgy:</span><span class="prediction-output-value" title="${msg}">${msg}</span></span>`;
+            if(currentResultEl) currentResultEl.innerHTML = `${bsPart} ${colorPart} ${percentPart} ${revPart} ${strategyPart}`;
+            currentPredictionData[period] = predictionInputData; showNotification(`Prediction for ${period}: ${predictionInputData.predictedBS}, ${predictionInputData.predictedRawColor}`, 'info'); updateSessionStatsBar();
+        } catch (error) { if(currentResultEl) currentResultEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Prediction Error'; showNotification('Prediction generation failed!', 'error'); currentPredictionData[period] = { period, error: true, message: "Generation Failed" }; lastAiReversalChance = 0; updateSessionStatsBar(); }
+    }
+
+    // --- UI & State Update Functions ---
+    function updateAccuracyDisplay() { updateSessionStatsBar(); }
+
+    // MODIFIED: updateSessionStatsBar to include Partials display
+    function updateSessionStatsBar() {
+        document.getElementById('statsWins').textContent = sessionStats.wins;
+        document.getElementById('statsLosses').textContent = sessionStats.losses;
+        document.getElementById('statsPartials').textContent = sessionStats.partials || 0; // Display partials
+        const totalCompleted = sessionStats.wins + sessionStats.losses + (sessionStats.partials || 0);
+        let accuracyText = "0%";
+        if (totalCompleted > 0) {
+            // Accuracy still based on Wins / Total (where Win = B/S or Color correct)
+            const accuracy = Math.round((sessionStats.wins / totalCompleted) * 100);
+            accuracyText = `${isNaN(accuracy) ? '0' : accuracy}%`;
+        }
+        document.getElementById('statsAccuracy').textContent = accuracyText;
+        document.getElementById('statsAiRev').textContent = `${lastAiReversalChance.toFixed(1)}%`;
+        let levelText = currentStrategyLevel; // This is set by intelligentPredictionEngine
+         if (currentStrategyLevel === "Auto" && consecutiveWins > 0) { // Only show W streak if not in Rev mode
+            levelText = `Auto (W${consecutiveWins})`;
+        } else if (currentStrategyLevel === "Auto" && consecutiveLosses === 1 && !levelText.includes("Rev")) { // Show L1 if not already Rev L1
+             levelText = `Auto (L1)`;
+         }
+        // currentStrategyLevel will already be `Auto (Rev Lx)` if losses trigger reversal
+        document.getElementById('statsLevel').textContent = levelText;
+    }
+
+    async function finalizeAndRecordResult(periodToFinalize) { /* ... Same as Rev 5 (Win/Loss logic and localStorage saving) ... */
+        if (isWaitingForResult) return; isWaitingForResult = true;
+        const predictionData = currentPredictionData[periodToFinalize];
+        if (!predictionData || predictionData.error) {
+            if (predictionData?.error) { const errorEntry = { period: periodToFinalize, predictedBS: '?', predictedRawColor: '?', predictedColorHTML: '?', actualResultDisplay: 'Prediction Error', status: 'Error', bsWin: false, colorWin: false, resultType: '?', server: fixedSelectedServerName, probability: 0 }; history.unshift(errorEntry); saveMyHistoryToStorage(); if (getActiveTab() === 'my') fetchData(1, 'my', true); updateAccuracyDisplay(); delete currentPredictionData[periodToFinalize]; }
+            isWaitingForResult = false; return;
+        }
+        let gameOutcome = null; const startTime = Date.now(); while (Date.now() - startTime < POLLING_TIMEOUT) { gameOutcome = await fetchGameResult(periodToFinalize); if (gameOutcome) break; await new Promise(resolve => setTimeout(resolve, POLLING_INTERVAL)); }
+        let historyEntry;
+        if (gameOutcome) {
+            const actualBS = gameOutcome.bigSmall; const actualColor = gameOutcome.rawColor;
+            const bsWin = predictionData.predictedBS === actualBS; const colorWin = predictionData.predictedRawColor === actualColor;
+            let status;
+            if (bsWin || colorWin) { status = "Win"; sessionStats.wins++; consecutiveLosses = 0; consecutiveWins++; }
+            else { status = "Loss"; sessionStats.losses++; consecutiveWins = 0; consecutiveLosses++; }
+            // sessionStats.partials remains 0 as per current Win/Loss logic
+            saveSessionStateToStorage();
+            historyEntry = { period: periodToFinalize, predictedBS: predictionData.predictedBS, predictedRawColor: predictionData.predictedRawColor, predictedColorHTML: predictionData.predictedColorHTML, actualResultDisplay: `<span class="${gameOutcome.bsResultClass}">${actualBS}</span>, ${gameOutcome.colorForHistory}`, status, bsWin, colorWin, resultType: predictionData.resultType, server: predictionData.server, probability: predictionData.probability };
+        } else {
+            historyEntry = { period: periodToFinalize, predictedBS: predictionData.predictedBS, predictedRawColor: predictionData.predictedRawColor, predictedColorHTML: predictionData.predictedColorHTML, actualResultDisplay: 'Result N/A', status: 'Error', bsWin: false, colorWin: false, resultType: predictionData.resultType, server: predictionData.server, probability: predictionData.probability };
+            consecutiveLosses = 0; consecutiveWins = 0; saveSessionStateToStorage(); showNotification(`Result for ${periodToFinalize} unavailable.`, 'error');
+        }
+        history.unshift(historyEntry); if(history.length > 100) history.pop(); saveMyHistoryToStorage();
+        delete currentPredictionData[periodToFinalize]; updateAccuracyDisplay();
+        if (getActiveTab() === 'my') fetchData(1, 'my', true); isWaitingForResult = false;
+    }
+
+    function updatePeriodAndTimer() { /* ... Same as Rev 5 ... */
+        const now = new Date(), ct = now.getTime(); if (ct - lastTimerUpdate < 980) return; lastTimerUpdate = ct;
+        const y=now.getUTCFullYear(),m=String(now.getUTCMonth()+1).padStart(2,'0'),d=String(now.getUTCDate()).padStart(2,'0');
+        const hrs=now.getUTCHours(),mins=now.getUTCMinutes(),secsValue=now.getUTCSeconds();
+        const totMins=hrs*60+mins; const periodSuffix = 10001 + totMins; const currentPeriod=`${y}${m}${d}1000${periodSuffix}`;
+        const secsRemaining=60 - secsValue; const periodJustCompleted = lastCompletedPeriodNumber;
+        if (currentPeriod !== lastCompletedPeriodNumber) {
+            if (periodJustCompleted && currentPredictionData[periodJustCompleted]) { finalizeAndRecordResult(periodJustCompleted).catch(e => { isWaitingForResult = false; }); }
+            lastCompletedPeriodNumber = currentPeriod; const periodEl = document.getElementById('period'); if(periodEl) periodEl.textContent = `${currentPeriod || 'N/A'}`;
+            generateAndStorePrediction(currentPeriod).catch(e => {}); fetchPage(1).catch(e => {});
+        }
+        const timerEl = document.getElementById('timer'); if(timerEl) timerEl.textContent = `${String(secsRemaining).padStart(2,'0')}s`;
+        const statusEl = document.getElementById('status'); if(statusEl) statusEl.textContent = secsRemaining < 10 ? 'Closing' : 'Active';
+    }
+    function getActiveTab() { /* ... Same as Rev 5 ... */
+        const activeButton = document.querySelector('.tabs button.active'); if (activeButton) { const onclickAttr = activeButton.getAttribute('onclick'); if (onclickAttr?.includes("'game'")) return 'game'; if (onclickAttr?.includes("'my'")) return 'my'; if (onclickAttr?.includes("'chart'")) return 'chart'; } return currentTab;
+    }
+    async function fetchData(page, tab = currentTab, forceRender = false) { /* ... Same as Rev 5 (handles myHistoryControls visibility) ... */
+        const contentEl = document.getElementById('historyContent'); if (!contentEl) return;
+        const myHistoryControlsEl = document.getElementById('myHistoryControls'); if (myHistoryControlsEl) { myHistoryControlsEl.style.display = (tab === 'my') ? 'flex' : 'none'; }
+        if (!forceRender && currentPage === page && currentTab === tab && contentEl.innerHTML !== '' && !contentEl.innerHTML.includes('Loading ')) { return; }
+        currentPage = page; currentTab = tab; contentEl.innerHTML = `<div style="text-align: center; padding: 2rem;"><i class="fas fa-spinner fa-spin fa-lg" style="color: var(--primary);"></i> Loading ${tab}...</div>`;
+        document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active')); const activeTabButton = document.querySelector(`.tabs button[onclick*="'${tab}'"]`); if(activeTabButton) activeTabButton.classList.add('active');
+        const gameHead = document.getElementById('gameHistoryHeader'); const myHead = document.getElementById('myHistoryHeader');
+        if (gameHead) gameHead.style.display = (tab === 'game') ? 'grid' : 'none'; if (myHead) myHead.style.display = (tab === 'my') ? 'grid' : 'none';
+        if (tab !== 'chart' && cachedData.length < 10) await fetchPage(1, tab === 'game');
+        document.getElementById('prevPageBtn').disabled = (page <= 1); document.getElementById('currentPageBtn').textContent = page; document.getElementById('nextPageBtn').disabled = true;
+        try {
+            if (tab === 'game') { /* ... same ... */
+                const list = await fetchPage(page); contentEl.innerHTML = ''; document.getElementById('nextPageBtn').disabled = (!list || list.length < 10);
+                if (list && list.length > 0) { list.forEach(item => { const details = getNumberDetails(item.number); const div = document.createElement('div'); div.className = 'history-item game-result-item'; div.innerHTML = `<div class="history-value">${item.issueNumber||'?'}</div><div class="history-value gh-num ${details.numberClass}">${details.numberVal}</div><div class="history-value gh-bs ${details.bsClass}">${details.bigSmall}</div><div class="history-value gh-color">${details.colorForHistory}</div>`; contentEl.appendChild(div); });
+                } else contentEl.innerHTML = `<p style="text-align:center; padding:1rem;">${page === 1 ? 'No game history.' : 'No more game history.'}</p>`;
+            } else if (tab === 'my') { /* ... same, uses myHistoryItemsPerPage ... */
+                if (myHead) myHead.innerHTML = `<div class="history-header-item">Period</div><div class="history-header-item">Pred B/S</div><div class="history-header-item">Pred Color</div><div class="history-header-item">Result</div><div class="history-header-item">Status</div>`; contentEl.innerHTML = '';
+                const startIndex = (page - 1) * myHistoryItemsPerPage; const endIndex = startIndex + myHistoryItemsPerPage; const paginatedHistory = history.slice(startIndex, endIndex); document.getElementById('nextPageBtn').disabled = (endIndex >= history.length);
+                if (paginatedHistory.length === 0) contentEl.innerHTML = `<p style="text-align:center; padding:1rem;">${page === 1 ? 'No predictions recorded.' : 'No more predictions.'}</p>`;
+                else { paginatedHistory.forEach(item => { const div = document.createElement('div'); let rowClass = 'history-item my-prediction-item'; if (item.status === 'Win') rowClass += ' row-win'; else if (item.status === 'Loss') rowClass += ' row-loss'; else if (item.status === 'Error') rowClass += ' row-error'; div.className = rowClass; const bsTickCross = item.status !== 'Error' && item.status !== '?' && typeof item.bsWin !== 'undefined' ? (item.bsWin ? '<span class="tick-mark">✅</span>' : '<span class="cross-mark">❌</span>') : ''; const colorTickCross = item.status !== 'Error' && item.status !== '?' && typeof item.colorWin !== 'undefined' ? (item.colorWin ? '<span class="tick-mark">✅</span>' : '<span class="cross-mark">❌</span>') : ''; const predictedBSDisplay = `${item.predictedBS || '?'}${bsTickCross}`; const predictedColorDisplay = `${item.predictedColorHTML || '?'}${colorTickCross}`; const resultDisplay = item.actualResultDisplay || '?'; const statusDisplay = item.status || '?'; div.innerHTML = `<div class="history-value">${item.period}</div><div class="history-value predicted-bs-value">${predictedBSDisplay}</div><div class="history-value predicted-color-value">${predictedColorDisplay}</div><div class="history-value result-value">${resultDisplay}</div><div class="history-value status-value status-${item.status?.toLowerCase()}">${statusDisplay}</div>`; contentEl.appendChild(div); }); }
+            } else if (tab === 'chart') { /* ... same, sessionAccuracyDisplay updated ... */
+                document.getElementById('nextPageBtn').disabled = true; contentEl.innerHTML = '<div style="text-align:center;padding:1rem;font-size:0.8rem;">Analyzing data...</div>';
+                const analyticsData = await fetchOptimizedData(10);
+                if (analyticsData && analyticsData.length > 0) {
+                    let rC=0, gC=0, vC=0, bC=0, sC=0; const nums = analyticsData.map(item => parseInt(item.number, 10)).filter(n => !isNaN(n) && n >=0 && n <=9);
+                    nums.forEach(n => { const details = getNumberDetails(n); if(details.rawColor === 'Red') rC++; if(details.rawColor === 'Green') gC++; if(details.isViolet) vC++; if(details.bigSmall === 'Big') bC++; else if(details.bigSmall === 'Small') sC++; });
+                    const totalValidGames = nums.length; const pct = (count) => totalValidGames ? ((count/totalValidGames)*100).toFixed(1) : 0;
+                    const totalSessionGames = sessionStats.wins + sessionStats.losses + (sessionStats.partials || 0);
+                    const sessionAccuracyValue = totalSessionGames > 0 ? Math.round((sessionStats.wins / totalSessionGames) * 100) : 0;
+                    const sessionAccuracyDisplay = totalSessionGames > 0 ? `${sessionAccuracyValue}% (W:${sessionStats.wins} L:${sessionStats.losses} P:${sessionStats.partials || 0})` : 'N/A'; // Added Partials to display string
+                    contentEl.innerHTML = `
+                        <h4 style="font-size: 0.9rem; color: var(--primary); margin:0.4rem; padding-bottom:4px; border-bottom: 1px solid var(--border-color);">Recent Trends (Last ${totalValidGames} Games)</h4>
+                        <div class="analytics-grid" style="padding: 0.6rem;">
+                            <div><strong>Outcome</strong></div><div><strong>Count</strong></div><div><strong>Percent</strong></div>
+                            <div><span class="color-dot color-red"></span> Red</div><div>${rC}</div><div>${pct(rC)}%</div><div><span class="color-dot color-green"></span> Green</div><div>${gC}</div><div>${pct(gC)}%</div>
+                            <div><span class="color-dot color-violet"></span> Violet</div><div>${vC}</div><div>${pct(vC)}%</div><div style="grid-column: 1 / -1; height: 8px;"></div>
+                            <div><span class="outcome-icon big">B</span> Big (5-9)</div><div>${bC}</div><div>${pct(bC)}%</div><div><span class="outcome-icon small">S</span> Small (0-4)</div><div>${sC}</div><div>${pct(sC)}%</div>
+                        </div><div class="session-accuracy-footer"><strong>Session Accuracy:</strong> ${sessionAccuracyDisplay}</div>`;
+                } else contentEl.innerHTML = '<p style="text-align:center; padding:1rem;">Not enough data for analytics.</p>';
+            }
+        } catch (renderError) { contentEl.innerHTML = `<p style="text-align:center; padding:1rem; color:var(--danger);">Error displaying ${tab} data.</p>`; }
+    }
+
+    function changeMyHistoryEntriesPerPage(value) { myHistoryItemsPerPage = parseInt(value); saveMyHistoryItemsPerPageToStorage(); fetchData(1, 'my', true); }
+    function changePage(delta) { /* ... Same as Rev 5 ... */
+        const newPage = currentPage + delta; if (newPage <= 0) return;
+        if (currentTab === 'my') { const totalHistoryPages = Math.ceil(history.length / myHistoryItemsPerPage); if (newPage > totalHistoryPages && totalHistoryPages > 0 && delta > 0) return; }
+        fetchData(newPage, currentTab);
+    }
+    function showNotification(message, type = 'success') { /* ... Same as Rev 5 ... */
+        const n=document.getElementById('notification'), nt=document.getElementById('notificationText'); if(!n || !nt) return; nt.textContent = message; n.className = 'floating-notification'; const iconEl = n.querySelector('i');
+        if (type === 'success') { n.classList.add('success-bg'); if (iconEl) iconEl.className = 'fas fa-check-circle'; } else if (type === 'error') { n.classList.add('error-bg'); if (iconEl) iconEl.className = 'fas fa-exclamation-circle'; } else { n.classList.add('info-bg'); if (iconEl) iconEl.className = 'fas fa-info-circle'; }
+        n.style.color = 'var(--text-primary)'; n.classList.add('show'); setTimeout(() => n.classList.remove('show'), 3500);
+    }
+    function clearMyPredictions() { /* ... Same as Rev 5 ... */
+        if (confirm("Are you sure you want to clear all your prediction history? This cannot be undone.")) {
+            history = []; saveMyHistoryToStorage();
+            // Optionally clear session stats too:
+            // sessionStats = { wins: 0, losses: 0, partials: 0 }; consecutiveWins = 0; consecutiveLosses = 0;
+            // saveSessionStateToStorage(); updateAccuracyDisplay();
+            fetchData(1, 'my', true); showNotification('My Predictions history cleared!', 'info');
+        }
+    }
+
+    // --- Initialization ---
+    const aboutModal=document.getElementById('aboutModal'), aboutModalLink=document.getElementById('aboutModalLink'), aboutModalCloseButton=document.getElementById('aboutModalCloseButton');
+    if(aboutModalLink) aboutModalLink.onclick = (e) => { e.preventDefault(); if(aboutModal) aboutModal.style.display="flex"; }
+    if(aboutModalCloseButton) aboutModalCloseButton.onclick = () => { if(aboutModal) aboutModal.style.display="none"; }
+    window.onclick = (e) => { if (e.target == aboutModal && aboutModal) aboutModal.style.display="none"; }
+    const clearMyPredictionsBtn = document.getElementById('clearMyPredictionsBtn');
+    if (clearMyPredictionsBtn) { clearMyPredictionsBtn.onclick = clearMyPredictions; }
+    setInterval(updatePeriodAndTimer, 1000);
+    window.onload = async () => {
+        console.log('Predict VIP King Pro (UI & AI Logic v5 - Rev 7) Initialized.');
+        loadMyHistoryFromStorage(); loadSessionStateFromStorage(); loadMyHistoryItemsPerPageFromStorage();
+        setApiStatus('offline_error'); const initialOutputArea = document.getElementById('currentResult');
+        if(initialOutputArea) initialOutputArea.innerHTML = '<i class="fas fa-hourglass-half fa-spin" style="color:var(--primary);"></i> Initializing AI...';
+        await fetchOptimizedData(2); updatePeriodAndTimer(); fetchData(1, 'game'); updateAccuracyDisplay();
+        console.log("Initialization complete. Data loaded from storage if available.");
+    };
+</script>
+
+</body>
+</html>
