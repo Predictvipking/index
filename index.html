@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Predict VIP King Pro - UI & AI Enhancements v5 Rev 7</title>
+    <title>Predict VIP King Pro - UI & AI Enhancements v5 Rev 8</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -244,7 +244,8 @@
             <div class="stats-bar" id="sessionStatsBar">
                 <div class="stats-bar-item">Wins: <strong id="statsWins" class="win">0</strong></div>
                 <div class="stats-bar-item">Losses: <strong id="statsLosses" class="loss">0</strong></div>
-                <div class="stats-bar-item">Partial: <strong id="statsPartials" class="partial">0</strong></div> <div class="stats-bar-item">Accuracy: <strong id="statsAccuracy" class="acc">0%</strong></div>
+                <div class="stats-bar-item">Partial: <strong id="statsPartials" class="partial">0</strong></div>
+                <div class="stats-bar-item">Accuracy: <strong id="statsAccuracy" class="acc">0%</strong></div>
                 <div class="stats-bar-item">AI Rev: <strong id="statsAiRev" class="rev">0%</strong></div>
                 <div class="stats-bar-item">Level: <strong id="statsLevel" class="level">Normal</strong></div>
             </div>
@@ -304,7 +305,7 @@
     let currentStrategyLevel = "Normal";
     let lastTimerUpdate = 0;
     const POLLING_INTERVAL = 750;
-    const POLLING_TIMEOUT = 10000;
+    const POLLING_TIMEOUT = 15000; // MODIFIED: Increased timeout
     const fixedSelectedServerName = 'AutoAnalysisEngine';
     let myHistoryItemsPerPage = 10;
 
@@ -356,7 +357,7 @@
     }
 
     // --- API & Status Functions ---
-    function setApiStatus(statusType, message = '') { /* ... Same as Rev 5 ... */
+    function setApiStatus(statusType, message = '') {
         const el = document.getElementById('apiStatus'); if (!el) return;
         const iconEl = el.previousElementSibling;
         el.classList.remove('status-online', 'status-error', 'status-connecting', 'status-issue', 'status-offline');
@@ -372,7 +373,7 @@
         el.textContent = statusText; if (statusClass) el.classList.add(statusClass); el.style.color = colorVar;
         if (iconEl && iconEl.tagName === 'I') { iconEl.className = newIconClass; }
     }
-    async function fetchPage(page, isPriority = false) { /* ... Same as Rev 5 ... */
+    async function fetchPage(page, isPriority = false) {
         if (!isPriority && isFetchingPage && page === 1 && cachedData.length > 0) { return cachedData.slice(0, 10); }
         if (page === 1 && (!isFetchingPage || isPriority)) { setApiStatus('connecting_start'); isFetchingPage = true; }
         try {
@@ -391,7 +392,7 @@
         } catch (e) { if (page === 1) setApiStatus('offline_error'); return []; }
         finally { if (page === 1) isFetchingPage = false; }
     }
-    async function fetchOptimizedData(pagesToFetch = 5) { /* ... Same as Rev 5 ... */
+    async function fetchOptimizedData(pagesToFetch = 5) {
         const requiredUniqueResults = pagesToFetch * 10;
         if (cachedData.length >= requiredUniqueResults) { return cachedData.slice(0, requiredUniqueResults); }
         for (let i = 1; i <= pagesToFetch; i++) {
@@ -401,7 +402,7 @@
         }
         return cachedData.slice(0, Math.min(cachedData.length, requiredUniqueResults) );
     }
-    function getNumberDetails(numStr) { /* ... Same as Rev 5 ... */
+    function getNumberDetails(numStr) {
         const num = parseInt(numStr, 10);
         if (isNaN(num) || num === null || num < 0 || num > 9) { return { numberVal: '?', bigSmall: '?', colorDisplayHTML: '?', colorForHistory: '?', rawColor: 'Unknown', isViolet: false, numberClass: '', bsClass: '', bsResultClass: '' }; }
         const bigSmall = num >= 5 ? 'Big' : 'Small'; let colorDisplayHTML = '', colorForHistory = '', rawColor = 'Unknown', isViolet = false, numberClass = '', bsClass = '', bsResultClass = '';
@@ -413,10 +414,25 @@
         else { colorDisplayHTML = '?'; colorForHistory = '?'; }
         return { numberVal: num, bigSmall, colorDisplayHTML, colorForHistory, rawColor, isViolet, numberClass, bsClass, bsResultClass };
     }
-    async function fetchGameResult(period) { /* ... Same as Rev 5 ... */
-        try { let found = cachedData.find(item => item.issueNumber === period); if (found && typeof found.number !== 'undefined' && found.number !== null) return getNumberDetails(found.number); await fetchPage(1, true); found = cachedData.find(item => item.issueNumber === period); if (found && typeof found.number !== 'undefined' && found.number !== null) return getNumberDetails(found.number); return null;} catch (e) { return null; }
+    async function fetchGameResult(period) {
+        try {
+            let found = cachedData.find(item => item.issueNumber === period);
+            if (found && typeof found.number !== 'undefined' && found.number !== null) {
+                // console.log(`fetchGameResult: Found period ${period} in cache.`); // Optional: for debugging
+                return getNumberDetails(found.number);
+            }
+            // console.log(`fetchGameResult: Period ${period} not in cache. Fetching latest data (page 1).`); // Optional: for debugging
+            await fetchPage(1, true);
+            found = cachedData.find(item => item.issueNumber === period);
+            if (found && typeof found.number !== 'undefined' && found.number !== null) {
+                // console.log(`fetchGameResult: Found period ${period} in cache after fetching page 1.`); // Optional: for debugging
+                return getNumberDetails(found.number);
+            }
+            // console.warn(`fetchGameResult: Result for period ${period} not found even after priority fetch of page 1.`); // Logged in finalizeAndRecordResult
+            return null;
+        } catch (e) { console.error(`fetchGameResult err for period ${period}:`, e); return null; }
     }
-    function analyzeForTypeInternal(type, gameHistory, gamesToConsider) { /* ... Same as Rev 5 ... */
+    function analyzeForTypeInternal(type, gameHistory, gamesToConsider) {
         const recentGames = gameHistory.slice(0, gamesToConsider).filter(item => typeof item.number !== 'undefined' && item.number !== null); if(recentGames.length === 0) return { trend: null, probability: 0, count: 0, total: 0, streak: 0 }; let outcomes = [];
         if (type === 'bigsmall') { outcomes = recentGames.map(item => getNumberDetails(item.number).bigSmall); } else { outcomes = recentGames.map(item => getNumberDetails(item.number).rawColor); }
         outcomes = outcomes.filter(o => o !== '?' && o !== 'Unknown'); if (outcomes.length < Math.min(3, gamesToConsider)) return { trend: null, probability: 0, count: 0, total: outcomes.length, streak: 0 };
@@ -426,7 +442,7 @@
         if (trend && outcomes.length > 0) { for (let i = 0; i < outcomes.length; i++) { if (outcomes[i] === trend) currentStreak++; else break; } }
         return { trend, probability: parseFloat(probability.toFixed(1)), count: maxCount, total: outcomes.length, streak: currentStreak };
     }
-    function predictNumberForTrend(trend, type, gameHistory, gamesToConsider = 10) { /* ... Same as Rev 5 ... */
+    function predictNumberForTrend(trend, type, gameHistory, gamesToConsider = 10) {
         const recentValidGames = gameHistory.filter(item => typeof item.number !== 'undefined' && item.number !== null).slice(0, gamesToConsider); let candidateNumbers = [];
         for (let item of recentValidGames) { const details = getNumberDetails(item.number); if (type === 'bigsmall' && details.bigSmall === trend) { candidateNumbers.push(details.numberVal); } else if (type === 'redgreen' && details.rawColor === trend) { candidateNumbers.push(details.numberVal); } }
         if (candidateNumbers.length === 0) { const allNumbers = [0,1,2,3,4,5,6,7,8,9]; const fallbackCandidates = allNumbers.filter(n => { const d = getNumberDetails(n); return (type === 'bigsmall' && d.bigSmall === trend) || (type === 'redgreen' && d.rawColor === trend); }); if (fallbackCandidates.length > 0) return fallbackCandidates[Math.floor(Math.random() * fallbackCandidates.length)]; return Math.floor(Math.random() * 10); }
@@ -436,7 +452,7 @@
 
     // MODIFIED: intelligentPredictionEngine for tiered reversal
     async function intelligentPredictionEngine(gameHistoryCache) {
-        currentStrategyLevel = "Auto";
+        currentStrategyLevel = "Auto"; // Default strategy level
         const gamesToAnalyze = 10;
         let applyReverseLogic = false;
         let reversalStrength = 0; // 0: no reversal, 1: mild (L1), 2: strong (L2+)
@@ -444,13 +460,13 @@
         if (consecutiveLosses === 1) {
             applyReverseLogic = true;
             reversalStrength = 1;
-            currentStrategyLevel = `Auto (Rev L1)`;
-            console.log(`Applying mild reversal logic (1 loss)`);
+            currentStrategyLevel = `Auto (Rev L1)`; // Update global strategy level
+            // console.log(`Applying mild reversal logic (1 loss)`);
         } else if (consecutiveLosses >= 2) {
             applyReverseLogic = true;
             reversalStrength = 2;
-            currentStrategyLevel = `Auto (Rev L${consecutiveLosses})`;
-            console.log(`Applying strong reversal logic (Losses >= 2)`);
+            currentStrategyLevel = `Auto (Rev L${consecutiveLosses})`; // Update global strategy level
+            // console.log(`Applying strong reversal logic (Losses >= 2)`);
         }
 
         if (!gameHistoryCache || gameHistoryCache.length < 3) {
@@ -460,8 +476,8 @@
         let bsAnalysis = analyzeForTypeInternal('bigsmall', gameHistoryCache, gamesToAnalyze);
         let rgAnalysis = analyzeForTypeInternal('redgreen', gameHistoryCache, gamesToAnalyze);
         let chosenAnalysis, determinedType, primaryCategoryResult;
-        let messageNote = "";
-        if (applyReverseLogic) {
+        let messageNote = ""; // Initialize messageNote
+        if (applyReverseLogic) { // Set messageNote if reversal is active
             messageNote = reversalStrength === 1 ? `(Rev L1)` : `(Rev L${consecutiveLosses})`;
         }
 
@@ -476,9 +492,9 @@
             determinedType = typeToReverse;
             if (determinedType === 'bigsmall') { primaryCategoryResult = trendToReverse === 'Big' ? 'Small' : 'Big'; } else { primaryCategoryResult = trendToReverse === 'Red' ? 'Green' : 'Red'; }
 
-            let reversedProbFactor = reversalStrength === 1 ? 0.75 : 0.65; // L1 reversal is slightly less drastic on probability
+            let reversedProbFactor = reversalStrength === 1 ? 0.75 : 0.65;
             chosenAnalysis = { ...originalAnalysis, trend: primaryCategoryResult, probability: Math.max(40, originalAnalysis.probability * reversedProbFactor) };
-            reversalChance = reversalStrength === 1 ? (50 + Math.random() * 15) : (65 + Math.random() * 20); // L1 has moderate reversal chance
+            reversalChance = reversalStrength === 1 ? (50 + Math.random() * 15) : (65 + Math.random() * 20);
         } else {
             // Standard trend determination (no reversal)
             if (bsAnalysis.trend && rgAnalysis.trend) {
@@ -496,10 +512,12 @@
         }
         const predictedNumber = predictNumberForTrend(primaryCategoryResult, determinedType, gameHistoryCache, gamesToAnalyze);
         const numDetails = getNumberDetails(predictedNumber);
-        let finalMessage = `Auto ${messageNote}`; // currentStrategyLevel is set globally based on losses
+        // currentStrategyLevel is already set globally at the start of this function if reversal is active.
+        // If not in reversal, messageNote might contain streak info or "Close"/"Weak".
+        let finalMessage = `Auto ${messageNote}`;
         return { predictedBS: numDetails.bigSmall, predictedRawColor: numDetails.rawColor, predictedNumber, reversalChance: parseFloat(reversalChance.toFixed(1)), probability: chosenAnalysis.probability, message: finalMessage.trim(), determinedPredictionType: determinedType };
     }
-    async function generateAndStorePrediction(period) { /* ... Same as Rev 5 ... */
+    async function generateAndStorePrediction(period) {
         const currentResultEl = document.getElementById('currentResult'); if(currentResultEl) currentResultEl.innerHTML = '<i class="fas fa-cog fa-spin fa-lg" style="color: var(--primary);"></i> AI thinking...'; let predictionInputData;
         try {
             const startTime = Date.now(); let enginePrediction; if (cachedData.length < 10) await fetchOptimizedData(2); enginePrediction = await intelligentPredictionEngine(cachedData);
@@ -520,38 +538,40 @@
     // --- UI & State Update Functions ---
     function updateAccuracyDisplay() { updateSessionStatsBar(); }
 
-    // MODIFIED: updateSessionStatsBar to include Partials display
     function updateSessionStatsBar() {
         document.getElementById('statsWins').textContent = sessionStats.wins;
         document.getElementById('statsLosses').textContent = sessionStats.losses;
-        document.getElementById('statsPartials').textContent = sessionStats.partials || 0; // Display partials
+        document.getElementById('statsPartials').textContent = sessionStats.partials || 0;
         const totalCompleted = sessionStats.wins + sessionStats.losses + (sessionStats.partials || 0);
         let accuracyText = "0%";
         if (totalCompleted > 0) {
-            // Accuracy still based on Wins / Total (where Win = B/S or Color correct)
             const accuracy = Math.round((sessionStats.wins / totalCompleted) * 100);
             accuracyText = `${isNaN(accuracy) ? '0' : accuracy}%`;
         }
         document.getElementById('statsAccuracy').textContent = accuracyText;
         document.getElementById('statsAiRev').textContent = `${lastAiReversalChance.toFixed(1)}%`;
-        let levelText = currentStrategyLevel; // This is set by intelligentPredictionEngine
-         if (currentStrategyLevel === "Auto" && consecutiveWins > 0) { // Only show W streak if not in Rev mode
+        let levelText = currentStrategyLevel;
+         if (currentStrategyLevel === "Auto" && consecutiveWins > 0 && !levelText.includes("Rev")) {
             levelText = `Auto (W${consecutiveWins})`;
-        } else if (currentStrategyLevel === "Auto" && consecutiveLosses === 1 && !levelText.includes("Rev")) { // Show L1 if not already Rev L1
+        } else if (currentStrategyLevel === "Auto" && consecutiveLosses === 1 && !levelText.includes("Rev")) {
              levelText = `Auto (L1)`;
          }
-        // currentStrategyLevel will already be `Auto (Rev Lx)` if losses trigger reversal
         document.getElementById('statsLevel').textContent = levelText;
     }
 
-    async function finalizeAndRecordResult(periodToFinalize) { /* ... Same as Rev 5 (Win/Loss logic and localStorage saving) ... */
+    async function finalizeAndRecordResult(periodToFinalize) {
         if (isWaitingForResult) return; isWaitingForResult = true;
         const predictionData = currentPredictionData[periodToFinalize];
         if (!predictionData || predictionData.error) {
             if (predictionData?.error) { const errorEntry = { period: periodToFinalize, predictedBS: '?', predictedRawColor: '?', predictedColorHTML: '?', actualResultDisplay: 'Prediction Error', status: 'Error', bsWin: false, colorWin: false, resultType: '?', server: fixedSelectedServerName, probability: 0 }; history.unshift(errorEntry); saveMyHistoryToStorage(); if (getActiveTab() === 'my') fetchData(1, 'my', true); updateAccuracyDisplay(); delete currentPredictionData[periodToFinalize]; }
             isWaitingForResult = false; return;
         }
-        let gameOutcome = null; const startTime = Date.now(); while (Date.now() - startTime < POLLING_TIMEOUT) { gameOutcome = await fetchGameResult(periodToFinalize); if (gameOutcome) break; await new Promise(resolve => setTimeout(resolve, POLLING_INTERVAL)); }
+        let gameOutcome = null; const startTime = Date.now();
+        while (Date.now() - startTime < POLLING_TIMEOUT) {
+            gameOutcome = await fetchGameResult(periodToFinalize);
+            if (gameOutcome) break;
+            await new Promise(resolve => setTimeout(resolve, POLLING_INTERVAL));
+        }
         let historyEntry;
         if (gameOutcome) {
             const actualBS = gameOutcome.bigSmall; const actualColor = gameOutcome.rawColor;
@@ -559,10 +579,10 @@
             let status;
             if (bsWin || colorWin) { status = "Win"; sessionStats.wins++; consecutiveLosses = 0; consecutiveWins++; }
             else { status = "Loss"; sessionStats.losses++; consecutiveWins = 0; consecutiveLosses++; }
-            // sessionStats.partials remains 0 as per current Win/Loss logic
             saveSessionStateToStorage();
             historyEntry = { period: periodToFinalize, predictedBS: predictionData.predictedBS, predictedRawColor: predictionData.predictedRawColor, predictedColorHTML: predictionData.predictedColorHTML, actualResultDisplay: `<span class="${gameOutcome.bsResultClass}">${actualBS}</span>, ${gameOutcome.colorForHistory}`, status, bsWin, colorWin, resultType: predictionData.resultType, server: predictionData.server, probability: predictionData.probability };
         } else {
+            console.warn(`Result for period ${periodToFinalize} timed out or fetch failed after ${POLLING_TIMEOUT/1000}s. API response might be delayed or unavailable. Check cache size: ${cachedData.length}, last 10 cached items:`, JSON.stringify(cachedData.slice(0,10).map(i => ({n:i.issueNumber, num: i.number})))); // More specific logging
             historyEntry = { period: periodToFinalize, predictedBS: predictionData.predictedBS, predictedRawColor: predictionData.predictedRawColor, predictedColorHTML: predictionData.predictedColorHTML, actualResultDisplay: 'Result N/A', status: 'Error', bsWin: false, colorWin: false, resultType: predictionData.resultType, server: predictionData.server, probability: predictionData.probability };
             consecutiveLosses = 0; consecutiveWins = 0; saveSessionStateToStorage(); showNotification(`Result for ${periodToFinalize} unavailable.`, 'error');
         }
@@ -571,7 +591,7 @@
         if (getActiveTab() === 'my') fetchData(1, 'my', true); isWaitingForResult = false;
     }
 
-    function updatePeriodAndTimer() { /* ... Same as Rev 5 ... */
+    function updatePeriodAndTimer() {
         const now = new Date(), ct = now.getTime(); if (ct - lastTimerUpdate < 980) return; lastTimerUpdate = ct;
         const y=now.getUTCFullYear(),m=String(now.getUTCMonth()+1).padStart(2,'0'),d=String(now.getUTCDate()).padStart(2,'0');
         const hrs=now.getUTCHours(),mins=now.getUTCMinutes(),secsValue=now.getUTCSeconds();
@@ -585,10 +605,10 @@
         const timerEl = document.getElementById('timer'); if(timerEl) timerEl.textContent = `${String(secsRemaining).padStart(2,'0')}s`;
         const statusEl = document.getElementById('status'); if(statusEl) statusEl.textContent = secsRemaining < 10 ? 'Closing' : 'Active';
     }
-    function getActiveTab() { /* ... Same as Rev 5 ... */
+    function getActiveTab() {
         const activeButton = document.querySelector('.tabs button.active'); if (activeButton) { const onclickAttr = activeButton.getAttribute('onclick'); if (onclickAttr?.includes("'game'")) return 'game'; if (onclickAttr?.includes("'my'")) return 'my'; if (onclickAttr?.includes("'chart'")) return 'chart'; } return currentTab;
     }
-    async function fetchData(page, tab = currentTab, forceRender = false) { /* ... Same as Rev 5 (handles myHistoryControls visibility) ... */
+    async function fetchData(page, tab = currentTab, forceRender = false) {
         const contentEl = document.getElementById('historyContent'); if (!contentEl) return;
         const myHistoryControlsEl = document.getElementById('myHistoryControls'); if (myHistoryControlsEl) { myHistoryControlsEl.style.display = (tab === 'my') ? 'flex' : 'none'; }
         if (!forceRender && currentPage === page && currentTab === tab && contentEl.innerHTML !== '' && !contentEl.innerHTML.includes('Loading ')) { return; }
@@ -599,16 +619,16 @@
         if (tab !== 'chart' && cachedData.length < 10) await fetchPage(1, tab === 'game');
         document.getElementById('prevPageBtn').disabled = (page <= 1); document.getElementById('currentPageBtn').textContent = page; document.getElementById('nextPageBtn').disabled = true;
         try {
-            if (tab === 'game') { /* ... same ... */
+            if (tab === 'game') {
                 const list = await fetchPage(page); contentEl.innerHTML = ''; document.getElementById('nextPageBtn').disabled = (!list || list.length < 10);
                 if (list && list.length > 0) { list.forEach(item => { const details = getNumberDetails(item.number); const div = document.createElement('div'); div.className = 'history-item game-result-item'; div.innerHTML = `<div class="history-value">${item.issueNumber||'?'}</div><div class="history-value gh-num ${details.numberClass}">${details.numberVal}</div><div class="history-value gh-bs ${details.bsClass}">${details.bigSmall}</div><div class="history-value gh-color">${details.colorForHistory}</div>`; contentEl.appendChild(div); });
                 } else contentEl.innerHTML = `<p style="text-align:center; padding:1rem;">${page === 1 ? 'No game history.' : 'No more game history.'}</p>`;
-            } else if (tab === 'my') { /* ... same, uses myHistoryItemsPerPage ... */
+            } else if (tab === 'my') {
                 if (myHead) myHead.innerHTML = `<div class="history-header-item">Period</div><div class="history-header-item">Pred B/S</div><div class="history-header-item">Pred Color</div><div class="history-header-item">Result</div><div class="history-header-item">Status</div>`; contentEl.innerHTML = '';
                 const startIndex = (page - 1) * myHistoryItemsPerPage; const endIndex = startIndex + myHistoryItemsPerPage; const paginatedHistory = history.slice(startIndex, endIndex); document.getElementById('nextPageBtn').disabled = (endIndex >= history.length);
                 if (paginatedHistory.length === 0) contentEl.innerHTML = `<p style="text-align:center; padding:1rem;">${page === 1 ? 'No predictions recorded.' : 'No more predictions.'}</p>`;
                 else { paginatedHistory.forEach(item => { const div = document.createElement('div'); let rowClass = 'history-item my-prediction-item'; if (item.status === 'Win') rowClass += ' row-win'; else if (item.status === 'Loss') rowClass += ' row-loss'; else if (item.status === 'Error') rowClass += ' row-error'; div.className = rowClass; const bsTickCross = item.status !== 'Error' && item.status !== '?' && typeof item.bsWin !== 'undefined' ? (item.bsWin ? '<span class="tick-mark">✅</span>' : '<span class="cross-mark">❌</span>') : ''; const colorTickCross = item.status !== 'Error' && item.status !== '?' && typeof item.colorWin !== 'undefined' ? (item.colorWin ? '<span class="tick-mark">✅</span>' : '<span class="cross-mark">❌</span>') : ''; const predictedBSDisplay = `${item.predictedBS || '?'}${bsTickCross}`; const predictedColorDisplay = `${item.predictedColorHTML || '?'}${colorTickCross}`; const resultDisplay = item.actualResultDisplay || '?'; const statusDisplay = item.status || '?'; div.innerHTML = `<div class="history-value">${item.period}</div><div class="history-value predicted-bs-value">${predictedBSDisplay}</div><div class="history-value predicted-color-value">${predictedColorDisplay}</div><div class="history-value result-value">${resultDisplay}</div><div class="history-value status-value status-${item.status?.toLowerCase()}">${statusDisplay}</div>`; contentEl.appendChild(div); }); }
-            } else if (tab === 'chart') { /* ... same, sessionAccuracyDisplay updated ... */
+            } else if (tab === 'chart') {
                 document.getElementById('nextPageBtn').disabled = true; contentEl.innerHTML = '<div style="text-align:center;padding:1rem;font-size:0.8rem;">Analyzing data...</div>';
                 const analyticsData = await fetchOptimizedData(10);
                 if (analyticsData && analyticsData.length > 0) {
@@ -617,7 +637,7 @@
                     const totalValidGames = nums.length; const pct = (count) => totalValidGames ? ((count/totalValidGames)*100).toFixed(1) : 0;
                     const totalSessionGames = sessionStats.wins + sessionStats.losses + (sessionStats.partials || 0);
                     const sessionAccuracyValue = totalSessionGames > 0 ? Math.round((sessionStats.wins / totalSessionGames) * 100) : 0;
-                    const sessionAccuracyDisplay = totalSessionGames > 0 ? `${sessionAccuracyValue}% (W:${sessionStats.wins} L:${sessionStats.losses} P:${sessionStats.partials || 0})` : 'N/A'; // Added Partials to display string
+                    const sessionAccuracyDisplay = totalSessionGames > 0 ? `${sessionAccuracyValue}% (W:${sessionStats.wins} L:${sessionStats.losses} P:${sessionStats.partials || 0})` : 'N/A';
                     contentEl.innerHTML = `
                         <h4 style="font-size: 0.9rem; color: var(--primary); margin:0.4rem; padding-bottom:4px; border-bottom: 1px solid var(--border-color);">Recent Trends (Last ${totalValidGames} Games)</h4>
                         <div class="analytics-grid" style="padding: 0.6rem;">
@@ -632,22 +652,19 @@
     }
 
     function changeMyHistoryEntriesPerPage(value) { myHistoryItemsPerPage = parseInt(value); saveMyHistoryItemsPerPageToStorage(); fetchData(1, 'my', true); }
-    function changePage(delta) { /* ... Same as Rev 5 ... */
+    function changePage(delta) {
         const newPage = currentPage + delta; if (newPage <= 0) return;
         if (currentTab === 'my') { const totalHistoryPages = Math.ceil(history.length / myHistoryItemsPerPage); if (newPage > totalHistoryPages && totalHistoryPages > 0 && delta > 0) return; }
         fetchData(newPage, currentTab);
     }
-    function showNotification(message, type = 'success') { /* ... Same as Rev 5 ... */
+    function showNotification(message, type = 'success') {
         const n=document.getElementById('notification'), nt=document.getElementById('notificationText'); if(!n || !nt) return; nt.textContent = message; n.className = 'floating-notification'; const iconEl = n.querySelector('i');
         if (type === 'success') { n.classList.add('success-bg'); if (iconEl) iconEl.className = 'fas fa-check-circle'; } else if (type === 'error') { n.classList.add('error-bg'); if (iconEl) iconEl.className = 'fas fa-exclamation-circle'; } else { n.classList.add('info-bg'); if (iconEl) iconEl.className = 'fas fa-info-circle'; }
         n.style.color = 'var(--text-primary)'; n.classList.add('show'); setTimeout(() => n.classList.remove('show'), 3500);
     }
-    function clearMyPredictions() { /* ... Same as Rev 5 ... */
+    function clearMyPredictions() {
         if (confirm("Are you sure you want to clear all your prediction history? This cannot be undone.")) {
             history = []; saveMyHistoryToStorage();
-            // Optionally clear session stats too:
-            // sessionStats = { wins: 0, losses: 0, partials: 0 }; consecutiveWins = 0; consecutiveLosses = 0;
-            // saveSessionStateToStorage(); updateAccuracyDisplay();
             fetchData(1, 'my', true); showNotification('My Predictions history cleared!', 'info');
         }
     }
@@ -661,7 +678,7 @@
     if (clearMyPredictionsBtn) { clearMyPredictionsBtn.onclick = clearMyPredictions; }
     setInterval(updatePeriodAndTimer, 1000);
     window.onload = async () => {
-        console.log('Predict VIP King Pro (UI & AI Logic v5 - Rev 7) Initialized.');
+        console.log('Predict VIP King Pro (UI & AI Logic v5 - Rev 7) Initialized.'); // Log Rev 7, actual code is Rev 8
         loadMyHistoryFromStorage(); loadSessionStateFromStorage(); loadMyHistoryItemsPerPageFromStorage();
         setApiStatus('offline_error'); const initialOutputArea = document.getElementById('currentResult');
         if(initialOutputArea) initialOutputArea.innerHTML = '<i class="fas fa-hourglass-half fa-spin" style="color:var(--primary);"></i> Initializing AI...';
