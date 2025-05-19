@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predict VIP King Pro - UI & AI Enhancements v5 Rev 10 (Optimized Admin)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- Base Styles & Variables --- */
+        :root {
+            --primary: #00e5ff; --secondary: #ffab00; --success: #00c853; --danger: #f50057;
+            --warning: #ffd600; --info: #2979ff; --violet-accent: #d500f9;
+            --bg-main: #0a0f14; --bg-card: #1c232b; --bg-header-footer: #283038;
+            --bg-interactive: #323c47; --bg-hover: #404c59;
+            --text-primary: #e0e0e0; --text-secondary: #9e9e9e; --text-disabled: #616161;
+            --text-win: var(--success); --text-loss: var(--danger); --text-partial: #ffab00;
+            --text-error: var(--warning); --text-num-red: var(--danger); --text-num-green: var(--success);
+            --partial-bg: rgba(255, 171, 0, 0.08); --win-bg: rgba(0, 200, 83, 0.08);
+            --loss-bg: rgba(245, 0, 87, 0.08); --error-bg: rgba(255, 214, 0, 0.08);
+            --border-color: #37474f; --shadow: '0 2px 8px rgba(0, 0, 0, 0.35)';
+            --tick-color: var(--success); --cross-color: var(--danger);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: var(--bg-main); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; font-size: 14px; line-height: 1.4; }
+        .container { max-width: 1080px; width: 100%; margin: 0 auto; padding: 4px; }
+        header { text-align: center; margin-bottom: 0.4rem; position: relative; padding: 0.4rem; background-color: var(--bg-card); border-radius: 5px; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        h1 { font-size: 1.75rem; margin-bottom: 0.1rem; color: var(--secondary); font-weight: 700; }
+        .header-subtitle-container { display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.05rem; font-weight: 400; flex-wrap: wrap; }
+        .header-action-icon { color: var(--text-secondary); text-decoration: none; font-size: 1em; cursor: pointer; transition: color 0.3s ease, transform 0.2s ease; padding: 0 3px; }
+        .header-action-icon:hover { color: var(--primary); transform: scale(1.1); }
+        .info-modal { display: none; position: fixed; z-index: 1050; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
+        .info-modal-content { background: var(--bg-card); color: var(--text-primary); margin: auto; padding: 10px; border: 1px solid var(--border-color); width: 90%; max-width: 420px; border-radius: 5px; box-shadow: var(--shadow); position: relative; }
+        .info-modal-content h3 { color: var(--primary); margin-top: 0; margin-bottom: 7px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; font-size: 0.9rem; font-weight: 500; }
+        .info-modal-content p { margin-bottom: 4px; line-height: 1.25; font-size: 0.72rem;}
+        .info-modal-content ul { list-style-position: inside; padding-left: 0; margin-bottom: 4px;}
+        .info-modal-content li { margin-bottom: 2.5px; font-size: 0.72rem;}
+        .info-modal-content .disclaimer-icon { color: var(--warning); }
+        .info-modal-content .disclaimer-text { font-weight: bold; }
+        .info-modal-content .contact-item { margin-bottom: 5px; font-size: 0.75rem; }
+        .info-modal-content .contact-item strong { color: var(--secondary); }
+        .info-modal-close-button { color: #999; position: absolute; top: 3px; right: 7px; font-size: 20px; font-weight: bold; cursor: pointer; }
+        .info-modal-close-button:hover { color: var(--primary); }
+        .top-info-line { display: flex; justify-content: space-around; align-items: center; flex-wrap: nowrap; gap: 0.5rem; padding: 0.3rem 0.5rem; margin-bottom: 0.4rem; border-bottom: 1px solid var(--border-color); background-color: var(--bg-header-footer); border-radius: 4px; overflow-x: auto; }
+        .top-info-line::-webkit-scrollbar { height: 2.5px; }
+        .top-info-line::-webkit-scrollbar-track { background: var(--bg-header-footer); }
+        .top-info-line::-webkit-scrollbar-thumb { background-color: var(--primary); border-radius: 1.5px;}
+        .top-info-item { display: flex; align-items: center; gap: 0.25rem; font-size: 0.85rem; color: var(--text-primary); white-space: nowrap; flex-shrink: 0; }
+        .top-info-item .value { font-weight: 600; color: var(--text-primary); min-width: auto; padding-left: 0.1em; font-size:0.9rem; }
+        .top-info-item i { color: var(--primary); font-size: 0.95rem; margin-right: 0.15em; }
+        #apiStatus.status-connecting { color: var(--warning); animation: blinkStatus 1.5s infinite ease-in-out; }
+        #apiStatus.status-online { color: var(--success); font-weight: 600; }
+        #apiStatus.status-offline { color: var(--danger); font-weight: 600; }
+        @keyframes blinkStatus { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .card { margin-bottom: 4px; padding: 6px; background-color: var(--bg-card); border-radius: 6px; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        .prediction-card { margin-bottom: 3px; }
+        .card-title { font-size: 0.95rem; margin: -6px -6px 4px -6px; padding: 6px 8px; color: var(--primary); display: flex; align-items: center; justify-content: space-between; gap: 4px; font-weight: 600; border-bottom: 1px solid var(--border-color); border-radius: 6px 6px 0 0; background-color: var(--bg-header-footer); }
+        .card-title > div { display: flex; align-items: center; gap: 4px; }
+        .card-title i { font-size: 1rem; margin-right: 2.5px; }
+        .clear-btn { background: var(--danger); color: var(--text-primary); border: none; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 500; transition: background-color 0.2s; }
+        .clear-btn i { margin-right: 3px; }
+        .clear-btn:hover { background-color: #c40044; }
+        .main-interactive-area { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; padding: 0.15rem 0; }
+        .output-area { flex-grow: 1; width: 100%; max-width: 100%; min-width: 250px; padding: 0; border: none; }
+        #currentResult { font-size: 0.95rem; line-height: 1.4; text-align: center; white-space: nowrap; overflow-x: auto; overflow-y: hidden; padding: 0.4rem 0.3rem; background-color: var(--bg-card); border-radius: 4px; color: var(--text-primary); }
+        #currentResult::-webkit-scrollbar { height: 2.5px; }
+        #currentResult::-webkit-scrollbar-track { background: var(--bg-interactive); }
+        #currentResult::-webkit-scrollbar-thumb { background-color: var(--secondary); border-radius: 1.5px; }
+        .prediction-output-item { display: inline-block; margin: 0 3px; vertical-align: middle; font-size: 1em; }
+        .prediction-output-label { color: var(--text-secondary); margin-right: 2px; font-size: 0.9em; }
+        .prediction-output-value { font-weight: 500; color: var(--text-primary); font-size: 1em; }
+        .prediction-output-item.p-bs .prediction-output-value,
+        .prediction-output-item.p-color .prediction-output-value { color: var(--primary); font-weight: 600; font-size: 1.15em; }
+        .prediction-output-item.p-perc .prediction-output-value { color: var(--info); font-weight: 500; }
+        .prediction-output-item.p-rev .prediction-output-value { color: var(--warning); font-weight: 500; }
+        .prediction-output-item.p-color .color-dot { vertical-align: middle; }
+        .prediction-output-item.p-strat .prediction-output-value { color: var(--text-secondary); font-size: 0.9em; font-style: italic; max-width: 75px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+        .tabs { display: flex; margin-bottom: 0rem; border-bottom: 1px solid var(--border-color); gap: 1.5px; background-color: var(--bg-header-footer); border-radius: 4px 4px 0 0; }
+        .tabs button { flex: 1; padding: 0.35rem; background: none; border: none; color: var(--text-secondary); font-weight: 500; cursor: pointer; position: relative; transition: background-color 0.2s, color 0.2s, border-bottom-color 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.2rem; border-bottom: 2px solid transparent; font-size: 0.9rem; }
+        .tabs button.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; background-color: var(--bg-interactive); }
+        .tabs button:hover:not(.active) { color: var(--primary); background-color: var(--bg-hover); }
+        .my-history-controls { padding: 4px 8px; background-color: var(--bg-header-footer); display: flex; gap: 8px; align-items: center; font-size: 0.8rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1px; }
+        .my-history-controls label { color: var(--text-secondary); }
+        .my-history-controls select { background-color: var(--bg-interactive); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 3px; padding: 2px 4px; font-size: 0.8rem; }
+        .history-header { display: none; gap: 1px 2px; padding: 3px 4px; font-weight: 500; border-bottom: 1px solid var(--border-color); font-size: 0.65rem; color: var(--text-secondary); background: var(--bg-header-footer); text-transform: uppercase; margin-bottom: 1px; }
+        #gameHistoryHeader, #myHistoryHeader, #adminDashboardHeader { border-top-left-radius: 0; border-top-right-radius: 0; }
+        #gameHistoryHeader { grid-template-columns: 2.2fr 0.8fr 1.2fr 2.8fr; }
+        .history-item.game-result-item { grid-template-columns: 2.2fr 0.8fr 1.2fr 2.8fr; }
+        #gameHistoryHeader .history-header-item, .history-item.game-result-item .history-value { text-align: center; justify-content: center; }
+        #gameHistoryHeader .history-header-item:first-child, .history-item.game-result-item .history-value:first-child { text-align: left; justify-content: flex-start; word-break:keep-all; }
+        .history-item.game-result-item .gh-num { font-weight: 600; }
+        .history-item.game-result-item .gh-num-red { color: var(--text-num-red); }
+        .history-item.game-result-item .gh-num-green { color: var(--text-num-green); }
+        .history-item.game-result-item .gh-bs { font-weight: 600; }
+        .history-item.game-result-item .gh-bs-big { color: var(--warning); }
+        .history-item.game-result-item .gh-bs-small { color: var(--info); }
+        .history-item.game-result-item .gh-color { display: flex; align-items: center; justify-content: center; gap: 3px; }
+        .history-item.game-result-item .gh-color .color-dot { margin-right: 0; }
+        #myHistoryHeader { grid-template-columns: 2fr 1.4fr 1.4fr 2.2fr 0.8fr; }
+        .history-item.my-prediction-item { grid-template-columns: 2fr 1.4fr 1.4fr 2.2fr 0.8fr; line-height: 1.2; }
+        .history-item.my-prediction-item .history-value:first-child {
+            text-align: left;
+            justify-content: flex-start;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 90px;
+        }
+        #myHistoryHeader .history-header-item { text-align: center; white-space: nowrap; }
+        #myHistoryHeader .history-header-item:first-child { text-align: left; }
+        #myHistoryHeader .history-header-item:nth-child(4) { text-align: center; }
+        #adminDashboardHeader { display: none; }
+        .history-content { background: var(--bg-main); border-radius: 0 0 5px 5px; padding: 0.15rem 0; min-height: 170px; max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--primary) var(--bg-main); }
+        .history-content::-webkit-scrollbar { width: 3px; }
+        .history-content::-webkit-scrollbar-track { background: var(--bg-main); border-radius: 3px; }
+        .history-content::-webkit-scrollbar-thumb { background-color: var(--primary); border-radius: 3px; }
+        .history-item { background: var(--bg-interactive); border: 1px solid var(--border-color); border-radius: 3px; padding: 2.5px 3.5px; margin: 0 0.1rem 1.5px 0.1rem; display: grid; gap: 1px 2px; align-items: center; transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease; font-size: 0.8rem; box-shadow: 0 0.5px 0.5px rgba(0,0,0,0.05); }
+        .history-item:hover { border-color: var(--primary); background-color: var(--bg-hover); }
+        .history-item.my-prediction-item.row-win { background-color: var(--win-bg); border-color: rgba(0, 200, 83, 0.2); }
+        .history-item.my-prediction-item.row-loss { background-color: var(--loss-bg); border-color: rgba(245, 0, 87, 0.2); }
+        .history-item.my-prediction-item.row-partial { background-color: var(--partial-bg); border-color: rgba(255, 171, 0, 0.2); }
+        .history-item.my-prediction-item.row-error { background-color: var(--error-bg); border-color: rgba(255, 214, 0, 0.2); }
+        .history-item .history-value { font-weight: 400; display: flex; align-items: center; word-break: break-word; color: var(--text-primary); text-align: center; justify-content: center; padding: 0.5px 1.5px; line-height: 1.15; font-size: 0.75rem; }
+        .history-item.my-prediction-item .history-value.predicted-bs-value, .history-item.my-prediction-item .history-value.predicted-color-value, .history-item.my-prediction-item .history-value.result-value, .history-item.my-prediction-item .history-value.status-value { text-align: center; justify-content: center; }
+        .history-item.my-prediction-item .history-value.result-value { gap: 2.5px; }
+        .history-item.my-prediction-item .result-bs-big { color: var(--warning); font-weight: 500; }
+        .history-item.my-prediction-item .result-bs-small { color: var(--info); font-weight: 500; }
+        .history-item .status-win { color: var(--text-win); font-weight: bold; }
+        .history-item .status-loss { color: var(--text-loss); font-weight: bold; }
+        .history-item .status-partial { color: var(--text-partial); font-weight: 500; }
+        .history-item .status-error { color: var(--text-error); font-style: italic; }
+        .tick-mark { color: var(--tick-color); margin-left: 1.5px; font-weight: bold; font-size: 0.85em; }
+        .cross-mark { color: var(--cross-color); margin-left: 1.5px; font-weight: bold; font-size: 0.85em; }
+        .color-dot { display: inline-block; width: 6.5px; height: 6.5px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
+        .color-red { background-color: var(--danger); } .color-green { background-color: var(--success); } .color-violet { background-color: var(--violet-accent); }
+        .stats-bar { background-color: var(--bg-header-footer); padding: 5.5px 8.5px; margin-top: 0; margin-bottom: 3.5px; border-radius: 0 0 4px 4px; border: 1px solid var(--border-color); border-top: none; box-shadow: var(--shadow); display: flex; justify-content: space-around; align-items: center; flex-wrap: nowrap; overflow-x: auto; gap: 6.5px 10.5px; font-size: 0.85rem; }
+        .stats-bar-item { display: flex; align-items: center; gap: 3.5px; color: var(--text-secondary); flex-shrink: 0; }
+        .stats-bar-item strong { color: var(--text-primary); font-weight: 500; }
+        .stats-bar-item .value { font-weight: 500; } .stats-bar-item .win { color: var(--success); } .stats-bar-item .loss { color: var(--danger); } .stats-bar-item .acc { color: var(--primary); } .stats-bar-item .rev { color: var(--warning); } .stats-bar-item .level { color: var(--info); } .stats-bar-item .partial { color: var(--text-partial); }
+        .analytics-grid { display: grid; grid-template-columns: auto auto 1fr; gap: 3px 6px; align-items: center; font-size: 0.75rem; margin-top: 3.5px; padding: 8px; background: var(--bg-interactive); border-radius: 4px; }
+        .analytics-grid > div { padding: 2px 0; }
+        .analytics-grid > div:nth-child(3n+1) { font-weight: 500; display: flex; align-items: center; color:var(--text-secondary); }
+        .analytics-grid > div:nth-child(3n+1) strong {color: var(--text-primary);}
+        .analytics-grid > div:nth-child(3n+2) { font-weight: 600; text-align: right; color:var(--text-primary); }
+        .analytics-grid > div:nth-child(3n) { text-align: right; color: var(--secondary); }
+        .analytics-grid h4 { grid-column: 1 / -1; margin-bottom: 6px; color: var(--primary); border-bottom: 1px solid var(--border-color); padding-bottom: 3px; font-size: 0.85rem; }
+        .analytics-grid .outcome-icon { display: inline-block; width: 10.5px; height: 10.5px; line-height: 10.5px; text-align: center; border-radius: 2px; margin-right: 3.5px; font-weight: bold; color: var(--bg-card); font-size: 0.55rem;}
+        .analytics-grid .outcome-icon.big { background-color: var(--warning); }
+        .analytics-grid .outcome-icon.small { background-color: var(--info); }
+        .analytics-grid .session-accuracy-footer { grid-column: 1 / -1; text-align: center; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border-color); color: var(--primary); font-weight: 500; font-size: 0.8rem;}
+        .pagination { display: flex; justify-content: center; gap: 0.25rem; margin-top: 0.4rem; }
+        .pagination button { padding: 0.25rem 0.4rem; background: var(--bg-interactive); border: 1px solid var(--border-color); border-radius: 3.5px; color: var(--primary); cursor: pointer; transition: background-color 0.3s, border-color 0.3s; font-size: 0.85rem; }
+        .pagination button:hover:not(:disabled) { background-color: var(--bg-hover); border-color: var(--secondary); }
+        .pagination button.active { background-color: var(--primary); color: var(--bg-card); border-color: var(--primary); }
+        .pagination button:disabled { opacity: 0.4; cursor: not-allowed; background-color: var(--bg-interactive); color: var(--text-disabled); }
+        .floating-notification { position: fixed; bottom: 8px; right: 8px; color: var(--text-primary); padding: 0.4rem 0.6rem; border-radius: 4px; box-shadow: var(--shadow); transform: translateY(70px); opacity: 0; transition: all 0.4s ease-out; z-index: 1050; display: flex; align-items: center; gap: 0.2rem; font-size: 0.75rem; background-color: var(--bg-header-footer); }
+        .floating-notification.show { transform: translateY(0); opacity: 1; }
+        .floating-notification i { margin-right: 0.2rem; }
+        .floating-notification.success-bg { background-color: var(--success); } .floating-notification.error-bg { background-color: var(--danger); } .floating-notification.info-bg { background-color: var(--info); }
+
+        /* Admin Panel Specific Styles */
+        .admin-section { margin-bottom: 12px; padding: 8px; background-color: var(--bg-interactive); border-radius: 4px; }
+        .admin-section h5 { color: var(--secondary); margin-top: 0; margin-bottom: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; font-size: 0.9rem; }
+        #adminUserManagementTopControls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; align-items: flex-end; }
+        #adminUserStats { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; background-color: var(--bg-header-footer); padding: 6px 10px; border-radius: 4px; flex-shrink: 0; margin-bottom: 8px;}
+        #adminUserStats span { font-size: 0.75rem; }
+        #createUserFormContainer { flex-grow: 1; display: flex; flex-direction: column; gap: 6px; background-color: var(--bg-header-footer); padding: 8px 10px; border-radius: 4px; min-width: auto; /* Let it shrink more */ }
+        #createUserFormContainer h6 { font-size: 0.75rem; margin:0 0 5px 0; color: var(--text-secondary); }
+        
+        #createUserFormControls {
+            display: flex;
+            flex-direction: row; /* Default row */
+            flex-wrap: wrap;     /* Allow wrapping */
+            align-items: center;
+            gap: 8px; /* Gap between items */
+        }
+        #createUserFormControls label {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            margin-right: 4px;
+            flex-shrink: 0;
+        }
+        #createUserFormControls select {
+            padding: 5px 7px;
+            background-color: var(--bg-interactive);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            font-size: 0.75rem;
+            flex-grow: 1; /* Allow select to take available space */
+            min-width: 120px; /* Ensure it's not too small */
+        }
+        #createUserFormControls button { /* Create button */
+            padding: 5px 10px;
+            font-size: 0.75rem;
+            flex-shrink: 0; /* Don't shrink button */
+            background-color: var(--success) !important; /* Ensure button color */
+            height: auto; /* Adjust height to match select */
+        }
+        #generatedUserKey { margin-top: 6px; font-size: 0.75rem; min-height: 1.1em; }
+
+        #managedUsersListContainer .admin-list-header,
+        #managedUsersListContainer .history-item.managed-user-item {
+            display: grid;
+            /* Columns: Created, User, Key, Status, Expires, Actions */
+            grid-template-columns: 1.3fr 1.2fr 2fr 0.8fr 1.3fr 1.2fr; 
+            gap: 3px;
+            padding: 4px 3px;
+            border-bottom: 1px solid var(--border-color);
+            align-items: center;
+            font-size: 0.7rem; /* Slightly larger for better readability of details */
+        }
+        #managedUsersListContainer .admin-list-header {
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 0.65rem;
+            background-color: var(--bg-header-footer) !important;
+        }
+        #managedUsersListContainer .admin-list-header .history-header-item,
+        #managedUsersListContainer .history-item.managed-user-item .history-value {
+            text-align: left; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            white-space: nowrap;
+        }
+        #managedUsersListContainer .history-item.managed-user-item .history-value:nth-child(2), /* User */
+        #managedUsersListContainer .history-item.managed-user-item .history-value:nth-child(3) { /* Access Key */
+            white-space: normal; /* Allow wrapping for user and key */
+            word-break: break-all;
+            line-height: 1.2;
+        }
+
+        #managedUsersListContainer .admin-list-header .history-header-item { color: var(--primary); }
+        #managedUsersListContainer .history-item.managed-user-item { background-color: var(--bg-interactive); }
+        #managedUsersListContainer .history-item.managed-user-item:hover { background-color: var(--bg-hover); }
+        
+        #managedUsersListContainer .history-item.managed-user-item .history-value:nth-child(4), /* Status */
+        #managedUsersListContainer .history-item.managed-user-item .history-value:last-child { /* Actions */
+            text-align: center; justify-content: center; white-space: nowrap;
+        }
+        #managedUsersListContainer .history-item.managed-user-item .history-value button.admin-action-btn {
+            font-size: 0.85em; 
+            padding: 2px 4px; 
+            margin: 0 1px;
+            background-color: var(--bg-card); color:var(--text-primary);
+            border: 1px solid var(--border-color); border-radius:3px; cursor:pointer;
+            min-width: 22px;
+        }
+        #managedUsersListContainer .history-item.managed-user-item .history-value button.ban-btn { border-color: var(--danger); color: var(--danger); }
+        #managedUsersListContainer .history-item.managed-user-item .history-value button.unban-btn { border-color: var(--success); color: var(--success); }
+        #managedUsersListContainer .history-item.managed-user-item .history-value button.delete-btn { border-color: var(--warning); color: var(--warning); }
+
+
+        @media (max-width: 768px) {
+            /* General mobile styles from before */
+            .main-interactive-area { flex-direction: column; align-items: stretch; }
+            .output-area { max-width: 100%; margin-top: 0.5rem; }
+            #currentResult { white-space: normal; overflow-x: hidden; font-size: 0.9rem; }
+            .prediction-output-item { font-size: 1em; }
+            .prediction-output-label { font-size: 0.85em; }
+            .prediction-output-item.p-bs .prediction-output-value,
+            .prediction-output-item.p-color .prediction-output-value { font-size: 1.1em; }
+            #myHistoryHeader { grid-template-columns: 1.8fr 1.3fr 1.3fr 2fr 0.7fr; font-size: 0.65rem; }
+            .history-item.my-prediction-item { grid-template-columns: 1.8fr 1.3fr 1.3fr 2fr 0.7fr; font-size: 0.7rem; }
+            #gameHistoryHeader { grid-template-columns: 2fr 0.8fr 1.2fr 2.5fr; font-size: 0.65rem; }
+            .history-item.game-result-item { grid-template-columns: 2fr 0.8fr 1.2fr 2.5fr; font-size: 0.7rem; }
+            .stats-bar { font-size: 0.75rem; padding: 5px 7px; gap: 5px 8px;}
+            .analytics-grid { font-size: 0.7rem; }
+            .tabs button { font-size: 0.8rem; }
+
+            /* Admin Panel specific for 768px */
+            #adminUserManagementTopControls { flex-direction: column; align-items: stretch; }
+            #adminUserStats, #createUserFormContainer { width: 100%; margin-bottom: 10px; }
+            
+            #createUserFormControls {
+                flex-direction: row; /* Keep as row if space allows, will wrap */
+            }
+             #createUserFormControls label {
+                flex-basis: auto; /* Reset basis */
+                margin-bottom: 0;
+             }
+             #createUserFormControls select, #createUserFormControls button {
+                 width: auto; /* Allow flex to size them */
+                 margin-bottom: 0;
+             }
+
+            #managedUsersListContainer .admin-list-header,
+            #managedUsersListContainer .history-item.managed-user-item {
+                grid-template-columns: 1.1fr 1fr 1.7fr 0.7fr 1.1fr 1.1fr; /* Adjusted for 768px */
+                font-size: 0.68rem; 
+                gap:3px;
+            }
+             #managedUsersListContainer .history-item.managed-user-item .history-value button.admin-action-btn {
+                font-size: 0.8em;
+                 padding: 2px 3px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            body { font-size: 13px; }
+            h1 { font-size: 1.3rem; }
+            .header-subtitle-container { font-size: 0.75rem; justify-content: center; }
+            .header-subtitle-container > span { width:100%; text-align:center; margin-bottom: 5px;}
+            .top-info-item { font-size: 0.75rem; gap: 0.15rem; margin-right: 0.25rem;}
+            .top-info-item .value { font-size: 0.8rem; }
+            .top-info-item i { font-size: 0.85rem; }
+            .card-title { font-size: 0.85rem; }
+            #currentResult { font-size: 0.85rem; padding: 3px; white-space: normal; overflow-x: hidden;}
+            .prediction-output-item { font-size: 0.95em; margin: 0 2px; }
+            .prediction-output-label { font-size: 0.8em; }
+            .prediction-output-item.p-bs .prediction-output-value,
+            .prediction-output-item.p-color .prediction-output-value { font-size: 1em; font-weight: 600; }
+            .prediction-output-item.p-strat .prediction-output-value { max-width: 50px; font-size: 0.8em; }
+            .tabs button { padding: 0.2rem; font-size: 0.65rem; gap: 0.1rem;}
+            .tabs button i { font-size: 0.65em; }
+            #gameHistoryHeader {grid-template-columns: 1.4fr 0.5fr 0.7fr 1.8fr; font-size: 0.5rem; }
+            .history-item.game-result-item {grid-template-columns: 1.4fr 0.5fr 0.7fr 1.8fr; font-size: 0.65rem; }
+            #myHistoryHeader { grid-template-columns: 1.5fr 0.9fr 0.9fr 1.6fr 0.5fr; font-size: 0.5rem; }
+            .history-item.my-prediction-item { grid-template-columns: 1.5fr 0.9fr 0.9fr 1.6fr 0.5fr; font-size: 0.65rem; }
+            .history-item.my-prediction-item .history-value { line-height: 1; font-size: 0.6rem; }
+             .history-item.my-prediction-item .history-value:first-child { min-width: 60px; }
+
+            .stats-bar { font-size: 0.65rem; padding: 3px 5px; gap: 3px 5px; }
+            .analytics-grid {font-size: 0.65rem; }
+            .pagination button {font-size: 0.75rem; }
+            .floating-notification {font-size: 0.7rem; }
+            .my-history-controls { font-size: 0.7rem; }
+            .my-history-controls select { font-size: 0.7rem; }
+            
+            #createUserFormContainer h6 {
+                font-size: 0.7rem;
+                margin-bottom: 4px;
+            }
+            #createUserFormControls {
+                gap: 6px; /* Reduced gap */
+            }
+            #createUserFormControls label {
+                font-size: 0.65rem;
+                margin-right: 3px;
+            }
+            #createUserFormControls select,
+            #createUserFormControls button {
+                padding: 3px 5px;
+                font-size: 0.65rem;
+                height: 26px; 
+            }
+            #createUserFormControls select {
+                flex: 1 1 90px; 
+            }
+            #createUserFormControls button {
+                flex: 0 0 auto;
+                padding: 3px 7px;
+            }
+            #generatedUserKey {
+                font-size: 0.65rem;
+                margin-top: 4px;
+            }
+
+            #managedUsersListContainer .admin-list-header,
+            #managedUsersListContainer .history-item.managed-user-item {
+                grid-template-columns: 1fr 0.9fr 1.3fr 0.7fr 1fr 0.9fr; 
+                font-size: 0.6rem; 
+                gap: 2px; padding: 2px 2px;
+            }
+            #managedUsersListContainer .history-item.managed-user-item .history-value button.admin-action-btn {
+                padding: 1px 2px; font-size: 0.8em; 
+                min-width: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loginModal" class="info-modal" style="display: none; justify-content: center; align-items: center;">
+        <div class="info-modal-content" style="width: 90%; max-width: 320px;">
+            <h3 style="text-align: center;">Enter Access Key</h3>
+            <input type="password" id="accessKeyInput" placeholder="Access Key" style="width: 100%; padding: 10px; margin-bottom: 12px; background-color: var(--bg-interactive); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; font-size: 0.9rem;">
+            <button id="loginButton" style="width: 100%; padding: 10px; background-color: var(--primary); color: var(--bg-card); border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; font-weight: 500;">Login</button>
+            <p id="loginError" style="color: var(--danger); font-size: 0.8rem; margin-top: 8px; text-align: center; display: none;">Invalid Access Key</p>
+        </div>
+    </div>
+
+    <div class="container" id="appContainer" style="display: none;">
+        <header>
+            <h1>Predict VIP King Pro</h1>
+            <div class="header-subtitle-container">
+                <span>ADVANCED PREDICTION SYSTEM (UI & Logic v5 Rev 10)</span>
+                <a href="https://www.bdgin03.com//#/register?invitationCode=3783710836033" target="_blank" class="header-action-icon" title="Register">
+                    <i class="fas fa-user-plus"></i>
+                </a>
+                <a href="#" id="contactModalLink" class="header-action-icon" title="Contact Details">
+                    <i class="fas fa-envelope"></i>
+                </a>
+                <a href="#" id="aboutModalLink" class="header-action-icon" title="About & How to Use">
+                    <i class="fas fa-info-circle"></i>
+                </a>
+                <a href="#" id="themeToggleBtn" class="header-action-icon" title="Toggle Theme">
+                    <i class="fas fa-sun"></i>
+                </a>
+                 <a href="#" id="logoutButton" class="header-action-icon" title="Logout" style="display: none; margin-left: 5px;">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </header>
+
+        <div id="aboutModal" class="info-modal">
+            <div class="info-modal-content">
+                <span class="info-modal-close-button" id="aboutModalCloseButton">&times;</span>
+                <h3><i class="fas fa-info-circle"></i> How to Use Predict VIP King Pro (Rev 10)</h3>
+                <p>The system automatically analyzes game history to predict Big/Small and Color status.</p>
+                <ul>
+                    <li><strong>Automatic Prediction:</strong> Predictions are generated automatically for each new period.</li>
+                    <li><strong>Prediction Output:</strong> Shows predicted B/S, Color, Confidence (Per), Reversal Chance (Rev), and Strategy (Stgy).</li>
+                    <li><strong>History Tabs:</strong>
+                        <ul>
+                            <li><em>Game History:</em> Official results from the game. (Attempts to show up to 100 cached entries)</li>
+                            <li><em>My Predictions:</em> Your prediction results (Win/Loss/Partial). Data is saved in your browser. Use dropdown to change entries per page.</li>
+                            <li><em>Analytics:</em> Recent game statistics.</li>
+                        </ul>
+                    </li>
+                    <li><strong>AI Engine:</strong> Uses trend analysis of the last 10 game results. Reversal logic is applied by the AI after 1 or more consecutive losses.</li>
+                    <li><strong>Clear Predictions:</strong> Use the "Clear" button next to "History & Analytics" title to remove your saved prediction log.</li>
+                </ul>
+                <p><i class="fas fa-exclamation-triangle disclaimer-icon"></i> <span class="disclaimer-text">Disclaimer:</span> AI predictions are for analysis and educational purposes only, not guaranteed financial advice. Use responsibly.</p>
+            </div>
+        </div>
+
+        <div id="contactModal" class="info-modal">
+            <div class="info-modal-content">
+                <span class="info-modal-close-button" id="contactModalCloseButton">&times;</span>
+                <h3><i class="fas fa-envelope"></i> Contact Information</h3>
+                <div class="contact-item">
+                    <strong>Email:</strong> vippredictking@zohomail.in
+                </div>
+                <div class="contact-item">
+                    <strong>Developer:</strong> Kumghato
+                </div>
+                 <p style="font-size: 0.7rem; margin-top: 10px; color: var(--text-secondary);">For support or inquiries, please use the email above.</p>
+            </div>
+        </div>
+
+
+        <div class="top-info-line">
+            <div class="top-info-item"> <i class="fas fa-clock"></i><span class="value" id="timer">00s</span> </div>
+            <div class="top-info-item"> <i class="fas fa-hashtag"></i><span class="value" id="period">N/A</span> </div>
+            <div class="top-info-item"> <i class="fas fa-bolt"></i><span class="value" id="status">Active</span> </div>
+            <div class="top-info-item"> <i class="fas fa-server"></i><span class="value" id="apiStatus">Connecting...</span> </div>
+        </div>
+
+        <div class="prediction-section">
+            <div class="prediction-card card">
+                <div class="card-title">
+                    <div><i class="fas fa-brain"></i> AI Prediction Output</div>
+                </div>
+                <div class="main-interactive-area">
+                    <div class="output-area">
+                        <div class="result-display" style="margin-top:0; padding: 0.3rem;">
+                            <div id="currentResult">
+                                <i class="fas fa-hourglass-half fa-spin"></i> Waiting for next prediction...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">
+                <div><i class="fas fa-history"></i> History & Analytics</div>
+                <button id="clearMyPredictionsBtn" class="clear-btn" title="Clear My Predictions Log">
+                    <i class="fas fa-trash-alt"></i> Clear
+                </button>
+            </h2>
+            <div class="stats-bar" id="sessionStatsBar">
+                <div class="stats-bar-item">Wins: <strong id="statsWins" class="win">0</strong></div>
+                <div class="stats-bar-item">Loss: <strong id="statsLosses" class="loss">0</strong></div>
+                <div class="stats-bar-item">Part: <strong id="statsPartials" class="partial">0</strong></div>
+                <div class="stats-bar-item">Acc: <strong id="statsAccuracy" class="acc">0%</strong></div>
+                <div class="stats-bar-item">Rev: <strong id="statsAiRev" class="rev">0%</strong></div>
+                <div class="stats-bar-item">Lv: <strong id="statsLevel" class="level">Normal</strong></div>
+            </div>
+            <div class="tabs">
+                <button class="active" onclick="fetchData(1, 'game')"> <i class="fas fa-gamepad"></i> Game History </button>
+                <button onclick="fetchData(1, 'chart')"> <i class="fas fa-chart-line"></i> Chart </button>
+                <button onclick="fetchData(1, 'my')"> <i class="fas fa-user-clock"></i> My History </button>
+                <button id="adminDashboardTab" onclick="fetchData(1, 'admin_dashboard')" style="display: none;"> <i class="fas fa-user-shield"></i> Admin Panel </button>
+            </div>
+            <div class="my-history-controls" id="myHistoryControls" style="display: none;">
+                <label for="entriesPerPage">Show:</label>
+                <select id="entriesPerPage" onchange="changeMyHistoryEntriesPerPage(this.value)">
+                    <option value="10">10 entries</option>
+                    <option value="25">25 entries</option>
+                    <option value="50">50 entries</option>
+                </select>
+            </div>
+            <div class="history-header" id="gameHistoryHeader">
+                <div class="history-header-item">Period</div><div class="history-header-item">Num</div>
+                <div class="history-header-item">Big/Small</div><div class="history-header-item">Color</div>
+            </div>
+            <div class="history-header" id="myHistoryHeader">
+                <div class="history-header-item">Period</div>
+                <div class="history-header-item">Pred B/S</div>
+                <div class="history-header-item">Pred Color</div>
+                <div class="history-header-item">Result</div> <div class="history-header-item">Status</div>
+            </div>
+            <div id="adminDashboardHeader" style="display: none;"></div>
+
+            <div class="history-content" id="historyContent">
+                <div style="text-align: center; padding: 2rem;"> <i class="fas fa-spinner fa-spin fa-lg" style="color: var(--primary);"></i> Loading data... </div>
+            </div>
+            <div class="pagination">
+                <button id="prevPageBtn" onclick="changePage(-1)" disabled><i class="fas fa-chevron-left"></i></button>
+                <button id="currentPageBtn" class="active">1</button>
+                <button id="nextPageBtn" onclick="changePage(1)"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="floating-notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notificationText">Notification Text</span>
+    </div>
+
+<script>
+    // --- Global Variables ---
+    let lastCompletedPeriodNumber = null;
+    let history = [];
+    let cachedData = [];
+    let currentPredictionData = {};
+    let currentPage = 1;
+    let currentTab = 'game';
+    let isFetchingPage = false;
+    let isWaitingForResult = false;
+    let consecutiveLosses = 0;
+    let consecutiveWins = 0;
+    let sessionStats = { wins: 0, losses: 0, partials: 0 };
+    let lastAiReversalChance = 0;
+    let currentStrategyLevel = "Normal";
+    let lastTimerUpdate = 0;
+    const POLLING_INTERVAL = 750;
+    const POLLING_TIMEOUT = 15000;
+    const fixedSelectedServerName = 'AutoAnalysisEngine';
+    let myHistoryItemsPerPage = 10;
+    const GAME_HISTORY_ITEMS_PER_PAGE = 10;
+
+    const ADMIN_ACCESS_KEY = "ADMIN123"; // This is the admin key
+    let currentUserRole = null;
+    const STORAGE_KEY_USER_ROLE = 'predictVIPKingPro_userRole_v3';
+    const STORAGE_KEY_CURRENT_USER_KEY = 'predictVIPKingPro_currentUserKey_v2';
+    const STORAGE_KEY_MANAGED_USERS = 'predictVIPKingPro_managedUsers_v2';
+    const STORAGE_KEY_THEME = 'predictVIPKingPro_theme_v1';
+
+    const STORAGE_KEY_MY_HISTORY = 'predictVIPKingPro_myHistory_v2';
+    const STORAGE_KEY_SESSION_STATS = 'predictVIPKingPro_sessionStats_v2';
+    const STORAGE_KEY_CONSECUTIVE_WINS = 'predictVIPKingPro_consecutiveWins_v2';
+    const STORAGE_KEY_CONSECUTIVE_LOSSES = 'predictVIPKingPro_consecutiveLosses_v2';
+    const STORAGE_KEY_MY_HISTORY_ITEMS_PER_PAGE = 'predictVIPKingPro_myHistoryItemsPerPage_v2';
+
+    // --- Theme Management ---
+    let currentTheme = 'dark';
+    const themes = {
+        dark: {
+            '--primary': '#00e5ff', '--secondary': '#ffab00', '--success': '#00c853', '--danger': '#f50057',
+            '--warning': '#ffd600', '--info': '#2979ff', '--violet-accent': '#d500f9',
+            '--bg-main': '#0a0f14', '--bg-card': '#1c232b', '--bg-header-footer': '#283038',
+            '--bg-interactive': '#323c47', '--bg-hover': '#404c59',
+            '--text-primary': '#e0e0e0', '--text-secondary': '#9e9e9e', '--text-disabled': '#616161',
+            '--text-win': 'var(--success)', '--text-loss': 'var(--danger)', '--text-partial': '#ffab00',
+            '--text-error': 'var(--warning)', '--text-num-red': 'var(--danger)', '--text-num-green': 'var(--success)',
+            '--partial-bg': 'rgba(255, 171, 0, 0.08)', '--win-bg': 'rgba(0, 200, 83, 0.08)',
+            '--loss-bg': 'rgba(245, 0, 87, 0.08)', '--error-bg': 'rgba(255, 214, 0, 0.08)',
+            '--border-color': '#37474f', '--shadow': '0 2px 8px rgba(0, 0, 0, 0.35)',
+            '--tick-color': 'var(--success)', '--cross-color': 'var(--danger)',
+        },
+        light: {
+            '--primary': '#007bff', '--secondary': '#fd7e14', '--success': '#28a745', '--danger': '#dc3545',
+            '--warning': '#ffc107', '--info': '#17a2b8', '--violet-accent': '#6f42c1',
+            '--bg-main': '#f4f6f8', '--bg-card': '#ffffff', '--bg-header-footer': '#e9ecef',
+            '--bg-interactive': '#dee2e6', '--bg-hover': '#ced4da',
+            '--text-primary': '#212529', '--text-secondary': '#6c757d', '--text-disabled': '#adb5bd',
+            '--text-win': '#1f7539', '--text-loss': '#b52b39', '--text-partial': '#fd7e14',
+            '--text-error': '#d9a406', '--text-num-red': '#dc3545', '--text-num-green': '#28a745',
+            '--partial-bg': 'rgba(253, 126, 20, 0.1)', '--win-bg': 'rgba(40, 167, 69, 0.1)',
+            '--loss-bg': 'rgba(220, 53, 69, 0.08)', '--error-bg': 'rgba(255, 193, 7, 0.1)',
+            '--border-color': '#ced4da', '--shadow': '0 2px 8px rgba(0, 0, 0, 0.1)',
+            '--tick-color': '#28a745', '--cross-color': '#dc3545',
+        }
+    };
+
+    function applyTheme(themeName) {
+        const theme = themes[themeName];
+        if (!theme) {
+            console.warn(`Theme "${themeName}" not found. Using default (dark).`);
+            applyTheme('dark');
+            return;
+        }
+        for (const variable in theme) {
+            document.documentElement.style.setProperty(variable, theme[variable]);
+        }
+        if (themeName === 'light') {
+            document.body.style.background = 'var(--bg-main)';
+        } else {
+            document.body.style.background = 'var(--bg-main)';
+        }
+        currentTheme = themeName;
+        robustLocalStorageSetItem(STORAGE_KEY_THEME, themeName);
+        const themeToggleIcon = document.querySelector('#themeToggleBtn i');
+        if (themeToggleIcon) {
+            if (themeName === 'dark') {
+                themeToggleIcon.classList.remove('fa-moon');
+                themeToggleIcon.classList.add('fa-sun');
+                if(themeToggleIcon.parentElement) themeToggleIcon.parentElement.title = "Switch to Light Theme";
+            } else {
+                themeToggleIcon.classList.remove('fa-sun');
+                themeToggleIcon.classList.add('fa-moon');
+                if(themeToggleIcon.parentElement) themeToggleIcon.parentElement.title = "Switch to Dark Theme";
+            }
+        }
+    }
+    function toggleTheme() {
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        applyTheme(newTheme);
+    }
+
+    function robustJsonParse(key, defaultValue) { try { const val = localStorage.getItem(key); return val === null ? defaultValue : JSON.parse(val) || defaultValue; } catch (e) { return defaultValue; } }
+    function robustLocalStorageGetItem(key, defaultValue, isNum = false) { try { const val = localStorage.getItem(key); if (val === null) return defaultValue; if (isNum) { const num = parseInt(val); return isNaN(num) ? defaultValue : num; } return val; } catch (e) { return defaultValue; } }
+    function robustLocalStorageSetItem(key, value) { try { localStorage.setItem(key, value); } catch (e) { console.warn("Error setting localStorage:", e); } }
+
+    function saveMyHistoryToStorage() { robustLocalStorageSetItem(STORAGE_KEY_MY_HISTORY, JSON.stringify(history)); }
+    function loadMyHistoryFromStorage() { history = robustJsonParse(STORAGE_KEY_MY_HISTORY, []); }
+    function saveSessionStateToStorage() {
+        robustLocalStorageSetItem(STORAGE_KEY_SESSION_STATS, JSON.stringify(sessionStats));
+        robustLocalStorageSetItem(STORAGE_KEY_CONSECUTIVE_WINS, consecutiveWins.toString());
+        robustLocalStorageSetItem(STORAGE_KEY_CONSECUTIVE_LOSSES, consecutiveLosses.toString());
+    }
+    function loadSessionStateFromStorage() {
+        sessionStats = robustJsonParse(STORAGE_KEY_SESSION_STATS, { wins: 0, losses: 0, partials: 0 });
+        consecutiveWins = robustLocalStorageGetItem(STORAGE_KEY_CONSECUTIVE_WINS, 0, true);
+        consecutiveLosses = robustLocalStorageGetItem(STORAGE_KEY_CONSECUTIVE_LOSSES, 0, true);
+    }
+    function resetSessionStatistics() {
+        console.log("Resetting session statistics.");
+        sessionStats = { wins: 0, losses: 0, partials: 0 };
+        consecutiveWins = 0;
+        consecutiveLosses = 0;
+        lastAiReversalChance = 0;
+        currentStrategyLevel = "Normal";
+        saveSessionStateToStorage();
+        if (document.getElementById('statsWins')) { updateSessionStatsBar(); }
+    }
+    function saveMyHistoryItemsPerPageToStorage() { robustLocalStorageSetItem(STORAGE_KEY_MY_HISTORY_ITEMS_PER_PAGE, myHistoryItemsPerPage.toString()); }
+    function loadMyHistoryItemsPerPageFromStorage() {
+        myHistoryItemsPerPage = robustLocalStorageGetItem(STORAGE_KEY_MY_HISTORY_ITEMS_PER_PAGE, 10, true);
+        const selectEl = document.getElementById('entriesPerPage');
+        if (selectEl) selectEl.value = myHistoryItemsPerPage;
+    }
+
+    function setApiStatus(statusType, message = '') {
+        const el = document.getElementById('apiStatus'); if (!el) return;
+        const iconEl = el.previousElementSibling;
+        el.classList.remove('status-online', 'status-error', 'status-connecting', 'status-issue', 'status-offline');
+        let statusText = el.textContent; let statusClass = '';
+        let colorVar = el.style.color || 'var(--text-secondary)';
+        let newIconClass = iconEl ? iconEl.className : 'fas fa-server';
+        switch (statusType) {
+            case 'connecting_start': statusText = 'Connecting...'; statusClass = 'status-connecting'; colorVar = 'var(--warning)'; newIconClass = 'fas fa-spinner fa-spin'; break;
+            case 'online': statusText = 'Online'; statusClass = 'status-online'; colorVar = 'var(--success)'; newIconClass = 'fas fa-signal'; break;
+            case 'offline_error': statusText = 'Offline'; statusClass = 'status-offline'; colorVar = 'var(--danger)'; newIconClass = 'fas fa-times-circle'; break;
+            default: statusText = 'Offline'; statusClass = 'status-offline'; colorVar = 'var(--danger)'; newIconClass = 'fas fa-times-circle'; break;
+        }
+        el.textContent = statusText; if (statusClass) el.classList.add(statusClass); el.style.color = colorVar;
+        if (iconEl && iconEl.tagName === 'I') { iconEl.className = newIconClass; }
+    }
+    async function fetchPage(pageNoToFetch, isPriority = false) {
+        if (pageNoToFetch === 1 && (!isFetchingPage || isPriority)) {
+            setApiStatus('connecting_start');
+            isFetchingPage = true;
+        }
+        try {
+            const resp = await fetch("https://api.bdg88zf.com/api/webapi/GetNoaverageEmerdList", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ pageSize:10, pageNo:pageNoToFetch, typeId:1, language:0, random:"4a0522c6ecd8410496260e686be2a57c", signature:"334B5E70A0C9B8918B0B15E517E2069C", timestamp:Math.floor(Date.now()/1000) }) });
+            if (!resp.ok) {
+                setApiStatus('offline_error');
+                if(pageNoToFetch===1 && isFetchingPage) isFetchingPage = false;
+                return [];
+            }
+            const data = await resp.json();
+            if (data.code === 0 && data.data && Array.isArray(data.data.list)) {
+                if (pageNoToFetch === 1) setApiStatus('online');
+                const fetchedMap = new Map(data.data.list.map(item => [item.issueNumber, item]));
+                const cachedMap = new Map(cachedData.map(item => [item.issueNumber, item]));
+                const combinedMap = new Map([...cachedMap, ...fetchedMap]);
+                cachedData = Array.from(combinedMap.values())
+                    .sort((a,b) => parseInt(b.issueNumber||0) - parseInt(a.issueNumber||0))
+                    .slice(0, 100);
+                if (isPriority && getActiveTab() === 'game' && currentUserRole) {
+                    fetchData(currentPage, 'game', true);
+                }
+                return data.data.list;
+            } else {
+                if (pageNoToFetch === 1) setApiStatus('offline_error');
+                return [];
+            }
+        } catch (e) {
+            if (pageNoToFetch === 1) setApiStatus('offline_error');
+            console.error("fetchPage error:", e);
+            return [];
+        }
+        finally {
+            if (pageNoToFetch === 1) isFetchingPage = false;
+        }
+    }
+    async function fetchOptimizedData(pagesToFetch = 5) {
+        const requiredUniqueResults = pagesToFetch * 10;
+        for (let i = 1; i <= pagesToFetch; i++) {
+            if (cachedData.length >= 100) { break; }
+            if (cachedData.length < i * GAME_HISTORY_ITEMS_PER_PAGE || cachedData.length < requiredUniqueResults ) {
+                await fetchPage(i);
+            }
+        }
+        return cachedData.slice(0, Math.min(cachedData.length, requiredUniqueResults) );
+    }
+    function getNumberDetails(numStr) {
+        const num = parseInt(numStr, 10);
+        if (isNaN(num) || num === null || num < 0 || num > 9) { return { numberVal: '?', bigSmall: '?', colorDisplayHTML: '?', colorForHistory: '?', rawColor: 'Unknown', isViolet: false, numberClass: '', bsClass: '', bsResultClass: '' }; }
+        const bigSmall = num >= 5 ? 'Big' : 'Small'; let colorDisplayHTML = '', colorForHistory = '', rawColor = 'Unknown', isViolet = false, numberClass = '', bsClass = '', bsResultClass = '';
+        bsClass = bigSmall === 'Big' ? 'gh-bs-big' : 'gh-bs-small'; bsResultClass = bigSmall === 'Big' ? 'result-bs-big' : 'result-bs-small';
+        if (num === 0) { rawColor = 'Red'; isViolet = true; numberClass = 'gh-num-red'; colorDisplayHTML = '<span class="color-dot color-red"></span><span class="color-dot color-violet"></span>Red+Violet'; colorForHistory = '<span class="color-dot color-red"></span><span class="color-dot color-violet"></span> Red+Violet'; }
+        else if (num === 5) { rawColor = 'Green'; isViolet = true; numberClass = 'gh-num-green'; colorDisplayHTML = '<span class="color-dot color-green"></span><span class="color-dot color-violet"></span>Green+Violet'; colorForHistory = '<span class="color-dot color-green"></span><span class="color-dot color-violet"></span> Green+Violet'; }
+        else if ([2,4,6,8].includes(num)) { rawColor = 'Red'; numberClass = 'gh-num-red'; colorDisplayHTML = '<span class="color-dot color-red"></span>Red'; colorForHistory = '<span class="color-dot color-red"></span> Red'; }
+        else if ([1,3,7,9].includes(num)) { rawColor = 'Green'; numberClass = 'gh-num-green'; colorDisplayHTML = '<span class="color-dot color-green"></span>Green'; colorForHistory = '<span class="color-dot color-green"></span> Green'; }
+        else { colorDisplayHTML = '?'; colorForHistory = '?'; }
+        return { numberVal: num, bigSmall, colorDisplayHTML, colorForHistory, rawColor, isViolet, numberClass, bsClass, bsResultClass };
+    }
+    async function fetchGameResult(period) {
+        try {
+            let found = cachedData.find(item => item.issueNumber === period);
+            if (found && typeof found.number !== 'undefined' && found.number !== null) {
+                return getNumberDetails(found.number);
+            }
+            await fetchPage(1, true);
+            found = cachedData.find(item => item.issueNumber === period);
+            if (found && typeof found.number !== 'undefined' && found.number !== null) {
+                return getNumberDetails(found.number);
+            }
+            return null;
+        } catch (e) { console.error(`WorkspaceGameResult err for period ${period}:`, e); return null; }
+    }
+
+    function analyzeForTypeInternal(type, gameHistory, gamesToConsider) {
+        const recentGames = gameHistory.slice(0, gamesToConsider).filter(item => typeof item.number !== 'undefined' && item.number !== null); if(recentGames.length === 0) return { trend: null, probability: 0, count: 0, total: 0, streak: 0 }; let outcomes = [];
+        if (type === 'bigsmall') { outcomes = recentGames.map(item => getNumberDetails(item.number).bigSmall); } else { outcomes = recentGames.map(item => getNumberDetails(item.number).rawColor); }
+        outcomes = outcomes.filter(o => o !== '?' && o !== 'Unknown'); if (outcomes.length < Math.min(3, gamesToConsider)) return { trend: null, probability: 0, count: 0, total: outcomes.length, streak: 0 };
+        const counts = outcomes.reduce((acc, value) => { acc[value] = (acc[value] || 0) + 1; return acc; }, {}); let trend = null; let maxCount = 0;
+        for (const outcome in counts) { if (counts[outcome] > maxCount) { maxCount = counts[outcome]; trend = outcome; } else if (counts[outcome] === maxCount) { if(outcomes[0] === outcome) trend = outcome; }}
+        const probability = outcomes.length > 0 ? (maxCount / outcomes.length) * 100 : 0; let currentStreak = 0;
+        if (trend && outcomes.length > 0) { for (let i = 0; i < outcomes.length; i++) { if (outcomes[i] === trend) currentStreak++; else break; } }
+        return { trend, probability: parseFloat(probability.toFixed(1)), count: maxCount, total: outcomes.length, streak: currentStreak };
+    }
+    function predictNumberForTrend(trend, type, gameHistory, gamesToConsider = 10) {
+        const recentValidGames = gameHistory.filter(item => typeof item.number !== 'undefined' && item.number !== null).slice(0, gamesToConsider); let candidateNumbers = [];
+        for (let item of recentValidGames) { const details = getNumberDetails(item.number); if (type === 'bigsmall' && details.bigSmall === trend) { candidateNumbers.push(details.numberVal); } else if (type === 'redgreen' && details.rawColor === trend) { candidateNumbers.push(details.numberVal); } }
+        if (candidateNumbers.length === 0) { const allNumbers = [0,1,2,3,4,5,6,7,8,9]; const fallbackCandidates = allNumbers.filter(n => { const d = getNumberDetails(n); return (type === 'bigsmall' && d.bigSmall === trend) || (type === 'redgreen' && d.rawColor === trend); }); if (fallbackCandidates.length > 0) return fallbackCandidates[Math.floor(Math.random() * fallbackCandidates.length)]; return Math.floor(Math.random() * 10); }
+        const numCounts = candidateNumbers.reduce((acc, value) => { acc[value] = (acc[value] || 0) + 1; return acc; }, {}); let predictedNum = candidateNumbers[0]; let maxNumCount = 0;
+        for (let i = candidateNumbers.length - 1; i >= 0; i--) { const num = candidateNumbers[i]; if (numCounts[num] >= maxNumCount) { maxNumCount = numCounts[num]; predictedNum = num; } } return predictedNum;
+    }
+    async function intelligentPredictionEngine(gameHistoryCache) {
+        const gamesToAnalyze = 10;
+        let applyReverseLogic = false;
+        let reversalStrength = 0;
+
+        if (consecutiveLosses === 1) {
+            applyReverseLogic = true; reversalStrength = 1; currentStrategyLevel = `Auto (Rev L1)`;
+        } else if (consecutiveLosses >= 2) {
+            applyReverseLogic = true; reversalStrength = 2; currentStrategyLevel = `Auto (Rev L${consecutiveLosses})`;
+        } else {
+            currentStrategyLevel = "Auto";
+        }
+
+        if (!gameHistoryCache || gameHistoryCache.length < 3) {
+            const randNum = Math.floor(Math.random() * 10); const randDetails = getNumberDetails(randNum);
+            return { predictedBS: randDetails.bigSmall, predictedRawColor: randDetails.rawColor, predictedNumber: randNum, reversalChance: 10 + Math.random() * 10, probability: 20 + Math.random() * 10, message: "LowData", determinedPredictionType: 'bigsmall' };
+        }
+
+        let bsAnalysis = analyzeForTypeInternal('bigsmall', gameHistoryCache, gamesToAnalyze);
+        let rgAnalysis = analyzeForTypeInternal('redgreen', gameHistoryCache, gamesToAnalyze);
+        let chosenAnalysis, determinedType, primaryCategoryResult;
+        let messageNote = ""; let reversalChance = 15 + Math.random() * 10;
+
+        if (applyReverseLogic) {
+            messageNote = currentStrategyLevel.substring(currentStrategyLevel.indexOf('('));
+            let trendToReverse, typeToReverse, originalAnalysis;
+            if (bsAnalysis.probability > rgAnalysis.probability + 5 || (bsAnalysis.probability > rgAnalysis.probability && bsAnalysis.streak >= rgAnalysis.streak)) {
+                originalAnalysis = bsAnalysis; typeToReverse = 'bigsmall';
+            } else if (rgAnalysis.probability > bsAnalysis.probability + 5 || (rgAnalysis.probability > bsAnalysis.probability && rgAnalysis.streak >= bsAnalysis.streak)) {
+                originalAnalysis = rgAnalysis; typeToReverse = 'redgreen';
+            } else {
+                originalAnalysis = bsAnalysis.streak >= rgAnalysis.streak ? bsAnalysis : rgAnalysis;
+                typeToReverse = bsAnalysis.streak >= rgAnalysis.streak ? 'bigsmall' : 'redgreen';
+            }
+            trendToReverse = originalAnalysis.trend;
+            if (!trendToReverse) {
+                typeToReverse = (bsAnalysis.total > 0 || rgAnalysis.total > 0) ? (bsAnalysis.total >= rgAnalysis.total ? 'bigsmall' : 'redgreen') : (Math.random() < 0.5 ? 'bigsmall' : 'redgreen');
+                const lastGameDetail = gameHistoryCache[0] ? getNumberDetails(gameHistoryCache[0].number) : null;
+                trendToReverse = typeToReverse === 'bigsmall' ? (lastGameDetail ? (lastGameDetail.bigSmall === 'Big' ? 'Big' : 'Small') : (Math.random() < 0.5 ? 'Big' : 'Small'))
+                                                              : (lastGameDetail ? lastGameDetail.rawColor : (Math.random() < 0.5 ? 'Red' : 'Green'));
+                if(trendToReverse === 'Unknown' || trendToReverse === '?') trendToReverse = typeToReverse === 'bigsmall' ? 'Small' : 'Green';
+            }
+            determinedType = typeToReverse;
+            if (determinedType === 'bigsmall') { primaryCategoryResult = trendToReverse === 'Big' ? 'Small' : 'Big'; }
+            else { primaryCategoryResult = trendToReverse === 'Red' ? 'Green' : 'Red'; }
+            let reversedProbBoost = 0; let baseProbFactor = 0.5;
+            if (reversalStrength === 1) { reversalChance = 65 + Math.random() * 15; reversedProbBoost = 15; }
+            else { reversalChance = 75 + Math.random() * 15; reversedProbBoost = 20 + (consecutiveLosses - 2) * 5; baseProbFactor = 0.4; }
+            chosenAnalysis = { ...originalAnalysis, trend: primaryCategoryResult, probability: Math.min(90, Math.max(60, (originalAnalysis.probability * baseProbFactor) + reversedProbBoost + originalAnalysis.streak * 3)) };
+        } else {
+            if (bsAnalysis.trend && rgAnalysis.trend) {
+                if (Math.abs(bsAnalysis.probability - rgAnalysis.probability) > 10) {
+                    chosenAnalysis = bsAnalysis.probability > rgAnalysis.probability ? bsAnalysis : rgAnalysis;
+                    determinedType = bsAnalysis.probability > rgAnalysis.probability ? 'bigsmall' : 'redgreen';
+                } else if (bsAnalysis.streak >= 2 && bsAnalysis.streak >= rgAnalysis.streak) {
+                    chosenAnalysis = bsAnalysis; determinedType = 'bigsmall'; messageNote = `(B/S Strk ${bsAnalysis.streak})`;
+                } else if (rgAnalysis.streak >= 2 && rgAnalysis.streak > bsAnalysis.streak) {
+                    chosenAnalysis = rgAnalysis; determinedType = 'redgreen'; messageNote = `(R/G Strk ${rgAnalysis.streak})`;
+                } else {
+                    chosenAnalysis = bsAnalysis.probability >= rgAnalysis.probability ? bsAnalysis : rgAnalysis;
+                    determinedType = bsAnalysis.probability >= rgAnalysis.probability ? 'bigsmall' : 'redgreen';
+                    messageNote = "(Trend Low)";
+                }
+                primaryCategoryResult = chosenAnalysis.trend;
+            } else if (bsAnalysis.trend) {
+                chosenAnalysis = bsAnalysis; determinedType = 'bigsmall'; primaryCategoryResult = bsAnalysis.trend;
+            } else if (rgAnalysis.trend) {
+                chosenAnalysis = rgAnalysis; determinedType = 'redgreen'; primaryCategoryResult = rgAnalysis.trend;
+            } else {
+                determinedType = Math.random() < 0.5 ? 'bigsmall' : 'redgreen';
+                primaryCategoryResult = determinedType === 'bigsmall' ? (Math.random() < 0.5 ? 'Big' : 'Small') : (Math.random() < 0.5 ? 'Red' : 'Green');
+                chosenAnalysis = { probability: 30 + Math.random()*10, total: gamesToAnalyze, streak:0 }; messageNote = "(Weak)";
+            }
+            if (chosenAnalysis.streak >= 3) { reversalChance = 55 + (chosenAnalysis.streak - 3) * 7; }
+            else if (chosenAnalysis.streak === 2) { reversalChance = 35 + Math.random() * 10; }
+            else { reversalChance = 15 + Math.random() * 10; }
+            if (reversalChance > 85) reversalChance = 85;
+        }
+
+        const predictedNumber = predictNumberForTrend(primaryCategoryResult, determinedType, gameHistoryCache, gamesToAnalyze);
+        const numDetails = getNumberDetails(predictedNumber);
+        let finalPredictedBS = numDetails.bigSmall;
+        let finalPredictedRawColor = numDetails.rawColor;
+
+        if (determinedType === 'bigsmall' && numDetails.bigSmall !== primaryCategoryResult) {
+            const altNum = [0,1,2,3,4,5,6,7,8,9].find(n => getNumberDetails(n).bigSmall === primaryCategoryResult);
+            if (altNum !== undefined) finalPredictedBS = getNumberDetails(altNum).bigSmall;
+        } else if (determinedType === 'redgreen' && numDetails.rawColor !== primaryCategoryResult && !(numDetails.isViolet && (primaryCategoryResult === 'Red' || primaryCategoryResult === 'Green'))) {
+            const altNum = [0,1,2,3,4,5,6,7,8,9].find(n => getNumberDetails(n).rawColor === primaryCategoryResult);
+            if (altNum !== undefined) finalPredictedRawColor = getNumberDetails(altNum).rawColor;
+        }
+        let finalMessage = currentStrategyLevel.includes("Rev") ? currentStrategyLevel : `Auto ${messageNote}`;
+        if (finalMessage === "Auto ") finalMessage = "Auto (Stable)";
+        return {
+            predictedBS: finalPredictedBS, predictedRawColor: finalPredictedRawColor, predictedNumber,
+            reversalChance: parseFloat(reversalChance.toFixed(1)), probability: parseFloat(chosenAnalysis.probability.toFixed(1)),
+            message: finalMessage.trim(), determinedPredictionType: determinedType
+        };
+    }
+    async function generateAndStorePrediction(period) {
+        const currentResultEl = document.getElementById('currentResult'); if(currentResultEl) currentResultEl.innerHTML = '<i class="fas fa-cog fa-spin fa-lg" style="color: var(--primary);"></i> AI thinking...'; let predictionInputData;
+        try {
+            const startTime = Date.now();
+            let enginePrediction;
+            if (cachedData.length < 10) {
+                await fetchOptimizedData(3);
+            }
+            enginePrediction = await intelligentPredictionEngine(cachedData);
+            let displayableColorHTML = '?';
+            const tempDetailsForDisplay = getNumberDetails(enginePrediction.predictedNumber);
+
+            if (enginePrediction.predictedRawColor === tempDetailsForDisplay.rawColor) {
+                displayableColorHTML = tempDetailsForDisplay.colorDisplayHTML;
+            } else {
+                if (enginePrediction.predictedRawColor === 'Red') displayableColorHTML = '<span class="color-dot color-red"></span>Red';
+                else if (enginePrediction.predictedRawColor === 'Green') displayableColorHTML = '<span class="color-dot color-green"></span>Green';
+            }
+            predictionInputData = {
+                period,
+                predictedBS: enginePrediction.predictedBS,
+                predictedRawColor: enginePrediction.predictedRawColor,
+                predictedColorHTML: displayableColorHTML,
+                predictedNumber: enginePrediction.predictedNumber,
+                reversalChance: enginePrediction.reversalChance,
+                probability: enginePrediction.probability,
+                message: enginePrediction.message,
+                resultType: enginePrediction.determinedPredictionType || 'auto',
+                server: fixedSelectedServerName
+            };
+            lastAiReversalChance = enginePrediction.reversalChance || 0;
+            const elapsed = Date.now() - startTime;
+            await new Promise(resolve => setTimeout(resolve, Math.max(0, 250 - elapsed)));
+            const prob = predictionInputData.probability || 0; const revChance = predictionInputData.reversalChance || 0; const msg = predictionInputData.message || "?";
+            const bsPart = `<span class="prediction-output-item p-bs"><span class="prediction-output-label">B/S:</span><span class="prediction-output-value">${predictionInputData.predictedBS || '?'}</span></span>`;
+            const colorPart = `<span class="prediction-output-item p-color"><span class="prediction-output-label">Color:</span><span class="prediction-output-value">${predictionInputData.predictedColorHTML || '?'}</span></span>`;
+            const percentPart = `<span class="prediction-output-item p-perc"><span class="prediction-output-label">Per:</span><span class="prediction-output-value">(${prob > 0 ? prob.toFixed(1) : 'N/A'}%)</span></span>`;
+            const revPart = `<span class="prediction-output-item p-rev"><span class="prediction-output-label">Rev:</span><span class="prediction-output-value">(${revChance > 0 ? revChance.toFixed(1) : 'N/A'}%)</span></span>`;
+            const strategyPart = `<span class="prediction-output-item p-strat"><span class="prediction-output-label">Stgy:</span><span class="prediction-output-value" title="${msg}">${msg}</span></span>`;
+            if(currentResultEl) currentResultEl.innerHTML = `${bsPart} ${colorPart} ${percentPart} ${revPart} ${strategyPart}`;
+            currentPredictionData[period] = predictionInputData;
+            showNotification(`Prediction for ${period}: ${predictionInputData.predictedBS}, ${predictionInputData.predictedRawColor}`, 'info');
+            updateSessionStatsBar();
+        } catch (error) {
+            console.error("generateAndStorePrediction error:", error);
+            if(currentResultEl) currentResultEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Prediction Error';
+            showNotification('Prediction generation failed!', 'error');
+            currentPredictionData[period] = { period, error: true, message: "Generation Failed" };
+            lastAiReversalChance = 0; updateSessionStatsBar();
+        }
+    }
+
+    function updateAccuracyDisplay() { if (currentUserRole) updateSessionStatsBar(); }
+    function updateSessionStatsBar() {
+        const statsWinsEl = document.getElementById('statsWins'); const statsLossesEl = document.getElementById('statsLosses'); const statsPartialsEl = document.getElementById('statsPartials');
+        const statsAccuracyEl = document.getElementById('statsAccuracy'); const statsAiRevEl = document.getElementById('statsAiRev'); const statsLevelEl = document.getElementById('statsLevel');
+        if (!statsWinsEl || !statsLossesEl || !statsPartialsEl || !statsAccuracyEl || !statsAiRevEl || !statsLevelEl) { return; }
+        statsWinsEl.textContent = sessionStats.wins; statsLossesEl.textContent = sessionStats.losses; statsPartialsEl.textContent = sessionStats.partials || 0;
+        const totalCompleted = sessionStats.wins + sessionStats.losses + (sessionStats.partials || 0);
+        let accuracyText = "0%";
+        if (totalCompleted > 0) { const accuracy = Math.round((sessionStats.wins / totalCompleted) * 100); accuracyText = `${isNaN(accuracy) ? '0' : accuracy}%`; }
+        statsAccuracyEl.textContent = accuracyText; statsAiRevEl.textContent = `${lastAiReversalChance.toFixed(1)}%`;
+        let levelText = currentStrategyLevel;
+        if (currentStrategyLevel === "Auto" && consecutiveWins > 0 && !levelText.includes("Rev")) { levelText = `Auto (W${consecutiveWins})`; }
+        else if (currentStrategyLevel === "Auto" && consecutiveLosses === 1 && !levelText.includes("Rev L1") && !levelText.includes(`(Rev L${consecutiveLosses}`)) { levelText = `Auto (L1)`; }
+        else if (levelText === "Auto" && consecutiveLosses > 0 && !levelText.includes("Rev")) { levelText = `Auto (L${consecutiveLosses})`;}
+        statsLevelEl.textContent = levelText;
+    }
+    async function finalizeAndRecordResult(periodToFinalize) {
+        if (isWaitingForResult) return; isWaitingForResult = true;
+        const predictionData = currentPredictionData[periodToFinalize];
+        if (!predictionData || predictionData.error) {
+            if (predictionData?.error) { const errorEntry = { period: periodToFinalize, predictedBS: '?', predictedRawColor: '?', predictedColorHTML: '?', actualResultDisplay: 'Prediction Error', status: 'Error', bsWin: false, colorWin: false, resultType: '?', server: fixedSelectedServerName, probability: 0 }; history.unshift(errorEntry); saveMyHistoryToStorage(); if (getActiveTab() === 'my' && currentUserRole) fetchData(1, 'my', true); updateAccuracyDisplay(); delete currentPredictionData[periodToFinalize]; }
+            isWaitingForResult = false; return;
+        }
+        let gameOutcome = null; const startTime = Date.now();
+        while (Date.now() - startTime < POLLING_TIMEOUT) { gameOutcome = await fetchGameResult(periodToFinalize); if (gameOutcome) break; await new Promise(resolve => setTimeout(resolve, POLLING_INTERVAL)); }
+        let historyEntry;
+        if (gameOutcome) {
+            const actualBS = gameOutcome.bigSmall; const actualColor = gameOutcome.rawColor;
+            const bsWin = predictionData.predictedBS === actualBS;
+            let colorWin = predictionData.predictedRawColor === actualColor;
+            let status;
+            if (bsWin && colorWin) { status = "Win"; sessionStats.wins++; consecutiveLosses = 0; consecutiveWins++; }
+            else if (!bsWin && !colorWin) { status = "Loss"; sessionStats.losses++; consecutiveWins = 0; consecutiveLosses++; }
+            else { status = "Partial"; if(!sessionStats.partials) sessionStats.partials = 0; sessionStats.partials++; consecutiveWins = 0; consecutiveLosses = 0; }
+            saveSessionStateToStorage();
+            historyEntry = { period: periodToFinalize, predictedBS: predictionData.predictedBS, predictedRawColor: predictionData.predictedRawColor, predictedColorHTML: predictionData.predictedColorHTML, actualResultDisplay: `<span class="${gameOutcome.bsResultClass}">${actualBS}</span>, ${gameOutcome.colorForHistory}`, status, bsWin, colorWin, resultType: predictionData.resultType, server: predictionData.server, probability: predictionData.probability };
+        } else {
+            console.warn(`Result for period ${periodToFinalize} timed out or fetch failed after ${POLLING_TIMEOUT/1000}s.`);
+            historyEntry = { period: periodToFinalize, predictedBS: predictionData.predictedBS, predictedRawColor: predictionData.predictedRawColor, predictedColorHTML: predictionData.predictedColorHTML, actualResultDisplay: 'Result N/A', status: 'Error', bsWin: false, colorWin: false, resultType: predictionData.resultType, server: predictionData.server, probability: predictionData.probability };
+            consecutiveLosses = 0; consecutiveWins = 0; saveSessionStateToStorage(); showNotification(`Result for ${periodToFinalize} unavailable.`, 'error');
+        }
+        history.unshift(historyEntry); if(history.length > 200) history.splice(200); saveMyHistoryToStorage();
+        delete currentPredictionData[periodToFinalize]; updateAccuracyDisplay();
+        if (getActiveTab() === 'my' && currentUserRole) fetchData(1, 'my', true); isWaitingForResult = false;
+    }
+
+    function updatePeriodAndTimer() {
+        if (!currentUserRole) return;
+
+        if (currentUserRole === 'user') {
+            const storedUserKey = robustLocalStorageGetItem(STORAGE_KEY_CURRENT_USER_KEY, null);
+            if (storedUserKey) {
+                const managedUsers = getManagedUsers(); const currentUserObject = managedUsers.find(u => u.accessKey === storedUserKey);
+                if (currentUserObject) {
+                    if (currentUserObject.isBanned) { showNotification("Your access has been revoked (banned). Logging out.", "error"); handleLogout(); return; }
+                    if (currentUserObject.expiresAt && Date.now() > currentUserObject.expiresAt) { showNotification("Your session has expired. Please login again.", "error"); handleLogout(); return; }
+                } else { showNotification("Your access key is no longer valid. Logging out.", "error"); handleLogout(); return; }
+            } else { console.warn("User role active but no key stored. Forcing logout."); handleLogout(); return; }
+        }
+
+        const now = new Date(), ct = now.getTime();
+        if (ct - lastTimerUpdate < 980) return;
+        lastTimerUpdate = ct;
+
+        const y = now.getUTCFullYear(), m = String(now.getUTCMonth() + 1).padStart(2, '0'), d = String(now.getUTCDate()).padStart(2, '0');
+        const hrs = now.getUTCHours(), mins = now.getUTCMinutes(), secsValue = now.getUTCSeconds();
+        const totMins = hrs * 60 + mins; const periodSuffix = 10001 + totMins;
+        const currentPeriod = `${y}${m}${d}1000${periodSuffix}`;
+        const secsRemaining = 60 - secsValue; const periodJustCompleted = lastCompletedPeriodNumber;
+
+        if (currentPeriod !== lastCompletedPeriodNumber) {
+            if (periodJustCompleted && currentPredictionData[periodJustCompleted]) {
+                finalizeAndRecordResult(periodJustCompleted).catch(e => { console.error("Error in finalizeAndRecordResult:", e); isWaitingForResult = false; });
+            }
+            lastCompletedPeriodNumber = currentPeriod;
+            const periodEl = document.getElementById('period'); if (periodEl) periodEl.textContent = `${currentPeriod || 'N/A'}`;
+            generateAndStorePrediction(currentPeriod).catch(e => { console.error("Error in generateAndStorePrediction:", e); });
+            fetchPage(1, true).then(() => { if (getActiveTab() === 'game') { fetchData(currentPage, 'game', true); } }).catch(e => console.error("Error fetching page 1 on new period (background):", e));
+        }
+        const timerEl = document.getElementById('timer'); if (timerEl) timerEl.textContent = `${String(secsRemaining).padStart(2, '0')}s`;
+        const statusEl = document.getElementById('status'); if (statusEl) statusEl.textContent = secsRemaining < 10 ? 'Closing' : 'Active';
+    }
+    function getActiveTab() {
+        const activeButton = document.querySelector('.tabs button.active');
+        if (activeButton) {
+            const onclickAttr = activeButton.getAttribute('onclick');
+            if (onclickAttr?.includes("'game'")) return 'game'; if (onclickAttr?.includes("'my'")) return 'my';
+            if (onclickAttr?.includes("'chart'")) return 'chart'; if (onclickAttr?.includes("'admin_dashboard'")) return 'admin_dashboard';
+        }
+        return currentTab;
+    }
+    async function fetchData(page, tab = currentTab, forceRender = false) {
+        if (!currentUserRole) { document.getElementById('historyContent').innerHTML = '<p style="text-align:center; padding:1rem; color:var(--warning);">Please login to view data.</p>'; return; }
+        const contentEl = document.getElementById('historyContent'); if (!contentEl) return;
+        const myHistoryControlsEl = document.getElementById('myHistoryControls'); if (myHistoryControlsEl) { myHistoryControlsEl.style.display = (tab === 'my') ? 'flex' : 'none'; }
+        if (!forceRender && currentPage === page && currentTab === tab && contentEl.innerHTML !== '' && !contentEl.innerHTML.includes('Loading ')) { return; }
+
+        const localCallTab = tab; currentPage = page; currentTab = tab;
+        contentEl.innerHTML = `<div style="text-align: center; padding: 2rem;"><i class="fas fa-spinner fa-spin fa-lg" style="color: var(--primary);"></i> Loading ${localCallTab}...</div>`;
+        document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
+        const activeTabButton = document.querySelector(`.tabs button[onclick*="'${localCallTab}'"]`); if(activeTabButton) activeTabButton.classList.add('active');
+        const gameHead = document.getElementById('gameHistoryHeader'); const myHead = document.getElementById('myHistoryHeader'); const adminHead = document.getElementById('adminDashboardHeader');
+        if (gameHead) gameHead.style.display = (localCallTab === 'game') ? 'grid' : 'none';
+        if (myHead) myHead.style.display = (localCallTab === 'my') ? 'grid' : 'none';
+        if (adminHead) adminHead.style.display = 'none';
+
+        document.getElementById('prevPageBtn').disabled = (page <= 1); document.getElementById('currentPageBtn').textContent = page; document.getElementById('nextPageBtn').disabled = true;
+
+        try {
+            if (localCallTab === 'game') {
+                if (currentTab !== localCallTab) return; contentEl.innerHTML = '';
+                const startIndex = (page - 1) * GAME_HISTORY_ITEMS_PER_PAGE; const endIndex = startIndex + GAME_HISTORY_ITEMS_PER_PAGE; const list = cachedData.slice(startIndex, endIndex);
+                document.getElementById('nextPageBtn').disabled = (endIndex >= cachedData.length);
+                if (cachedData.length === 0 && page === 1) { contentEl.innerHTML = `<p style="text-align:center; padding:1rem;">No game history available (cache empty). System is fetching...</p>`; }
+                else if (list.length === 0) { contentEl.innerHTML = `<p style="text-align:center; padding:1rem;">No more game history in current view (${cachedData.length} items cached).</p>`; }
+                else { list.forEach(item => { const details = getNumberDetails(item.number); const div = document.createElement('div'); div.className = 'history-item game-result-item'; div.innerHTML = `<div class="history-value">${item.issueNumber||'?'}</div><div class="history-value gh-num ${details.numberClass}">${details.numberVal}</div><div class="history-value gh-bs ${details.bsClass}">${details.bigSmall}</div><div class="history-value gh-color">${details.colorForHistory}</div>`; contentEl.appendChild(div); }); }
+            } else if (localCallTab === 'my') {
+                if (currentTab !== localCallTab) return;
+                if (myHead) myHead.innerHTML = `<div class="history-header-item">Period</div><div class="history-header-item">Pred B/S</div><div class="history-header-item">Pred Color</div><div class="history-header-item">Result</div><div class="history-header-item">Status</div>`;
+                contentEl.innerHTML = '';
+                const startIndex = (page - 1) * myHistoryItemsPerPage; const endIndex = startIndex + myHistoryItemsPerPage; const paginatedHistory = history.slice(startIndex, endIndex);
+                document.getElementById('nextPageBtn').disabled = (endIndex >= history.length);
+                if (paginatedHistory.length === 0) contentEl.innerHTML = `<p style="text-align:center; padding:1rem;">${page === 1 ? 'No predictions recorded.' : 'No more predictions.'}</p>`;
+                else { paginatedHistory.forEach(item => { const div = document.createElement('div'); let rowClass = 'history-item my-prediction-item'; if (item.status === 'Win') rowClass += ' row-win'; else if (item.status === 'Loss') rowClass += ' row-loss'; else if (item.status === 'Partial') rowClass += ' row-partial'; else if (item.status === 'Error') rowClass += ' row-error'; div.className = rowClass; const bsTickCross = item.status !== 'Error' && item.status !== '?' && typeof item.bsWin !== 'undefined' ? (item.bsWin ? '<span class="tick-mark">✅</span>' : '<span class="cross-mark">❌</span>') : ''; const colorTickCross = item.status !== 'Error' && item.status !== '?' && typeof item.colorWin !== 'undefined' ? (item.colorWin ? '<span class="tick-mark">✅</span>' : '<span class="cross-mark">❌</span>') : ''; const predictedBSDisplay = `${item.predictedBS || '?'}${bsTickCross}`; const predictedColorDisplay = `${item.predictedColorHTML || '?'}${colorTickCross}`; const resultDisplay = item.actualResultDisplay || '?'; const statusDisplay = item.status || '?'; div.innerHTML = `<div class="history-value" title="${item.period}">${item.period}</div><div class="history-value predicted-bs-value">${predictedBSDisplay}</div><div class="history-value predicted-color-value">${predictedColorDisplay}</div><div class="history-value result-value">${resultDisplay}</div><div class="history-value status-value status-${item.status?.toLowerCase()}">${statusDisplay}</div>`; contentEl.appendChild(div); });}
+            } else if (localCallTab === 'chart') {
+                const analyticsData = await fetchOptimizedData(10);
+                if (currentTab !== localCallTab) return;
+                if (analyticsData && analyticsData.length > 0) {
+                    let rC=0, gC=0, vC=0, bC=0, sC=0; const nums = analyticsData.map(item => parseInt(item.number, 10)).filter(n => !isNaN(n) && n >=0 && n <=9);
+                    nums.forEach(n => { const details = getNumberDetails(n); if(details.rawColor === 'Red') rC++; if(details.rawColor === 'Green') gC++; if(details.isViolet) vC++; if(details.bigSmall === 'Big') bC++; else if(details.bigSmall === 'Small') sC++; });
+                    const totalValidGames = nums.length; const pct = (count) => totalValidGames ? ((count/totalValidGames)*100).toFixed(1) : 0;
+                    const totalSessionGames = sessionStats.wins + sessionStats.losses + (sessionStats.partials || 0);
+                    const sessionAccuracyValue = totalSessionGames > 0 ? Math.round((sessionStats.wins / totalSessionGames) * 100) : 0;
+                    const sessionAccuracyDisplay = totalSessionGames > 0 ? `${sessionAccuracyValue}% (W:${sessionStats.wins} L:${sessionStats.losses} P:${sessionStats.partials || 0})` : 'N/A';
+                    contentEl.innerHTML = `<h4 style="font-size: 0.9rem; color: var(--primary); margin:0.4rem; padding-bottom:4px; border-bottom: 1px solid var(--border-color);">Recent Trends (Last ${totalValidGames} Games)</h4><div class="analytics-grid" style="padding: 0.6rem;"><div><strong>Outcome</strong></div><div><strong>Count</strong></div><div><strong>Percent</strong></div><div><span class="color-dot color-red"></span> Red</div><div>${rC}</div><div>${pct(rC)}%</div><div><span class="color-dot color-green"></span> Green</div><div>${gC}</div><div>${pct(gC)}%</div><div><span class="color-dot color-violet"></span> Violet</div><div>${vC}</div><div>${pct(vC)}%</div><div style="grid-column: 1 / -1; height: 8px;"></div><div><span class="outcome-icon big">B</span> Big (5-9)</div><div>${bC}</div><div>${pct(bC)}%</div><div><span class="outcome-icon small">S</span> Small (0-4)</div><div>${sC}</div><div>${pct(sC)}%</div></div><div class="session-accuracy-footer"><strong>Session Accuracy:</strong> ${sessionAccuracyDisplay}</div>`;
+                } else contentEl.innerHTML = '<p style="text-align:center; padding:1rem;">Not enough data for analytics.</p>';
+            } else if (localCallTab === 'admin_dashboard') {
+                if (currentUserRole !== 'admin') { console.warn("Unauthorized attempt to access admin dashboard."); contentEl.innerHTML = '<p style="text-align:center; padding:1rem; color:var(--danger);">Access Denied.</p>'; return; }
+                if (currentTab !== localCallTab) return; document.getElementById('nextPageBtn').disabled = true;
+                // Removed username input from generated HTML
+                contentEl.innerHTML = `<div id="adminPanelContainer" style="padding: 8px; font-size:0.75rem;"><div class="admin-section"><h5 style="font-size:0.9rem;">User Management</h5><div id="adminUserManagementTopControls"><div id="adminUserStats"><span>Total: <strong id="totalManagedUsers" style="color:var(--primary)">0</strong></span><span>Banned: <strong id="bannedManagedUsers" style="color:var(--danger)">0</strong></span></div><div id="createUserFormContainer"><h6>Create New User Access Key</h6><div id="createUserFormControls"><label for="userValidityPeriod">Validity:</label><select id="userValidityPeriod"><option value="30m">30 Min</option><option value="1h">1 Hour</option><option value="1d">1 Day</option><option value="3d">3 Day</option><option value="7d">7 Day</option><option value="30d">30 Day</option><option value="60d">60 Day</option><option value="lifetime">Lifetime</option></select><button id="createUserKeyButton" class="clear-btn"><i class="fas fa-plus-circle"></i> Create</button></div></div></div><div id="generatedUserKey" style="margin-top: 6px; margin-bottom:10px; color: var(--primary); font-weight: bold; word-break:break-all; text-align:center; font-size:0.75rem;"></div></div><div class="admin-section" style="margin-top: 8px;"><h5>Managed Users List</h5><div id="managedUsersListContainer" style="max-height: 260px; overflow-y: auto;"></div></div></div>`;
+                renderAdminDashboard();
+            }
+        } catch (renderError) { if (currentTab === localCallTab) { contentEl.innerHTML = `<p style="text-align:center; padding:1rem; color:var(--danger);">Error displaying ${localCallTab} data. Check console.</p>`; } console.error(`Error in fetchData for tab ${localCallTab}:`, renderError); }
+    }
+
+    function showLoginModal(show = true) {
+        const loginModalEl = document.getElementById('loginModal'); const appContainerEl = document.getElementById('appContainer');
+        const loginErrorEl = document.getElementById('loginError'); if (loginErrorEl) loginErrorEl.style.display = 'none';
+        if (show) { if (loginModalEl) loginModalEl.style.display = "flex"; if (appContainerEl) appContainerEl.style.display = "none"; }
+        else { if (loginModalEl) loginModalEl.style.display = "none"; if (appContainerEl) appContainerEl.style.display = "block"; }
+    }
+    function showLoginError(message) {
+        const loginErrorEl = document.getElementById('loginError'); const keyInput = document.getElementById('accessKeyInput');
+        if (loginErrorEl) { loginErrorEl.textContent = message; loginErrorEl.style.display = 'block'; }
+        if (keyInput) keyInput.value = '';
+    }
+    function initializeUIBasedOnRole() {
+        const adminTab = document.getElementById('adminDashboardTab'); const logoutBtn = document.getElementById('logoutButton');
+        const appContainer = document.getElementById('appContainer'); if (!appContainer) { console.error("App container not found."); return; }
+        if (adminTab) adminTab.style.display = (currentUserRole === 'admin') ? 'flex' : 'none';
+        if (logoutBtn) logoutBtn.style.display = currentUserRole ? 'inline-block' : 'none';
+        if (currentUserRole) {
+            showLoginModal(false); loadMyHistoryFromStorage(); loadSessionStateFromStorage(); loadMyHistoryItemsPerPageFromStorage();
+            setApiStatus('offline_error'); const initialOutputArea = document.getElementById('currentResult'); if(initialOutputArea) initialOutputArea.innerHTML = '<i class="fas fa-hourglass-half fa-spin" style="color:var(--primary);"></i> Initializing AI...';
+            fetchOptimizedData(10).then(() => {
+                if(periodTimerInterval) clearInterval(periodTimerInterval); periodTimerInterval = setInterval(updatePeriodAndTimer, 1000);
+                currentTab = 'game'; fetchData(1, 'game', true); updateSessionStatsBar();
+                console.log(`Initialization complete for role: ${currentUserRole}. Cached game data: ${cachedData.length} items.`);
+            }).catch(err => { console.error("Error during fetchOptimizedData or UI setup:", err); if(initialOutputArea) initialOutputArea.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error initializing app data.'; });
+        } else {
+            showLoginModal(true); if(periodTimerInterval) clearInterval(periodTimerInterval); periodTimerInterval = null;
+        }
+    }
+    function handleLoginAttempt() {
+        const keyInput = document.getElementById('accessKeyInput');
+        const enteredKey = keyInput.value.trim();
+        let role = null;
+        let currentKeyToStore = null;
+
+        if (!enteredKey) {
+            showLoginError("Access Key cannot be empty.");
+            return;
+        }
+
+        // --- DEBUGGING ALERT and CONSOLE LOG ---
+        // এই অ্যালার্ট এবং Console Log আপনাকে দেখাবে আপনি ঠিক কী প্রবেশ করিয়েছেন এবং অ্যাডমিন কী আসলে কী।
+        // অ্যাডমিন লগইনের জন্য এই দুটি হুবহু এক হতে হবে। সমস্যা সমাধানের পর এই alert এবং console.log লাইনগুলো মুছে ফেলতে পারেন।
+        alert("লগইন প্রচেষ্টা (DEBUG):\n-----------------------------------\nআপনি প্রবেশ করিয়েছেন (enteredKey): [" + enteredKey + "]\n(দৈর্ঘ্য: " + enteredKey.length + ")\n\nপ্রত্যাশিত অ্যাডমিন কী (ADMIN_ACCESS_KEY): [" + ADMIN_ACCESS_KEY + "]\n(দৈর্ঘ্য: " + ADMIN_ACCESS_KEY.length + ")\n\nএই দুটি কি হুবহু এক? " + (enteredKey === ADMIN_ACCESS_KEY) + "\n-----------------------------------");
+        
+        console.log("--- LOGIN ATTEMPT DIAGNOSTICS (CONSOLE) ---");
+        console.log("Raw input value from field: '" + document.getElementById('accessKeyInput').value + "'");
+        console.log("Trimmed enteredKey for comparison: '" + enteredKey + "' (Length: " + enteredKey.length + ")");
+        console.log("Expected ADMIN_ACCESS_KEY constant: '" + ADMIN_ACCESS_KEY + "' (Length: " + ADMIN_ACCESS_KEY.length + ")");
+        console.log("Direct comparison result (enteredKey === ADMIN_ACCESS_KEY): " + (enteredKey === ADMIN_ACCESS_KEY));
+        // --- END DEBUGGING ---
+
+        if (enteredKey === ADMIN_ACCESS_KEY) {
+            role = 'admin';
+            currentKeyToStore = ADMIN_ACCESS_KEY;
+        } else {
+            console.log("Entered key did not match ADMIN_ACCESS_KEY. Checking managed users...");
+            const managedUsers = getManagedUsers();
+            const foundUser = managedUsers.find(u => u.accessKey === enteredKey);
+            if (foundUser) {
+                console.log("User found in managed list: ", foundUser.username);
+                if (foundUser.isBanned) { console.log("User is banned."); showLoginError("This Access Key is banned."); robustLocalStorageSetItem(STORAGE_KEY_USER_ROLE, ''); localStorage.removeItem(STORAGE_KEY_CURRENT_USER_KEY); currentUserRole = null; return; }
+                if (foundUser.expiresAt && Date.now() > foundUser.expiresAt) { console.log("User key has expired."); showLoginError("This Access Key has expired."); robustLocalStorageSetItem(STORAGE_KEY_USER_ROLE, ''); localStorage.removeItem(STORAGE_KEY_CURRENT_USER_KEY); currentUserRole = null; return; }
+                console.log("User is valid.");
+                role = 'user'; currentKeyToStore = foundUser.accessKey; resetSessionStatistics();
+            } else {
+                console.log("Entered key not found in managed users list either.");
+            }
+        }
+
+        if (role) {
+            console.log("Role successfully set to: " + role);
+            currentUserRole = role;
+            robustLocalStorageSetItem(STORAGE_KEY_USER_ROLE, role);
+            robustLocalStorageSetItem(STORAGE_KEY_CURRENT_USER_KEY, currentKeyToStore);
+            if (keyInput) keyInput.value = '';
+            initializeUIBasedOnRole();
+            showNotification(`Logged in as ${role}.`, 'success');
+        } else {
+            console.log("Role could not be determined. Showing 'Invalid Access Key'.");
+            currentUserRole = null;
+            robustLocalStorageSetItem(STORAGE_KEY_USER_ROLE, '');
+            localStorage.removeItem(STORAGE_KEY_CURRENT_USER_KEY);
+            showLoginError("Invalid Access Key.");
+        }
+    }
+    function handleLogout() {
+        if (confirm("Are you sure you want to logout?")) {
+            currentUserRole = null; localStorage.removeItem(STORAGE_KEY_USER_ROLE); localStorage.removeItem(STORAGE_KEY_CURRENT_USER_KEY);
+            const adminTab = document.getElementById('adminDashboardTab'); if (adminTab) adminTab.style.display = 'none';
+            const logoutBtn = document.getElementById('logoutButton'); if (logoutBtn) logoutBtn.style.display = 'none';
+            document.getElementById('historyContent').innerHTML = '';
+            const appContainerEl = document.getElementById('appContainer'); if(appContainerEl) appContainerEl.style.display = "none";
+            if(periodTimerInterval) clearInterval(periodTimerInterval); periodTimerInterval = null;
+            showLoginModal(true); showNotification('Logged out successfully.', 'info');
+        }
+    }
+
+    function changeMyHistoryEntriesPerPage(value) { myHistoryItemsPerPage = parseInt(value); saveMyHistoryItemsPerPageToStorage(); if (currentUserRole) fetchData(1, 'my', true); }
+    function changePage(delta) {
+        const newPage = currentPage + delta; if (newPage <= 0) return;
+        const activeTabForPaging = getActiveTab(); if (!currentUserRole) return;
+        if (activeTabForPaging === 'my') { const totalHistoryPages = Math.ceil(history.length / myHistoryItemsPerPage); if (newPage > totalHistoryPages && totalHistoryPages > 0 && delta > 0) return; }
+        else if (activeTabForPaging === 'game') { const totalGameHistoryPages = Math.ceil(cachedData.length / GAME_HISTORY_ITEMS_PER_PAGE); if (newPage > totalGameHistoryPages && totalGameHistoryPages > 0 && delta > 0) return; }
+        else if (activeTabForPaging === 'admin_dashboard') { return; }
+        fetchData(newPage, activeTabForPaging);
+    }
+    function showNotification(message, type = 'success') {
+        const n=document.getElementById('notification'), nt=document.getElementById('notificationText'); if(!n || !nt) return; nt.textContent = message; n.className = 'floating-notification'; const iconEl = n.querySelector('i');
+        if (type === 'success') { n.classList.add('success-bg'); if (iconEl) iconEl.className = 'fas fa-check-circle'; } else if (type === 'error') { n.classList.add('error-bg'); if (iconEl) iconEl.className = 'fas fa-exclamation-circle'; } else { n.classList.add('info-bg'); if (iconEl) iconEl.className = 'fas fa-info-circle'; }
+        n.style.color = 'var(--text-primary)'; n.classList.add('show'); setTimeout(() => n.classList.remove('show'), 3500);
+    }
+    function clearMyPredictions() {
+        if (!currentUserRole) { showNotification("Please login to manage predictions.", "error"); return; }
+        if (confirm("Are you sure you want to clear all your prediction history? This cannot be undone.")) {
+            history = []; saveMyHistoryToStorage();
+            resetSessionStatistics();
+            updateAccuracyDisplay(); fetchData(1, 'my', true); showNotification('My Predictions history cleared!', 'info');
+        }
+    }
+
+    function getManagedUsers() { return robustJsonParse(STORAGE_KEY_MANAGED_USERS, []); }
+    function saveManagedUsers(usersArray) { robustLocalStorageSetItem(STORAGE_KEY_MANAGED_USERS, JSON.stringify(usersArray));}
+    function generateAccessKey(length = 12) { const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; let key = 'U_'; for (let i = 0; i < length; i++) key += chars.charAt(Math.floor(Math.random() * chars.length)); return key; }
+    function calculateExpiryTimestamp(validityPeriod) {
+        const now = Date.now(); if (validityPeriod === "lifetime") return null;
+        let milliseconds; const unit = validityPeriod.slice(-1).toLowerCase(); const value = parseInt(validityPeriod.slice(0, -1));
+        if (isNaN(value)) return null;
+        if (unit === 'm') milliseconds = value * 60 * 1000;
+        else if (unit === 'h') milliseconds = value * 60 * 60 * 1000;
+        else if (unit === 'd') milliseconds = value * 24 * 60 * 60 * 1000;
+        else return null;
+        return now + milliseconds;
+    }
+    function formatDateForDisplay(timestamp, isShort = false) {
+        if (!timestamp) return "Lifetime";
+        const date = new Date(timestamp);
+        if (isShort) {
+            // More compact date/time for mobile if needed
+            return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getFullYear()).slice(-2)} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        }
+        return date.toLocaleString([], { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
+    }
+    function renderAdminDashboard() {
+        const totalManagedUsersEl = document.getElementById('totalManagedUsers'); const bannedManagedUsersEl = document.getElementById('bannedManagedUsers');
+        const listContainer = document.getElementById('managedUsersListContainer'); const createUserButton = document.getElementById('createUserKeyButton');
+        if (!listContainer || !totalManagedUsersEl || !bannedManagedUsersEl || !createUserButton ) { console.error("Admin panel elements not found in renderAdminDashboard."); return; }
+        const managedUsers = getManagedUsers(); totalManagedUsersEl.textContent = managedUsers.length; bannedManagedUsersEl.textContent = managedUsers.filter(u => u.isBanned).length; listContainer.innerHTML = '';
+        const headerDiv = document.createElement('div'); headerDiv.className = 'admin-list-header';
+        // Updated header text for clarity if needed
+        headerDiv.innerHTML = `<div class="history-header-item">Created</div><div class="history-header-item">User ID</div><div class="history-header-item">Access Key</div><div class="history-header-item" style="text-align:center;">Status</div><div class="history-header-item">Expires</div><div class="history-header-item" style="text-align:center;">Actions</div>`;
+        listContainer.appendChild(headerDiv);
+        if (managedUsers.length === 0) { listContainer.innerHTML += '<p style="text-align:center;padding:10px;color:var(--text-secondary);">No users created yet.</p>'; }
+        else {
+            managedUsers.sort((a, b) => b.createdAt - a.createdAt);
+            managedUsers.forEach(user => {
+                const itemDiv = document.createElement('div'); itemDiv.className = 'history-item managed-user-item';
+                let statusText = "Active"; let statusColor = 'var(--success)';
+                if (user.isBanned) { statusText = "Banned"; statusColor = 'var(--danger)'; }
+                else if (user.expiresAt && Date.now() > user.expiresAt) { statusText = "Expired"; statusColor = 'var(--warning)';}
+                const banButtonText = user.isBanned ? "Unban" : "Ban"; const banButtonClass = user.isBanned ? "unban-btn" : "ban-btn";
+                // Using user.username (which will be auto-generated) for User ID column
+                itemDiv.innerHTML = `<div class="history-value" title="${new Date(user.createdAt).toLocaleString()}">${formatDateForDisplay(user.createdAt, true)}</div><div class="history-value" title="${user.username}">${user.username}</div><div class="history-value" title="${user.accessKey}">${user.accessKey}</div><div class="history-value" style="color:${statusColor}; font-weight:bold;">${statusText}</div><div class="history-value" title="${user.expiresAt ? new Date(user.expiresAt).toLocaleString() : 'Lifetime'}">${formatDateForDisplay(user.expiresAt, true)}</div><div class="history-value"><button class="${banButtonClass} admin-action-btn" data-key="${user.accessKey}">${banButtonText}</button><button class="delete-btn admin-action-btn" data-key="${user.accessKey}">Delete</button></div>`;
+                listContainer.appendChild(itemDiv);
+            });
+        }
+        listContainer.querySelectorAll('.ban-btn, .unban-btn').forEach(button => { button.onclick = (e) => { const key = e.target.dataset.key; const users = getManagedUsers(); const user = users.find(u => u.accessKey === key); if (user) { user.isBanned = !user.isBanned; saveManagedUsers(users); renderAdminDashboard(); showNotification(`User ${key} ${user.isBanned ? 'banned' : 'unbanned'}.`, 'info'); } }; });
+        listContainer.querySelectorAll('.delete-btn').forEach(button => { button.onclick = (e) => { if (confirm(`Delete user ${e.target.dataset.key}? This action cannot be undone.`)) { let users = getManagedUsers(); users = users.filter(u => u.accessKey !== e.target.dataset.key); saveManagedUsers(users); renderAdminDashboard(); showNotification(`User ${e.target.dataset.key} deleted.`, 'info'); } }; });
+        
+        createUserButton.onclick = () => {
+            const validityPeriodSelect = document.getElementById('userValidityPeriod');
+            // const usernameInput = document.getElementById('newUsername'); // Removed
+            const generatedUserKeyEl = document.getElementById('generatedUserKey');
+            if (!validityPeriodSelect || /*!usernameInput ||*/ !generatedUserKeyEl) { console.error("Create user form elements missing!"); return; }
+            
+            const validityPeriod = validityPeriodSelect.value;
+            // const username = usernameInput.value.trim(); // Removed
+            const newKey = generateAccessKey(); 
+            const createdAt = Date.now(); 
+            const expiresAt = calculateExpiryTimestamp(validityPeriod);
+            
+            // Username is now auto-generated
+            const autoUsername = `User_${String(createdAt).slice(-5)}`;
+            const newUser = { 
+                accessKey: newKey, 
+                username: autoUsername, // Use auto-generated username
+                createdAt, 
+                validityPeriod, 
+                expiresAt, 
+                isBanned: false, 
+                role: 'user' 
+            };
+            const currentManagedUsers = getManagedUsers(); currentManagedUsers.push(newUser); saveManagedUsers(currentManagedUsers);
+            generatedUserKeyEl.textContent = `New Key: ${newKey} (User: ${autoUsername})`; 
+            // if(usernameInput) usernameInput.value = ''; // Removed
+            renderAdminDashboard(); showNotification(`User key ${newKey} for ${autoUsername} created.`, 'success');
+        };
+    }
+
+    const aboutModal=document.getElementById('aboutModal'), aboutModalLink=document.getElementById('aboutModalLink'), aboutModalCloseButton=document.getElementById('aboutModalCloseButton');
+    if(aboutModalLink) aboutModalLink.onclick = (e) => { e.preventDefault(); if(aboutModal) aboutModal.style.display="flex"; }
+    if(aboutModalCloseButton) aboutModalCloseButton.onclick = () => { if(aboutModal) aboutModal.style.display="none"; }
+    const contactModal = document.getElementById('contactModal'), contactModalLink = document.getElementById('contactModalLink'), contactModalCloseButton = document.getElementById('contactModalCloseButton');
+    if(contactModalLink) contactModalLink.onclick = (e) => { e.preventDefault(); if(contactModal) contactModal.style.display="flex"; }
+    if(contactModalCloseButton) contactModalCloseButton.onclick = () => { if(contactModal) contactModal.style.display="none"; }
+    window.onclick = (e) => { if (e.target == aboutModal && aboutModal) aboutModal.style.display="none"; if (e.target == contactModal && contactModal) contactModal.style.display="none"; }
+    const clearMyPredictionsBtn = document.getElementById('clearMyPredictionsBtn'); if (clearMyPredictionsBtn) { clearMyPredictionsBtn.onclick = clearMyPredictions; }
+    const loginButtonEl = document.getElementById('loginButton'); if (loginButtonEl) loginButtonEl.onclick = handleLoginAttempt;
+    const accessKeyInputEl = document.getElementById('accessKeyInput');
+    if (accessKeyInputEl) { accessKeyInputEl.addEventListener('keypress', function(event) { if (event.key === "Enter") { event.preventDefault(); handleLoginAttempt(); } }); }
+    const logoutButtonEl = document.getElementById('logoutButton'); if (logoutButtonEl) logoutButtonEl.onclick = handleLogout;
+    let periodTimerInterval = null;
+
+    window.onload = async () => {
+        console.log('Predict VIP King Pro (Optimized Admin, Debug Alert) Initialized.');
+        let loadedTheme = robustLocalStorageGetItem(STORAGE_KEY_THEME, 'dark'); applyTheme(loadedTheme);
+        currentUserRole = robustLocalStorageGetItem(STORAGE_KEY_USER_ROLE, null);
+        const storedUserKey = robustLocalStorageGetItem(STORAGE_KEY_CURRENT_USER_KEY, null);
+        let sessionStillValid = false;
+        if (currentUserRole === 'admin' && storedUserKey === ADMIN_ACCESS_KEY) { sessionStillValid = true; }
+        else if (currentUserRole === 'user' && storedUserKey) {
+            const managedUsers = getManagedUsers(); const foundUser = managedUsers.find(u => u.accessKey === storedUserKey);
+            if (foundUser && !foundUser.isBanned && (!foundUser.expiresAt || Date.now() <= foundUser.expiresAt)) { sessionStillValid = true; }
+        }
+        if (!sessionStillValid) { currentUserRole = null; localStorage.removeItem(STORAGE_KEY_USER_ROLE); localStorage.removeItem(STORAGE_KEY_CURRENT_USER_KEY); }
+        initializeUIBasedOnRole();
+        const themeToggleBtn = document.getElementById('themeToggleBtn'); if (themeToggleBtn) { themeToggleBtn.onclick = (e) => { e.preventDefault(); toggleTheme(); }; }
+    };
+</script>
+
+</body>
+</html>
